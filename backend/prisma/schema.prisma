@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  passwordHash String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile        UserProfile?
+  settings       UserSettings?
+  answers        CompatibilityAnswer[]
+  shortlists     Shortlist[]        @relation("UserShortlistOwner")
+  shortlistedBy  Shortlist[]        @relation("UserShortlistTarget")
+  createdRooms   ChatRoom[]         @relation("ChatRoomCreator")
+  participants   ChatRoomParticipant[]
+  messages       ChatMessage[]
+  resetTokens    PasswordResetToken[]
+}
+
+model UserProfile {
+  userId       String   @id
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName    String
+  lastName     String
+  nickname     String
+  birthDate    DateTime
+  school       String
+  collegeYear  String
+  originalCity String?
+  originalState String?
+  targetCity   String
+  targetState  String
+  targetZip    String
+  bio          String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model CompatibilityQuestion {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  text       String
+  helperText String?
+  type       String
+  options    Json?
+  category   String   @default("general")
+  isActive   Boolean  @default(true)
+  orderIndex Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  answers    CompatibilityAnswer[]
+}
+
+model CompatibilityAnswer {
+  id          String   @id @default(uuid())
+  userId      String
+  questionId  String
+  value       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question    CompatibilityQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+}
+
+model Shortlist {
+  id            String   @id @default(uuid())
+  ownerUserId   String
+  targetUserId  String
+  createdAt     DateTime @default(now())
+
+  owner   User @relation("UserShortlistOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  target  User @relation("UserShortlistTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerUserId, targetUserId])
+}
+
+model ChatRoom {
+  id               String   @id @default(uuid())
+  createdByUserId  String?
+  createdByUser    User?    @relation("ChatRoomCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  name             String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  participants     ChatRoomParticipant[]
+  messages         ChatMessage[]
+}
+
+model ChatRoomParticipant {
+  id          String   @id @default(uuid())
+  chatRoomId  String
+  userId      String
+  status      String   // 'pending', 'accepted', 'declined', 'removed', 'left'
+  role        String   // 'owner', 'member'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatRoomId, userId])
+  @@index([userId])
+  @@index([chatRoomId])
+}
+
+model ChatMessage {
+  id           String   @id @default(uuid())
+  chatRoomId   String
+  senderUserId String
+  text         String
+  createdAt    DateTime @default(now())
+
+  chatRoom     ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  sender       User     @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+
+  @@index([chatRoomId, createdAt])
+}
+
+model UserSettings {
+  userId                         String @id
+  user                           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNotificationsEnabled      Boolean @default(true)
+  chatInviteNotificationsEnabled Boolean @default(true)
+  marketingNotificationsEnabled  Boolean @default(false)
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  userId     String
+  token      String   @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
