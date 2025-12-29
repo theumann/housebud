@@ -4,16 +4,23 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
-    "db:reset": "npx prisma migrate reset --force",
+    "db:reset:dev": "dotenv -e .env -- prisma migrate reset --force",
+    "db:reset:test": "dotenv -e .env.test -- prisma migrate reset --force",
     "seed:questions": "npx tsx scripts/import-questions.ts data/compatibility_questions.csv",
     "seed:users": "npx tsx scripts/seed-dev.ts",
-    "seed:all": "npm run db:reset && npm run seed:questions && npm run seed:users"
+    "seed:all:dev": "npm run db:reset:dev && dotenv -e .env -- npm run seed:questions && dotenv -e .env -- npm run seed:users",
+    "seed:all:test": "npm run db:reset:test && dotenv -e .env.test -- npm run seed:questions && dotenv -e .env.test -- npm run seed:users",
+    "test": "vitest run",
+    "test:isolated": "vitest run --pool=forks --maxWorkers=1",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage",
+    "test:types": "tsc -p tsconfig.vitest.json --noEmit",
+    "test:api": "vitest run --dir tests/api"
   },
   "keywords": [],
   "author": "",
@@ -36,8 +43,16 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.1",
+    "@types/supertest": "^6.0.3",
+    "cross-env": "^10.1.0",
+    "dotenv-cli": "^11.0.0",
     "prisma": "^6.19.0",
+    "supertest": "^7.1.4",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
-  }
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  },
+  "test": "cross-env NODE_ENV=test vitest run",
+  "test:watch": "cross-env NODE_ENV=test vitest --watch",
+  "test:api": "cross-env NODE_ENV=test vitest run tests/api"
 }

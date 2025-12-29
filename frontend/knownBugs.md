@@ -1,4 +1,5 @@
 -   Signup: add current address or at least high school state
+-   Signup: check for already existing profiles
 -   Signup: College Year should be dropdown
 -   bug when inviting to chat (mot anymore?)
 -   21 per page instead of 20?
@@ -14,6 +15,9 @@
 
 Features - Todo:
 
+  
+
+-   social network integration
 -   Profile detail page with Last text question if answered and common questions answers.
 -   Remove from matches from Matches cards and when removing from shortlist
 -   Store profile/photos/avatars instead of url
@@ -98,10 +102,8 @@ From here, the highest-value next steps are:
         
     -   Replace polling with WebSockets later (you’re well positioned for it)
         
-    -     
-        
 
-curl.exe ^"http://localhost:4000/compatibility/answers^" ^
+curl.exe ^"[http://localhost:4000/compatibility/answers^](http://localhost:4000/compatibility/answers%5E)" ^
 
   -X PUT ^
 
@@ -113,13 +115,13 @@ curl.exe ^"http://localhost:4000/compatibility/answers^" ^
 
   -H ^"Accept-Encoding: gzip, deflate, br, zstd^" ^
 
-  -H ^"Referer: [http://localhost:3000/^"](http://localhost:3000/^ "http://localhost:3000/^") ^
+  -H ^"Referer: [http://localhost:3000/^"](http://localhost:3000/%5E "http://localhost:3000/^") ^
 
   -H ^"Content-Type: application/json^" ^
 
   -H ^"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhYmYyOWFiZi03YTRhLTRiZTktYWJhZi00N2ViMGQ3ZGNlMzUiLCJpYXQiOjE3NjYwOTU2ODIsImV4cCI6MTc2NjcwMDQ4Mn0.472J136ZHfi51eBlcwOkJTG-DQOWKmYnNRpxuP-72Ns^" ^
 
-  -H ^"Origin: [http://localhost:3000^"](http://localhost:3000^ "http://localhost:3000^") ^
+  -H ^"Origin: [http://localhost:3000^"](http://localhost:3000%5E "http://localhost:3000^") ^
 
   -H ^"Connection: keep-alive^" ^
 
