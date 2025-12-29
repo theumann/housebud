@@ -1,6 +1,17 @@
 import dotenv from "dotenv";
+import path from "path";
 
-dotenv.config();
+const envFile = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
+
+dotenv.config({
+  path: path.resolve(process.cwd(), envFile),
+});
+
+export const env = {
+  DATABASE_URL: process.env.DATABASE_URL!,
+  JWT_SECRET: process.env.JWT_SECRET!,
+  PORT: Number(process.env.PORT || 4000),
+};
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -13,9 +24,3 @@ if (!DATABASE_URL) {
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not set");
 }
-
-export const env = {
-  PORT,
-  DATABASE_URL,
-  JWT_SECRET,
-};
