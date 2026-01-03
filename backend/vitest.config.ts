@@ -6,5 +6,9 @@ export default defineConfig({
     include: ["tests/**/*.test.ts", "tests/**/*.spec.ts"],
     coverage: { provider: "v8" },
     setupFiles: ["tests/setup.ts"],
+    reporters: ['verbose'],
+    env: {
+      NODE_ENV: "test",
+    },
   },
 });

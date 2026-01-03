@@ -13,7 +13,7 @@ export async function getMyProfileHandler(
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const result = await getMyProfile(req.userId);
+    const result = await getMyProfile(req.prisma, req.userId);
     res.json(result);
   } catch (err) {
     next(err);
@@ -32,7 +32,7 @@ export async function updateMyProfileHandler(
 
     const input = ProfileUpdateSchema.parse(req.body);
 
-    const profile = await updateMyProfile(req.userId, input);
+    const profile = await updateMyProfile(req.prisma, req.userId, input);
     res.json(profile);
   } catch (err) {
     next(err);

@@ -16,11 +16,10 @@
     "seed:all:dev": "npm run db:reset:dev && dotenv -e .env -- npm run seed:questions && dotenv -e .env -- npm run seed:users",
     "seed:all:test": "npm run db:reset:test && dotenv -e .env.test -- npm run seed:questions && dotenv -e .env.test -- npm run seed:users",
     "test": "vitest run",
-    "test:isolated": "vitest run --pool=forks --maxWorkers=1",
+    "test:api": "vitest run tests/api",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
-    "test:types": "tsc -p tsconfig.vitest.json --noEmit",
-    "test:api": "vitest run --dir tests/api"
+    "test:types": "tsc -p tsconfig.vitest.json --noEmit"
   },
   "keywords": [],
   "author": "",

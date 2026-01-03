@@ -1,23 +1,23 @@
-import { prisma } from "../../src/config/db";
+import type { PrismaClient } from "@prisma/client";
 
-/**
- * Clears test data. Safe ordering to avoid FK constraint errors.
- * Keep this “deleteMany cascade” approach for portability across DBs.
- */
-export async function resetDb() {
-  await prisma.$transaction([
-    prisma.chatMessage.deleteMany(),
-    prisma.chatRoomParticipant.deleteMany(),
-    prisma.chatRoom.deleteMany(),
+export async function resetDb(prisma: PrismaClient) {
+  const url = process.env.DATABASE_URL;
 
-    prisma.shortlist.deleteMany(),
+  if (!url || !url.includes("schema=test_")) {
+    throw new Error("❌ resetDb called with non-test DATABASE_URL: ${url}");
+  }
 
-    prisma.compatibilityAnswer.deleteMany(),
-    prisma.compatibilityQuestion.deleteMany(),
+  // Order matters due to FKs
+  await prisma.chatMessage.deleteMany();
+  await prisma.chatRoomParticipant.deleteMany();
+  await prisma.chatRoom.deleteMany();
 
-    prisma.passwordResetToken.deleteMany(),
-    prisma.userSettings.deleteMany(),
-    prisma.userProfile.deleteMany(),
-    prisma.user.deleteMany(),
-  ]);
+  await prisma.compatibilityAnswer.deleteMany();
+  await prisma.compatibilityQuestion.deleteMany();
+
+  await prisma.shortlist.deleteMany();
+
+  await prisma.userSettings.deleteMany();
+  await prisma.userProfile.deleteMany();
+  await prisma.user.deleteMany();
 }

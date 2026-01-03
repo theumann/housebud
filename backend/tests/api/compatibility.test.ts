@@ -1,18 +1,32 @@
-import { describe, it, expect } from "vitest";
+import { beforeAll, afterEach, afterAll, describe, it, expect } from "vitest";
 import request from "supertest";
-import { app } from "../../src/app";
-import { signupUser, createQuestion, answerQuestions, getMyAnswers } from "../helpers/testFactory";
+import type { TestContext } from "../helpers/testFactory";
+import { signupUser, createQuestion, answerQuestions, getMyAnswers, createTestContext } from "../helpers/testFactory";
 import { resetDb } from "../helpers/resetDb";
 
-describe("Compatibility (API)", () => {
-  it("lists active questions and saves valid answers", async () => {
-    await resetDb();
+let ctx: TestContext;
 
-    const q1 = await createQuestion({ code: "Q1", text: "Question 1?", options: ["A", "B"], isActive: true });
-    const q2 = await createQuestion({ code: "Q2", text: "Question 2?",options: ["X", "Y"], isActive: true });
-    await createQuestion({ code: "INACTIVE", text: "Inactive", options: ["1"], isActive: false });
+describe.sequential("Compatibility (API)", () => {
 
-    const { token } = await signupUser({
+  beforeAll(() => {
+    ctx = createTestContext();
+  });
+
+  afterEach(async () => {
+    await resetDb(ctx.prisma);
+  });
+
+  afterAll(async () => {
+    await ctx.prisma.$disconnect();
+  });
+
+    it("lists active questions and saves valid answers", async () => {
+    await resetDb(ctx.prisma);
+    const q1 = await createQuestion(ctx, { code: "Q1", text: "Question 1?", options: ["A", "B"], isActive: true });
+    const q2 = await createQuestion(ctx, { code: "Q2", text: "Question 2?",options: ["X", "Y"], isActive: true });
+    await createQuestion(ctx, { code: "INACTIVE", text: "Inactive", options: ["1"], isActive: false });
+
+    const { token } = await signupUser(ctx, {
       email: "a@test.com",
       password: "Password123!",
       firstName: "A",
@@ -26,7 +40,7 @@ describe("Compatibility (API)", () => {
       targetZip: "94117",
     });
 
-    const qsRes = await request(app)
+    const qsRes = await request(ctx.app)
       .get("/compatibility/questions")
       .set("Authorization", `Bearer ${token}`);
     expect(qsRes.status).toBe(200);
@@ -35,23 +49,23 @@ describe("Compatibility (API)", () => {
     expect(ids).toContain(q2.id);
     expect(ids).not.toContain("INACTIVE"); // not perfect, but fine for smoke
 
-    await answerQuestions(token, [
+    await answerQuestions(ctx, token, [
       { questionId: q1.id, value: "A" },
       { questionId: q2.id, value: "Y" },
     ]);
 
-    const mine = await getMyAnswers(app, token);
+    const mine = await getMyAnswers(ctx.app, token);
     const map = new Map(mine.map((a) => [a.questionId, a.value]));
     expect(map.get(q1.id)).toBe("A");
     expect(map.get(q2.id)).toBe("Y");
   });
 
   it("rejects invalid option values with 400", async () => {
-    await resetDb();
+    await resetDb(ctx.prisma);
 
-    const q1 = await createQuestion({ code: "Q1", text: "Question 1?", options: ["A", "B"], isActive: true });
+    const q1 = await createQuestion(ctx, { code: "Q1", text: "Question 1?", options: ["A", "B"], isActive: true });
 
-    const { token } = await signupUser({
+    const { token } = await signupUser(ctx, {
       email: "b@test.com",
       password: "Password123!",
       firstName: "B",
@@ -65,7 +79,7 @@ describe("Compatibility (API)", () => {
       targetZip: "94117",
     });
 
-    const res = await request(app)
+    const res = await request(ctx.app)
       .put("/compatibility/answers/me")
       .set("Authorization", `Bearer ${token}`)
       .send([{ questionId: q1.id, value: "NOT_AN_OPTION" }]);

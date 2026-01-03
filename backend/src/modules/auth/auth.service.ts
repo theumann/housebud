@@ -1,10 +1,10 @@
-import { prisma } from "../../config/db";
+import type { PrismaClient } from "@prisma/client";
 import { SignupInput, LoginInput } from "./auth.types";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env";
 
-export async function signup(input: SignupInput) {
+export async function signup(prisma: PrismaClient, input: SignupInput) {
   const existing = await prisma.user.findUnique({
     where: { email: input.email },
   });
@@ -51,7 +51,7 @@ export async function signup(input: SignupInput) {
   return { token, user };
 }
 
-export async function login(input: LoginInput) {
+export async function login(prisma: PrismaClient, input: LoginInput) {
   const user = await prisma.user.findUnique({
     where: { email: input.email },
     include: { profile: true },

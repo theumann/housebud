@@ -1,5 +1,6 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../../middleware/authMiddleware";
+import type { PrismaClient } from "@prisma/client";
 import {
   CompatibilityAnswersUpdateSchema,
 } from "./compatibility.types";
@@ -10,12 +11,13 @@ import {
 } from "./compatibility.service";
 
 export async function getQuestionsHandler(
-  _req: AuthRequest,
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const questions = await getActiveQuestions();
+    const prisma = (req as any).prisma as PrismaClient;
+    const questions = await getActiveQuestions(prisma);
     res.json(questions);
   } catch (err) {
     next(err);
@@ -28,11 +30,12 @@ export async function getMyAnswersHandler(
   next: NextFunction
 ) {
   try {
+    const prisma = (req as any).prisma as PrismaClient;
     if (!req.userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const result = await getMyAnswers(req.userId);
+    const result = await getMyAnswers(prisma, req.userId);
     res.json(result);
   } catch (err) {
     next(err);
@@ -45,13 +48,14 @@ export async function updateMyAnswersHandler(
   next: NextFunction
 ) {
   try {
+    const prisma = (req as any).prisma as PrismaClient;
     if (!req.userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     const input = CompatibilityAnswersUpdateSchema.parse(req.body);
 
-    const result = await updateMyAnswers(req.userId, input);
+    const result = await updateMyAnswers(prisma, req.userId, input);
     res.json(result);
   } catch (err) {
     next(err);
