@@ -1,7 +1,7 @@
-import { prisma } from "../../config/db";
+import type { PrismaClient } from "@prisma/client";
 import { ProfileUpdateInput } from "./profile.types";
 
-export async function getMyProfile(userId: string) {
+export async function getMyProfile(prisma: PrismaClient, userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
@@ -27,7 +27,7 @@ export async function getMyProfile(userId: string) {
   };
 }
 
-export async function updateMyProfile(userId: string, input: ProfileUpdateInput) {
+export async function updateMyProfile(prisma: PrismaClient, userId: string, input: ProfileUpdateInput) {
   // Prepare update data
   const data: any = { ...input };
 
@@ -36,7 +36,7 @@ export async function updateMyProfile(userId: string, input: ProfileUpdateInput)
   }
 
   // Ensure profile exists; signup should always create it, but upsert is safer
-  const profile = await prisma.userProfile.upsert({
+  return prisma.userProfile.upsert({
     where: { userId },
     update: data,
     create: {
@@ -56,6 +56,4 @@ export async function updateMyProfile(userId: string, input: ProfileUpdateInput)
       avatarUrl: input.avatarUrl ?? null,
     },
   });
-
-  return profile;
 }

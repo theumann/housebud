@@ -1,9 +1,7 @@
 // src/modules/compatibility/compatibility.service.ts
 
-import { prisma } from "../../config/db";
-import {
-  CompatibilityAnswersUpdateInput,
-} from "./compatibility.types";
+import type { PrismaClient } from "@prisma/client";
+import { CompatibilityAnswersUpdateInput } from "./compatibility.types";
 
 type QuestionWithOptions = {
   id: string;
@@ -14,12 +12,11 @@ type QuestionWithOptions = {
 /**
  * Get all active compatibility questions (for the form).
  */
-export async function getActiveQuestions() {
+export async function getActiveQuestions(prisma: PrismaClient) {
   const questions = await prisma.compatibilityQuestion.findMany({
     where: { isActive: true },
     orderBy: { orderIndex: "asc" },
   });
-
   return questions;
 }
 
@@ -27,7 +24,7 @@ export async function getActiveQuestions() {
  * Compute stats: how many active questions, how many answered by this user,
  * and whether they meet the 20% threshold.
  */
-export async function getUserCompatibilityStats(userId: string) {
+export async function getUserCompatibilityStats(prisma: PrismaClient, userId: string) {
   const activeQuestions = await prisma.compatibilityQuestion.findMany({
     where: { isActive: true },
     select: { id: true },
@@ -72,7 +69,7 @@ export async function getUserCompatibilityStats(userId: string) {
 /**
  * Get current user's answers + stats.
  */
-  export async function getMyAnswers(userId: string) {
+  export async function getMyAnswers(prisma: PrismaClient, userId: string) {
     const questions = await prisma.compatibilityQuestion.findMany({
       where: { isActive: true },
       orderBy: { orderIndex: "asc" },
@@ -97,7 +94,7 @@ export async function getUserCompatibilityStats(userId: string) {
       },
     });
 
-    const stats = await getUserCompatibilityStats(userId);
+    const stats = await getUserCompatibilityStats(prisma, userId);
 
     return {
       questions,
@@ -106,6 +103,7 @@ export async function getUserCompatibilityStats(userId: string) {
     };
   }
   export async function updateMyAnswers(
+    prisma: PrismaClient,
     userId: string,
     inputs: CompatibilityAnswersUpdateInput
   ) {
@@ -168,5 +166,5 @@ export async function getUserCompatibilityStats(userId: string) {
       ),
     ]);
 
-    return await getMyAnswers(userId);
+    return await getMyAnswers(prisma, userId);
   }

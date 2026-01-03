@@ -1,16 +1,30 @@
 import request from "supertest";
-import { app } from "../../src/app";
-import { prisma } from "../../src/config/db";
+import type { PrismaClient } from "@prisma/client";
+import type { Express } from "express";
+import { createApp } from "../../src/app";
+import { createPrisma } from "../../src/config/prisma";
 import { expect } from "vitest";
+
+export interface TestContext {
+  prisma: PrismaClient;
+  app: Express;
+}
+
+export function createTestContext(): TestContext {
+  const prisma = createPrisma();
+  const app = createApp(prisma);
+  return { prisma, app };
+}
 
 type SignupResult = {
   token: string;
-  userId?: string; // if your /auth/signup returns it (optional)
+  userId?: string; // optional
 };
 
 let userSeq = 1;
 
-export async function signupUser(params?: Partial<{
+
+export async function signupUser(ctx: TestContext, params?: Partial<{
   email: string;
   password: string;
   firstName: string;
@@ -39,7 +53,9 @@ export async function signupUser(params?: Partial<{
     targetZip: params?.targetZip ?? "94117",
   };
 
-  const res = await request(app).post("/auth/signup").send(body);
+  const res = await request(ctx.app)
+    .post("/auth/signup")
+    .send(body);
 
   if (res.status !== 201) {
     throw new Error(`signup failed ${res.status}: ${JSON.stringify(res.body)}`);
@@ -49,7 +65,7 @@ export async function signupUser(params?: Partial<{
   if (!token) throw new Error(`signup missing token: ${JSON.stringify(res.body)}`);
 
   // Get userId reliably
-  const me = await request(app)
+  const me = await request(ctx.app)
     .get("/profile/me")
     .set("Authorization", `Bearer ${token}`);
 
@@ -59,14 +75,14 @@ export async function signupUser(params?: Partial<{
   return { token, userId, body };
 }
 
-export async function setProfileCreatedAt(userId: string, createdAt: Date) {
-  await prisma.userProfile.update({
+export async function setProfileCreatedAt(ctx: TestContext, userId: string, createdAt: Date) {
+  await ctx.prisma.userProfile.update({
     where: { userId },
     data: { createdAt, updatedAt: createdAt },
   });
 }
 
-export async function createQuestion(params: {
+export async function createQuestion(ctx: TestContext, params: {
   code: string;
   text: string;
   options?: string[] | null;
@@ -76,7 +92,7 @@ export async function createQuestion(params: {
   orderIndex?: number;
   type?: "single_choice" | "scale_1_5" | "free_text";
 }) {
-  return prisma.compatibilityQuestion.create({
+  return ctx.prisma.compatibilityQuestion.create({
     data: {
       code: params.code,
       text: params.text,
@@ -99,8 +115,8 @@ export async function loginUser(app: any, email: string, password: string) {
   };
 }
 
-export async function answerQuestions(token: string, answers: { questionId: string; value: string }[]) {
-  const res = await request(app)
+export async function answerQuestions(ctx: TestContext, token: string, answers: { questionId: string; value: string }[]) {
+  const res = await request(ctx.app)
     .put("/compatibility/answers/me")
     .set("Authorization", `Bearer ${token}`)
     .send(answers);
@@ -111,35 +127,35 @@ export async function answerQuestions(token: string, answers: { questionId: stri
   return res.body;
 }
 
-export async function createRoom(token: string, participantIds: string[], name?: string) {
+export async function createRoom(ctx: TestContext, token: string, participantIds: string[], name?: string) {
   const body: any = { participantIds };
   if (name) body.name = name;
 
-  const res = await request(app)
+  const res = await request(ctx.app)
     .post("/chatrooms")
     .set("Authorization", `Bearer ${token}`)
     .send(body);
 
-  if (res.status !== 200) {
+  if (res.status !== 201) {
     throw new Error(`createRoom failed ${res.status}: ${JSON.stringify(res.body)}`);
   }
   return res.body as { roomId: string };
 }
 
-export async function sendMessage(token: string, roomId: string, text: string) {
-  const res = await request(app)
+export async function sendMessage(ctx: TestContext, token: string, roomId: string, text: string) {
+  const res = await request(ctx.app)
     .post(`/chatrooms/${roomId}/messages`)
     .set("Authorization", `Bearer ${token}`)
     .send({ text });
 
-  if (res.status !== 200) {
+  if (res.status !== 201) {
     throw new Error(`sendMessage failed ${res.status}: ${JSON.stringify(res.body)}`);
   }
   return res.body;
 }
 
-export async function listRooms(token: string) {
-  const res = await request(app)
+export async function listRooms(ctx: TestContext, token: string) {
+  const res = await request(ctx.app)
     .get("/chatrooms")
     .set("Authorization", `Bearer ${token}`);
 

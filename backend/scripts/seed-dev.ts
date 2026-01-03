@@ -1,7 +1,10 @@
-import { prisma } from "../src/config/db";
 import { faker } from "@faker-js/faker";
-import { Prisma } from "@prisma/client";
-import bcrypt from "bcrypt";
+import { PrismaClient, Prisma } from "@prisma/client";
+import bcrypt from "bcrypt";import "dotenv/config";
+import { assertSafeSeedEnv } from "./_guards";
+
+assertSafeSeedEnv("dev");
+const prisma = new PrismaClient();
 
 type SeedPlan = {
   totalUsers: number;

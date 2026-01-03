@@ -1,4 +1,4 @@
-import { prisma } from "../../config/db";
+import type { PrismaClient } from "@prisma/client";
 
 type MatchCandidate = {
   userId: string;
@@ -51,7 +51,7 @@ function calculateAge(birthDate: Date | null): number | null {
   return age;
 }
 
-export async function getMatchesForUser(
+export async function getMatchesForUser(prisma: PrismaClient, 
   userId: string,
   page: number = 1,
   limit: number = 20

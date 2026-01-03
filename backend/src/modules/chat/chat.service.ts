@@ -1,4 +1,4 @@
-import { prisma } from "../../config/db";
+import type { PrismaClient } from "@prisma/client";
 import {
   CreateChatRoomInput,
   InviteToChatInput,
@@ -50,7 +50,7 @@ type ChatRoomDetail = {
   participantsCount: number;
 };
 
-async function getAcceptedRoomCount(userId: string): Promise<number> {
+async function getAcceptedRoomCount(prisma: PrismaClient, userId: string): Promise<number> {
   const count = await prisma.chatRoomParticipant.count({
     where: {
       userId,
@@ -60,8 +60,8 @@ async function getAcceptedRoomCount(userId: string): Promise<number> {
   return count;
 }
 
-async function ensureCanJoinAnotherRoom(userId: string) {
-  const count = await getAcceptedRoomCount(userId);
+async function ensureCanJoinAnotherRoom(prisma: PrismaClient, userId: string) {
+  const count = await getAcceptedRoomCount(prisma, userId);
   if (count >= 3) {
     const err: any = new Error("User is already in the maximum number of rooms (3)");
     err.status = 400;
@@ -70,6 +70,7 @@ async function ensureCanJoinAnotherRoom(userId: string) {
 }
 
 export async function listChatRoomsForUser(
+  prisma: PrismaClient,
   userId: string
 ): Promise<{ rooms: RoomSummary[]; invites: RoomSummary[] }> {
   const participants = await prisma.chatRoomParticipant.findMany({
@@ -123,6 +124,7 @@ export async function listChatRoomsForUser(
 }
 
 export async function createChatRoom(
+  prisma: PrismaClient,
   ownerUserId: string,
   input: CreateChatRoomInput
 ): Promise<{ roomId: string }> {
@@ -142,7 +144,7 @@ export async function createChatRoom(
   }
 
   // Enforce: owner can be in at most 3 accepted rooms
-  await ensureCanJoinAnotherRoom(ownerUserId);
+  await ensureCanJoinAnotherRoom(prisma, ownerUserId);
 
   // Filter out duplicates and self from participants
   const uniqueParticipantIds = Array.from(
@@ -208,6 +210,7 @@ export async function createChatRoom(
 }
 
 export async function inviteToChatRoom(
+  prisma: PrismaClient,
   requesterId: string,
   roomId: string,
   input: InviteToChatInput
@@ -283,6 +286,7 @@ const requester = room.participants.find(
 }
 
 export async function respondToInvite(
+  prisma: PrismaClient,
   userId: string,
   roomId: string,
   accept: boolean
@@ -315,7 +319,7 @@ export async function respondToInvite(
   }
 
   // Accepting: enforce 3-room limit
-  await ensureCanJoinAnotherRoom(userId);
+  await ensureCanJoinAnotherRoom(prisma, userId);
 
   await prisma.chatRoomParticipant.update({
     where: { id: participant.id },
@@ -324,6 +328,7 @@ export async function respondToInvite(
 }
 
 export async function getChatRoomDetailsForUser(
+  prisma: PrismaClient,
   userId: string,
   roomId: string
 ): Promise<ChatRoomDetail> {
@@ -367,6 +372,7 @@ export async function getChatRoomDetailsForUser(
 }
 
 export async function renameChatRoom(
+  prisma: PrismaClient,
   requesterId: string,
   roomId: string,
   input: UpdateChatRoomInput
@@ -404,6 +410,7 @@ export async function renameChatRoom(
 
 
 export async function leaveChatRoom(
+  prisma: PrismaClient,
   userId: string,
   roomId: string
 ): Promise<void> {
@@ -480,6 +487,7 @@ export async function leaveChatRoom(
 }
 
 export async function kickParticipant(
+  prisma: PrismaClient,
   requesterId: string,
   roomId: string,
   targetUserId: string
@@ -543,6 +551,7 @@ const target = room.participants.find(
 }
 
 export async function getMessages(
+  prisma: PrismaClient, 
   userId: string,
   roomId: string,
   after?: Date,
@@ -592,6 +601,7 @@ export async function getMessages(
 }
 
 export async function sendMessage(
+  prisma: PrismaClient,
   userId: string,
   roomId: string,
   input: SendMessageInput

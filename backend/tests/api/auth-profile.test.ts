@@ -1,22 +1,30 @@
 import request from "supertest";
-import {app} from "../../src/app";
-import { prisma, resetDb } from "../helpers/db";
-import { describe, beforeEach, afterAll, it, expect } from "vitest";
+import { resetDb } from "../helpers/resetDb";
+import type { TestContext } from "../helpers/testFactory";
+import { createTestContext } from "../helpers/testFactory";
+import { describe, beforeAll, beforeEach, afterAll, it, expect } from "vitest";
 
-describe("Auth + Profile (smoke)", () => {
-  beforeEach(async () => {
-    await resetDb();
+let ctx: TestContext;
+
+describe.sequential("Auth + Profile (smoke)", () => {
+    beforeAll(() => {
+        ctx = createTestContext();
+    });
+
+    beforeEach(async () => {
+        await resetDb(ctx.prisma);
   });
 
   afterAll(async () => {
-    await prisma.$disconnect();
+    await ctx.prisma.$disconnect();
   });
+
 
   it("signup -> login -> get profile/me", async () => {
     const email = "john@example.com";
     const password = "Password123!";
 
-    const signup = await request(app).post("/auth/signup").send({
+    const signup = await request(ctx.app).post("/auth/signup").send({
       email,
       password,
       firstName: "John",
@@ -33,12 +41,12 @@ describe("Auth + Profile (smoke)", () => {
     expect(signup.status).toBe(201);
     expect(signup.body.token).toBeTruthy();
 
-    const login = await request(app).post("/auth/login").send({ email, password });
+    const login = await request(ctx.app).post("/auth/login").send({ email, password });
     expect(login.status).toBe(200);
     const token = login.body.token;
     expect(token).toBeTruthy();
 
-    const me = await request(app)
+    const me = await request(ctx.app)
       .get("/profile/me")
       .set("Authorization", `Bearer ${token}`);
 
@@ -53,7 +61,7 @@ describe("Auth + Profile (smoke)", () => {
     const email = "a@example.com";
     const password = "Password123!";
 
-    const signup = await request(app).post("/auth/signup").send({
+    const signup = await request(ctx.app).post("/auth/signup").send({
       email,
       password,
       firstName: "A",
@@ -69,7 +77,7 @@ describe("Auth + Profile (smoke)", () => {
 
     const token = signup.body.token;
 
-    const patch = await request(app)
+    const patch = await request(ctx.app)
       .patch("/profile/me")
       .set("Authorization", `Bearer ${token}`)
       .send({ avatarUrl: "https://example.com/a.png" });

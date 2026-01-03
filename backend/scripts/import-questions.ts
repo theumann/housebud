@@ -1,8 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parse } from "csv-parse/sync";
-import { prisma } from "../src/config/db";
-import { Prisma } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
+import "dotenv/config";
+import { assertSafeSeedEnv } from "./_guards";
+
+assertSafeSeedEnv("dev");
+const prisma = new PrismaClient();
 
 type Row = {
   code: string;
