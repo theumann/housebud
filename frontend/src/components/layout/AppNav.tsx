@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/Button";
 import { useChatroomsFeed } from "@/context/ChatroomsFeedContext";
+import { getUserDisplayName } from "@/lib/displayName";
 
 const links = [
   { href: "/matches", label: "Matches" },
@@ -81,12 +82,21 @@ export function AppNav() {
         <div className="flex items-center gap-2 text-xs">
           {user && (
             <Link
-                href="/profile"
-                className="data-testid='nav-profile' hidden text-gray-600 underline-offset-2 hover:underline sm:inline"
+              href="/profile"
+              data-testid="nav-profile" 
+              className="hidden text-gray-600 underline-offset-2 hover:underline sm:inline"
             >
-              {user.profile?.nickname
-                ? `Hi, ${user.profile.nickname}`
-                : user.email}
+              {user
+                ? `Hi, ${getUserDisplayName({
+                    username: user.username,
+                    profile: {
+                      displayName: user.profile?.displayName,
+                      firstName: user.profile?.firstName,
+                      lastName: user.profile?.lastName,
+                    },
+                  })}`
+                : ""
+              }
             </Link>
           )}
           <Button

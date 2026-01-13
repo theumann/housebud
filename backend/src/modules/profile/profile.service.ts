@@ -43,7 +43,7 @@ export async function updateMyProfile(prisma: PrismaClient, userId: string, inpu
       userId,
       firstName: input.firstName ?? "First",
       lastName: input.lastName ?? "Last",
-      nickname: input.nickname ?? "nickname",
+      displayName: input.displayName ?? null,
       birthDate: input.birthDate ? new Date(input.birthDate) : new Date("2000-01-01"),
       school: input.school ?? "Unknown",
       collegeYear: input.collegeYear ?? "Unknown",

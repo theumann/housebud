@@ -7,7 +7,7 @@ type UserProfile = {
   id: string;
   email: string;
   profile: {
-    nickname: string;
+    displayName: string | null;
     school: string;
     collegeYear: string;
     targetCity: string;
@@ -32,7 +32,8 @@ type SignupPayload = {
   password: string;
   firstName: string;
   lastName: string;
-  nickname: string;
+  displayName: string | null;
+  username: string;
   birthDate: string;
   school: string;
   collegeYear: string;
@@ -67,13 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string) => {
     const res = await apiFetch<{
       token: string;
       user: UserProfile;
     }>("/auth/login", {
       method: "POST",
-      body: { email, password },
+      body: { identifier, password },
     });
 
     setToken(res.token);

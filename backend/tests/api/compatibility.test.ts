@@ -1,21 +1,19 @@
-import { beforeAll, afterEach, afterAll, describe, it, expect } from "vitest";
+import { beforeAll, beforeEach, afterAll, describe, it, expect } from "vitest";
 import request from "supertest";
 import type { TestContext } from "../helpers/testFactory";
-import { signupUser, createQuestion, answerQuestions, getMyAnswers, createTestContext } from "../helpers/testFactory";
+import { getTestContext } from "../helpers/testContext";
+import { signupUser, createQuestion, answerQuestions, getMyAnswers } from "../helpers/testFactory";
 import { resetDb } from "../helpers/resetDb";
 
 let ctx: TestContext;
 
 describe.sequential("Compatibility (API)", () => {
-
   beforeAll(() => {
-    ctx = createTestContext();
+    ctx = getTestContext();
   });
-
-  afterEach(async () => {
+  beforeEach(async () => {
     await resetDb(ctx.prisma);
   });
-
   afterAll(async () => {
     await ctx.prisma.$disconnect();
   });
@@ -31,7 +29,8 @@ describe.sequential("Compatibility (API)", () => {
       password: "Password123!",
       firstName: "A",
       lastName: "A",
-      nickname: "AA",
+      username: "aaa",
+      displayName: "AAA",
       birthDate: "2005-09-15",
       school: "USF",
       collegeYear: "Freshman",
@@ -70,7 +69,8 @@ describe.sequential("Compatibility (API)", () => {
       password: "Password123!",
       firstName: "B",
       lastName: "B",
-      nickname: "BB",
+      username: "bbb",
+      displayName: "BBB",
       birthDate: "2005-09-15",
       school: "USF",
       collegeYear: "Freshman",

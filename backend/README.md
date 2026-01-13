@@ -8,17 +8,17 @@ The backend exposes a REST API consumed by the Next.js frontend.
 
 **Backend**
 
-- Node.js + TypeScript  
-- Express HTTP API  
-- PostgreSQL (via Docker)  
-- Prisma ORM (code-first schema + migrations)  
-- JWT-based stateless authentication  
-- Modular structure (auth, profile, compatibility, matches, chat)
+-   Node.js + TypeScript
+-   Express HTTP API
+-   PostgreSQL (via Docker)
+-   Prisma ORM (code-first schema + migrations)
+-   JWT-based stateless authentication
+-   Modular structure (auth, profile, compatibility, matches, chat)
 
 **Runtime**
 
-- Backend runs on `http://localhost:4000`  
-- Frontend runs on its own dev port (e.g. `http://localhost:3000`) and calls the backend API
+-   Backend runs on `http://localhost:4000`
+-   Frontend runs on its own dev port (e.g. `http://localhost:3000`) and calls the backend API
 
 ---
 
@@ -26,38 +26,19 @@ The backend exposes a REST API consumed by the Next.js frontend.
 
 ### Tech Stack
 
-- **Runtime**: Node.js 22.x  
-- **Language**: TypeScript  
-- **Web framework**: Express  
-- **ORM**: Prisma (v6)  
-- **Database**: PostgreSQL (Docker container)  
-- **Validation**: Zod  
-- **Auth**: JWT (`Authorization: Bearer <token>`), bcrypt for password hashing
+-   **Runtime**: Node.js 22.x
+-   **Language**: TypeScript
+-   **Web framework**: Express
+-   **ORM**: Prisma (v6)
+-   **Database**: PostgreSQL (Docker container)
+-   **Validation**: Zod
+-   **Auth**: JWT (`Authorization: Bearer <token>`), bcrypt for password hashing
 
 ### Folder Structure (backend)
 
-```text  
-backend/  
-  src/  
-    app.ts              # Express app wiring  
-    server.ts            # HTTP server bootstrap  
-    config/  
-      db.ts              # Prisma client  
-      env.ts            # Environment variables  
-    middleware/  
-      authMiddleware.ts  # JWT auth, attaches userId to request  
-      errorHandler.ts    # Centralized error handling  
-    modules/  
-      auth/              # signup, login, logout  
-      profile/          # user profile CRUD  
-      compatibility/    # questions + answers for roommate matching  
-      matches/          # roommate match listing + scoring  
-      chat/              # chat rooms + messages (polling)  
-  prisma/  
-    schema.prisma        # DB schema (source of truth)  
-  .env                  # DATABASE_URL, JWT_SECRET, etc.
+```text
+backend/    src/      app.ts              # Express app wiring      server.ts            # HTTP server bootstrap      config/        db.ts              # Prisma client        env.ts            # Environment variables      middleware/        authMiddleware.ts  # JWT auth, attaches userId to request        errorHandler.ts    # Centralized error handling      modules/        auth/              # signup, login, logout        profile/          # user profile CRUD        compatibility/    # questions + answers for roommate matching        matches/          # roommate match listing + scoring        chat/              # chat rooms + messages (polling)    prisma/      schema.prisma        # DB schema (source of truth)    .env                  # DATABASE_URL, JWT_SECRET, etc.
 ```
-  
 
 ### Core Backend Modules
 
@@ -90,13 +71,13 @@ Responsibilities:
 
 -   Store core roommate-related profile information:
     
-    -   first name, last name, nickname
+    -   first name, last name, username
         
     -   DOB, school, college year
         
     -   target city/state/zip
         
-    -   optional fields: original city/state, bio, avatar URL
+    -   optional fields: displayName, original city/state, bio, avatar URL
         
 -   Used in matching and in UI cards
     
@@ -128,7 +109,6 @@ Responsibilities:
 #### 4. Matches
 
 -   `GET /matches?page=&limit=`
-    
 
 Responsibilities:
 
@@ -159,7 +139,7 @@ Responsibilities:
 
 Returns a list of match “cards” with:
 
--   basic profile info (nickname, age, school, location, bio, avatar)
+-   basic profile info (displayname (or username if no displayName), age, school, location, bio, avatar)
     
 -   `score`, `coverage`, `hasMinCompatData`
     
@@ -225,7 +205,7 @@ Rules:
 
 **User**
 
--   Auth data (email, password hash)
+-   Auth data (identifier, password hash)
     
 -   One-to-one with `UserProfile`
     
@@ -235,12 +215,10 @@ Rules:
 **UserProfile**
 
 -   Personal + roommate-relevant data (school, year, target location, etc.)
-    
 
 **UserSettings**
 
 -   Notification preferences (foundation laid, can be expanded later)
-    
 
 **CompatibilityQuestion**
 

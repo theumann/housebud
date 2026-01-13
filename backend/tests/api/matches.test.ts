@@ -1,22 +1,20 @@
-import { describe, it, expect, beforeAll, afterEach, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import request from "supertest";
 import type { TestContext } from "../helpers/testFactory";
-import { signupUser, createQuestion, answerQuestions, createTestContext } from "../helpers/testFactory";
+import { signupUser, createQuestion, answerQuestions } from "../helpers/testFactory";
+import { getTestContext } from "../helpers/testContext";
 import { resetDb } from "../helpers/resetDb";
 import { setProfileCreatedAt } from "../helpers/testFactory";
 
 let ctx: TestContext;
 
 describe.sequential("Matches", () => {
-
     beforeAll(() => {
-        ctx = createTestContext();
+        ctx = getTestContext();
     });
-
-  afterEach(async () => {
+  beforeEach(async () => {
     await resetDb(ctx.prisma);
   });
-
   afterAll(async () => {
     await ctx.prisma.$disconnect();
   });
@@ -24,12 +22,12 @@ describe.sequential("Matches", () => {
     describe("Matches Filtering and Sorting", () => {
 
         it("filters candidates by 3-digit targetZip prefix and excludes self", async () => {
-            const me = await signupUser(ctx, { targetZip: "94117", nickname: "me" });
+            const me = await signupUser(ctx, { targetZip: "94117", displayName: "me1" });
 
-            const samePrefix1 = await signupUser(ctx, { targetZip: "94110", nickname: "same1" });
-            const samePrefix2 = await signupUser(ctx, { targetZip: "94199", nickname: "same2" });
+            const samePrefix1 = await signupUser(ctx, { targetZip: "94110", displayName: "same1" });
+            const samePrefix2 = await signupUser(ctx, { targetZip: "94199", displayName: "same2" });
 
-            const otherPrefix = await signupUser(ctx, { targetZip: "94016", nickname: "other" }); // different prefix
+            const otherPrefix = await signupUser(ctx, { targetZip: "94016", displayName: "other" }); // different prefix
 
             const res = await request(ctx.app)
                 .get("/matches?page=1")
@@ -50,9 +48,9 @@ describe.sequential("Matches", () => {
         });
 
         it("computes score when both users have >=20% coverage and shared answers", async () => {
-            const me = await signupUser(ctx, { nickname: "me", targetZip: "94117" });
-            const a = await signupUser(ctx, { nickname: "a", targetZip: "94111" }); // same prefix
-            const b = await signupUser(ctx, { nickname: "b", targetZip: "94112" }); // same prefix
+            const me = await signupUser(ctx, { displayName: "me1", targetZip: "94117" });
+            const a = await signupUser(ctx, { displayName: "aaa", targetZip: "94111" }); // same prefix
+            const b = await signupUser(ctx, { displayName: "bbb", targetZip: "94112" }); // same prefix
 
             // 10 active questions
             const qs = await Promise.all(
@@ -112,7 +110,7 @@ describe.sequential("Matches", () => {
         it("orders scored first by score desc, then createdAt desc", async () => {
             await resetDb(ctx.prisma);
 
-            const me = await signupUser(ctx, { nickname: "me", targetZip: "94117" });
+            const me = await signupUser(ctx, { displayName: "me1", targetZip: "94117" });
 
             // 10 active questions
             const qs = await Promise.all(
@@ -133,9 +131,9 @@ describe.sequential("Matches", () => {
             { questionId: qs[1].id, value: "A" },
             ]);
 
-            const A = await signupUser(ctx, { nickname: "A", targetZip: "94110" }); // same prefix
-            const B = await signupUser(ctx, { nickname: "B", targetZip: "94111" }); // same prefix
-            const C = await signupUser(ctx, { nickname: "C", targetZip: "94112" }); // same prefix (but unscored)
+            const A = await signupUser(ctx, { displayName: "AAA", targetZip: "94110" }); // same prefix
+            const B = await signupUser(ctx, { displayName: "BBB", targetZip: "94111" }); // same prefix
+            const C = await signupUser(ctx, { displayName: "CCC", targetZip: "94112" }); // same prefix (but unscored)
 
             // set createdAt just so ties are deterministic if needed
             await setProfileCreatedAt(ctx, A.userId, new Date("2025-01-03T00:00:00.000Z"));
@@ -181,7 +179,7 @@ describe.sequential("Matches", () => {
         it("orders unscored by same zip first, then createdAt desc", async () => {
             await resetDb(ctx.prisma);
 
-            const me = await signupUser(ctx, { nickname: "me", targetZip: "94117" });
+            const me = await signupUser(ctx, { displayName: "me1", targetZip: "94117" });
 
             // 10 active questions so 1 answer => unscored (<20%)
             const qs = await Promise.all(
@@ -203,9 +201,9 @@ describe.sequential("Matches", () => {
             ]);
 
             // Unscored candidates (each answers only 1/10 => 10% coverage)
-            const sameZipOld = await signupUser(ctx, { nickname: "sameZipOld", targetZip: "94117" });
-            const sameZipNew = await signupUser(ctx, { nickname: "sameZipNew", targetZip: "94117" });
-            const nearbyDiffZip = await signupUser(ctx, { nickname: "nearbyDiffZip", targetZip: "94110" });
+            const sameZipOld = await signupUser(ctx, { displayName: "sameZipOld", targetZip: "94117" });
+            const sameZipNew = await signupUser(ctx, { displayName: "sameZipNew", targetZip: "94117" });
+            const nearbyDiffZip = await signupUser(ctx, { displayName: "nearbyDiffZip", targetZip: "94110" });
 
             await answerQuestions(ctx, sameZipOld.token, [{ questionId: qs[0].id, value: "A" }]);
             await answerQuestions(ctx, sameZipNew.token, [{ questionId: qs[0].id, value: "A" }]);

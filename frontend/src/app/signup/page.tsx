@@ -12,7 +12,8 @@ export default function SignupPage() {
     password: "",
     firstName: "",
     lastName: "",
-    nickname: "",
+    username: "",
+    displayName: "",
     birthDate: "",
     school: "",
     collegeYear: "",
@@ -89,13 +90,23 @@ export default function SignupPage() {
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Nickname</label>
+            <label className="block text-sm mb-1">Username</label>
             <input
-              name="nickname"
+              name="username"
               className="w-full border rounded px-3 py-2"
-              value={form.nickname}
+              value={form.username}
               onChange={onChange}
               required
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Display Name</label>
+            <input
+              name="displayName"
+              className="w-full border rounded px-3 py-2"
+              value={form.displayName}
+              placeholder="How others see you - Optional"
+              onChange={onChange}
             />
           </div>
           <div>

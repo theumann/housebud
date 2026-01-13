@@ -1,10 +1,22 @@
 import type { PrismaClient } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import {
   CreateChatRoomInput,
   InviteToChatInput,
   SendMessageInput,
   UpdateChatRoomInput,
 } from "./chat.types";
+
+type MessageWithSenderProfile =
+  Prisma.ChatMessageGetPayload<{
+    include: {
+      sender: {
+        include: {
+          profile: true;
+        };
+      };
+    };
+  }>;
 
 type RoomSummary = {
   id: string;
@@ -25,8 +37,9 @@ type MessageDto = {
   senderUserId: string;
   text: string;
   createdAt: Date;
-  senderNickname: string | null;
+  senderDisplayName: string | null;
   senderFirstName: string | null;
+  senderLastName: string | null;
   senderAvatarUrl?: string | null;
 };
 
@@ -575,7 +588,7 @@ export async function getMessages(
     where.createdAt = { gt: after };
   }
 
-  const messages = await prisma.chatMessage.findMany({
+  const messages = (await prisma.chatMessage.findMany({
     where: { chatRoomId: roomId },
     orderBy: { createdAt: "asc" },
     include: {
@@ -585,7 +598,7 @@ export async function getMessages(
         },
       },
     },
-  });
+  })) as MessageWithSenderProfile[];
 
   return messages.map((m) => ({
     id: m.id,
@@ -593,9 +606,9 @@ export async function getMessages(
     senderUserId: m.senderUserId,
     text: m.text,
     createdAt: m.createdAt,
-    senderNickname: m.sender.profile?.nickname ?? null,
-    // adjust this line to your real schema:
+    senderDisplayName: m.sender.profile?.displayName ?? null,
     senderFirstName: m.sender.profile?.firstName ?? null,
+    senderLastName: m.sender.profile?.lastName ?? null,
     senderAvatarUrl: m.sender.profile?.avatarUrl ?? null,
   }));
 }
@@ -620,7 +633,7 @@ export async function sendMessage(
     throw err;
   }
 
-  const msg = await prisma.chatMessage.create({
+  const msg = (await prisma.chatMessage.create({
     data: {
       chatRoomId: roomId,
       senderUserId: userId,
@@ -633,15 +646,16 @@ export async function sendMessage(
         },
       },
     },
-  });
+  })) as MessageWithSenderProfile;
   return {
     id: msg.id,
     chatRoomId: msg.chatRoomId,
     senderUserId: msg.senderUserId,
     text: msg.text,
     createdAt: msg.createdAt,
-    senderNickname: msg.sender.profile?.nickname ?? null,
+    senderDisplayName: msg.sender.profile?.displayName ?? null,
     senderFirstName: msg.sender.profile?.firstName ?? null,
+    senderLastName: msg.sender.profile?.lastName ?? null,
     senderAvatarUrl: msg.sender.profile?.avatarUrl ?? null,
   };
 }

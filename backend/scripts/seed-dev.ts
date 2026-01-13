@@ -1,10 +1,10 @@
+import "dotenv/config";
+import { createPrisma } from "../src/config/prisma";
 import { faker } from "@faker-js/faker";
-import { PrismaClient, Prisma } from "@prisma/client";
-import bcrypt from "bcrypt";import "dotenv/config";
-import { assertSafeSeedEnv } from "./_guards";
+import { Prisma } from "@prisma/client";
+import bcrypt from "bcrypt";
 
-assertSafeSeedEnv("dev");
-const prisma = new PrismaClient();
+const prisma = createPrisma();
 
 type SeedPlan = {
   totalUsers: number;
@@ -38,7 +38,8 @@ async function ensurePersonalUsers(password: string) {
       email: "me1@bunkbuddy.dev",
       firstName: "Me",
       lastName: "One",
-      nickname: "Me1",
+      username: "me1",
+      displayName: "Me1",
       school: "USF",
       collegeYear: "Freshman",
       targetCity: "San Francisco",
@@ -49,7 +50,8 @@ async function ensurePersonalUsers(password: string) {
       email: "me2@bunkbuddy.dev",
       firstName: "Me",
       lastName: "Two",
-      nickname: "Me2",
+      username: "me2",
+      displayName: "Me2",
       school: "SFSU",
       collegeYear: "Sophomore",
       targetCity: "San Francisco",
@@ -60,12 +62,13 @@ async function ensurePersonalUsers(password: string) {
       email: "me3@bunkbuddy.dev",
       firstName: "Me",
       lastName: "Three",
-      nickname: "Me3",
-      school: "UCSF",
+      username: "me3",
+      displayName: "Me3",
+      school: "whoKnows",
       collegeYear: "Junior",
-      targetCity: "San Francisco",
-      targetState: "CA",
-      targetZip: "94109",
+      targetCity: "randomCity",
+      targetState: "randomState",
+      targetZip: "78000",
     },
   ];
 
@@ -77,12 +80,13 @@ async function ensurePersonalUsers(password: string) {
       },
       create: {
         email: u.email,
+        username: u.username.toLowerCase(),
         passwordHash,
         profile: {
           create: {
             firstName: u.firstName,
             lastName: u.lastName,
-            nickname: u.nickname,
+            displayName: u.displayName,
             birthDate: new Date("2004-01-01"),
             school: u.school,
             collegeYear: u.collegeYear,
@@ -158,16 +162,18 @@ async function createUsersWithProfiles(targetCount: number) {
       "94102","94103","94105","94107","94108","94109","94110","94112","94114","94115","94116","94117","94118","94121","94122","94123","94124","94127","94129","94130","94131","94132","94133","94134"
     ]);
 
-    const nickname = faker.internet.username({ firstName, lastName }).slice(0, 20);
+    const username = `user${existingEmails.size + toCreate.length + 1}`;
+    const displayName = faker.internet.username({ firstName, lastName }).slice(0, 20);
 
     toCreate.push({
       email,
+      username, // required, deterministic
       passwordHash: "SEEDED_DEV_USER", // you can overwrite later; or hash if you want
       profile: {
         create: {
           firstName,
           lastName,
-          nickname,
+          displayName, // cosmetic only
           birthDate: faker.date.birthdate({ min: 18, max: 24, mode: "age" }),
           school: faker.helpers.arrayElement(["USF", "UCSF", "SFSU"]),
           collegeYear: faker.helpers.arrayElement(["Freshman", "Sophomore", "Junior", "Senior", "Grad"]),

@@ -2,10 +2,11 @@ import { z } from "zod";
 
 export const SignupSchema = z.object({
   email: z.string().email(),
+  username: z.string().min(3).max(32),
   password: z.string().min(8),
   firstName: z.string(),
   lastName: z.string(),
-  nickname: z.string(),
+  displayName: z.string().min(3).max(32),
   birthDate: z.string(), // we'll parse to Date
   school: z.string(),
   collegeYear: z.string(),
@@ -19,7 +20,7 @@ export const SignupSchema = z.object({
 export type SignupInput = z.infer<typeof SignupSchema>;
 
 export const LoginSchema = z.object({
-  email: z.string().email(),
+  identifier: z.string().min(1), // email OR username
   password: z.string(),
 });
 
