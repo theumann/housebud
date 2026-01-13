@@ -9,6 +9,7 @@ import { useOwnedRoom } from "@/hooks/useOwnedRoom";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { getUserDisplayName, shortlistedUserToUserLike} from "@/lib/displayName";
 
 function EmptyShortlistState() {
   return (
@@ -193,6 +194,9 @@ export default function ShortlistPage() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {shortlist.map((u) => {
+              const displayName = getUserDisplayName(
+                shortlistedUserToUserLike(u)
+              );
               const selected = selectedIds.includes(u.userId);
               return (
                 <Card key={u.userId} data-testid={`shortlist-card-${u.userId}`}>
@@ -212,12 +216,12 @@ export default function ShortlistPage() {
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={u.avatarUrl} alt="" className="h-full w-full object-cover" />
                             ) : (
-                              (u.nickname?.[0]?.toUpperCase() ?? "?")
+                              (displayName[0]?.toUpperCase() ?? "?")
                             )}
                           </div>
                           <div>
                             <h2 className="text-base font-semibold">
-                              {u.nickname || "Roommate"}
+                              {displayName}
                             </h2>
                             <p className="text-xs text-gray-600">
                               {u.age !== null ? `${u.age} · ` : ""}

@@ -1,30 +1,25 @@
 import type { PrismaClient } from "@prisma/client";
 import { SignupInput, LoginInput } from "./auth.types";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { env } from "../../config/env";
+import { issueAuthResponse } from "./auth.utils";
+import { AuthError } from "../../errors/auth.error";
 
 export async function signup(prisma: PrismaClient, input: SignupInput) {
-  const existing = await prisma.user.findUnique({
-    where: { email: input.email },
-  });
-  if (existing) {
-    const err: any = new Error("Email already in use");
-    err.status = 400;
-    throw err;
-  }
 
+  const email = input.email.toLowerCase();
+  const username = input.username.toLowerCase();
   const passwordHash = await bcrypt.hash(input.password, 10);
 
   const user = await prisma.user.create({
     data: {
-      email: input.email,
+      email,
+      username,
       passwordHash,
       profile: {
         create: {
           firstName: input.firstName,
           lastName: input.lastName,
-          nickname: input.nickname,
+          displayName: input.displayName ?? null,
           birthDate: new Date(input.birthDate),
           school: input.school,
           collegeYear: input.collegeYear,
@@ -43,35 +38,28 @@ export async function signup(prisma: PrismaClient, input: SignupInput) {
       profile: true,
     },
   });
-
-  const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-
-  return { token, user };
+  return issueAuthResponse(user);
 }
 
 export async function login(prisma: PrismaClient, input: LoginInput) {
-  const user = await prisma.user.findUnique({
-    where: { email: input.email },
+  const identifier = input.identifier.toLowerCase();
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: identifier },
+        { username: identifier },
+      ],
+    },
     include: { profile: true },
   });
+
   if (!user) {
-    const err: any = new Error("Invalid credentials");
-    err.status = 401;
-    throw err;
+    throw new AuthError("Invalid credentials");
   }
 
-  const valid = await bcrypt.compare(input.password, user.passwordHash);
-  if (!valid) {
-    const err: any = new Error("Invalid credentials");
-    err.status = 401;
-    throw err;
+  const ok = await bcrypt.compare(input.password, user.passwordHash);
+  if (!ok) {
+    throw new AuthError("Invalid credentials");
   }
-
-  const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-
-  return { token, user };
+  return issueAuthResponse(user);
 }

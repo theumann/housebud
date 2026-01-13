@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 export type ShortlistedUser = {
   userId: string;
-  nickname: string;
+  displayName: string;
   age: number | null;
   school: string;
   collegeYear: string;

@@ -5,12 +5,21 @@ import { createApp } from "../../src/app";
 import { createPrisma } from "../../src/config/prisma";
 import { expect } from "vitest";
 
+let _ctxCreated = false;
+
 export interface TestContext {
   prisma: PrismaClient;
   app: Express;
 }
 
 export function createTestContext(): TestContext {
+  if (_ctxCreated && process.env.NODE_ENV === "test") {
+    throw new Error(
+      "❌ createTestContext() called more than once. Use the shared ctx from tests/setup.ts."
+    );
+  }
+  _ctxCreated = true;
+  
   const prisma = createPrisma();
   const app = createApp(prisma);
   return { prisma, app };
@@ -29,7 +38,8 @@ export async function signupUser(ctx: TestContext, params?: Partial<{
   password: string;
   firstName: string;
   lastName: string;
-  nickname: string;
+  username: string;
+  displayName: string;
   birthDate: string;   // "YYYY-MM-DD"
   school: string;
   collegeYear: string;
@@ -44,7 +54,8 @@ export async function signupUser(ctx: TestContext, params?: Partial<{
     password: params?.password ?? "Password123!",
     firstName: params?.firstName ?? "John",
     lastName: params?.lastName ?? "Doe",
-    nickname: params?.nickname ?? `user${n}`,
+    username: params?.username ?? `user${n}`,
+    displayName: params?.displayName ?? `user${n}`,
     birthDate: params?.birthDate ?? "2005-09-15",
     school: params?.school ?? "USF",
     collegeYear: params?.collegeYear ?? "Freshman",
@@ -106,8 +117,14 @@ export async function createQuestion(ctx: TestContext, params: {
   });
 }
 
-export async function loginUser(app: any, email: string, password: string) {
-  const res = await request(app).post("/auth/login").send({ email, password });
+export async function loginUser(
+  app: any,
+  params: {
+  identifier: string;
+  password: string;
+  }
+) {
+  const res = await request(app).post("/auth/login").send({ identifier: params.identifier, password: params.password });
   expect(res.status).toBe(200);
   return {
     token: res.body.token as string,

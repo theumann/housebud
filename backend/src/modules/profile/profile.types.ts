@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const ProfileUpdateSchema = z.object({
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  nickname: z.string().optional(),
+  firstName: z.string().trim().min(1, "First Name is required").max(50).optional(),
+  lastName: z.string().trim().min(1, "Last Name is required").max(50).optional(),
+  displayName: z.string().trim().max(50).optional().transform((v) => (v === "" ? null: v)),
   birthDate: z.string().optional(), // ISO date string
   school: z.string().optional(),
   collegeYear: z.string().optional(),

@@ -1,3 +1,8 @@
+-   test DB update?
+
+-   FIX VITEST TESTS  
+    
+-   FIX NAME DISPLAY
 -   Signup: add current address or at least high school state
 -   Signup: check for already existing profiles
 -   Signup: College Year should be dropdown
@@ -14,8 +19,6 @@
 -   See messages from before joining the room?
 
 Features - Todo:
-
-  
 
 -   social network integration
 -   Profile detail page with Last text question if answered and common questions answers.

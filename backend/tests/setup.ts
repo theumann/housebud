@@ -1,18 +1,15 @@
 import path from "path";
 import dotenv from "dotenv";
+import { beforeAll, afterEach } from "vitest";
+import { PrismaClient } from "@prisma/client";
+import { execSync } from "node:child_process";
+import { createTestContext } from "./helpers/testFactory";
+import { setTestContext, getTestContext } from "./helpers/testContext";
+
 dotenv.config({
   path: path.resolve(__dirname, "../.env.test"),
   override: true
 });
-
-import { beforeAll, afterEach } from "vitest";
-import { PrismaClient } from "@prisma/client";
-import { execSync } from "node:child_process";
-
-import type { TestContext } from "./helpers/testFactory";
-import { createTestContext } from "./helpers/testFactory";
-let ctx: TestContext;
-
 
 function withSchema(url: string, schema: string) {
   const u = new URL(url);
@@ -21,14 +18,10 @@ function withSchema(url: string, schema: string) {
 }
 
 beforeAll(async () => {
-  ctx = createTestContext();
-  const result = dotenv.config({ path: path.resolve(__dirname, "../.env.test") });
-  console.log("dotenv loaded:", result.parsed);
   const baseUrl = process.env.DATABASE_URL;
   if (!baseUrl) throw new Error("DATABASE_URL is not set for tests");
-  console.log("Using DATABASE_URL:", baseUrl);
   if (!process.env.DATABASE_URL?.includes("bunkbuddy_test")) {
-    throw new Error(`❌ Tests are not using bunkbuddy_test DB: ${process.env.DATABASE_URL}`);
+    throw new Error(`❌ Tests are not using bunkbuddy_test DB: ${baseUrl}`);
   }
 
   // Vitest provides a worker id env var in many setups. (Fallback to 0.)
@@ -40,25 +33,35 @@ beforeAll(async () => {
   const schema = `test_w${workerId}`;
   const schemaUrl = withSchema(baseUrl, schema);
 
-  // 1) Create the schema using a client pointed at public
+  // 1) Create schema (admin connection)
   const adminUrl = withSchema(baseUrl, "public");
   const admin = new PrismaClient({ datasources: { db: { url: adminUrl } } });
-
   await admin.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
   await admin.$disconnect();
 
-  // 2) Point THIS worker at its schema
+  // 2) Point THIS worker to its schema
   process.env.DATABASE_URL = schemaUrl;
 
-  // 3) Apply migrations into that schema
-  // Use migrate deploy for repeatable CI-ish behavior
-  execSync("npx prisma migrate deploy", {
-    stdio: "inherit",
-    env: { ...process.env, DATABASE_URL: schemaUrl },
-  });
+  // 3) Apply migrations (serialized across workers)
+  execSync(
+    process.platform === "win32"
+      ? "npx.cmd prisma db push --force-reset --schema prisma/schema.prisma"
+      : "npx prisma db push --force-reset --schema prisma/schema.prisma",
+    {
+      stdio: "inherit",
+      cwd: path.resolve(__dirname, ".."),
+      env: {
+        ...process.env,
+        DATABASE_URL: schemaUrl, // per-worker schema
+      },
+    }
+  );
+  const ctx = createTestContext();
+  setTestContext(ctx);
 });
 
 afterEach(async () => {
+  const ctx = getTestContext();
   // Reset tables inside THIS worker schema only
   const { resetDb } = await import("./helpers/resetDb");
   await resetDb(ctx.prisma);

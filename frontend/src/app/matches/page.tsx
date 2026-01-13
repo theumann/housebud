@@ -9,6 +9,8 @@ import { useOwnedRoom } from "@/hooks/useOwnedRoom";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { getUserDisplayName, matchItemToUserLike, shortlistedUserToUserLike,
+  authUserToUserLike } from "@/lib/displayName";
 
 function MatchCardSkeleton() {
   return (
@@ -64,7 +66,7 @@ function EmptyMatchesState() {
 
 type MatchItem = {
   userId: string;
-  nickname: string;
+  displayName: string | null;
   age: number | null;
   school: string;
   collegeYear: string;
@@ -142,7 +144,7 @@ export default function MatchesPage() {
 
   const hasMatches = matches.length > 0;
 
-  const handleStartChatWithUser = async (userId: string, nickname: string) => {
+  const handleStartChatWithUser = async (userId: string) => {
     if (!token) return;
 
     const name = window.prompt(
@@ -176,9 +178,12 @@ export default function MatchesPage() {
 
   const handleInviteToOwnedRoom = async (
     userId: string,
-    nickname: string
   ) => {
     if (!token || !ownedRoom) return;
+
+    const user = matches.find((m) => m.userId === userId);
+    const displayName = user
+      ? getUserDisplayName(matchItemToUserLike(user)): "this user";
 
     setInvitingUserId(userId);
     try {
@@ -187,13 +192,12 @@ export default function MatchesPage() {
         {
           method: "POST",
           token,
-          body: {
-            participantIds: [userId],
-          },
+          body: { participantIds: [userId] },
         }
       );
+
       alert(
-        `Invite sent to ${nickname || "this user"} for room "${
+        `Invite sent to ${displayName} for room "${
           ownedRoom.name || `Room #${ownedRoom.id.slice(0, 8)}`
         }".`
       );
@@ -223,7 +227,7 @@ export default function MatchesPage() {
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="hidden sm:inline text-gray-600">
-            Logged in as <strong>{user.email}</strong>
+            Logged in as <strong>{getUserDisplayName(authUserToUserLike(user))}</strong>
           </span>
           <a href="/compatibility" data-testid="improve-compatibility-link" className="text-blue-600 underline">
             Improve compatibility
@@ -264,12 +268,12 @@ export default function MatchesPage() {
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={m.avatarUrl} alt="" className="h-full w-full object-cover" />
                         ) : (
-                          (m.nickname?.[0]?.toUpperCase() ?? "?")
+                          (getUserDisplayName(matchItemToUserLike(m))?.[0]?.toUpperCase() ?? "?")
                   )}
                     </div>
                     <div>
                       <h2 className="text-base font-semibold">
-                        {m.nickname || "Roommate"}
+                        {getUserDisplayName(matchItemToUserLike(m))}
                       </h2>
                       <p className="text-xs text-gray-600">
                         {m.age !== null ? `${m.age} · ` : ""}
@@ -328,7 +332,7 @@ export default function MatchesPage() {
                         } else {
                           add({
                             userId: m.userId,
-                            nickname: m.nickname,
+                            displayName: getUserDisplayName(shortlistedUserToUserLike(m)),
                             age: m.age,
                             school: m.school,
                             collegeYear: m.collegeYear,
@@ -348,7 +352,7 @@ export default function MatchesPage() {
                       variant="primary"
                       size="sm"
                       onClick={() =>
-                        handleStartChatWithUser(m.userId, m.nickname)
+                        handleStartChatWithUser(m.userId)
                       }
                     >
                       Start chat
@@ -362,7 +366,7 @@ export default function MatchesPage() {
                       className="w-full border border-blue-500 text-blue-700 hover:bg-blue-50 mt-1"
                       disabled={invitingUserId === m.userId}
                       onClick={() =>
-                        handleInviteToOwnedRoom(m.userId, m.nickname)
+                        handleInviteToOwnedRoom(m.userId)
                       }
                     >
                       {invitingUserId === m.userId

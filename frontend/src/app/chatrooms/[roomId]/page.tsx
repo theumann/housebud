@@ -8,6 +8,7 @@ import { apiFetch } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { setLastSeen } from "@/lib/unread";
+import { getUserDisplayName, chatMessageSenderToUserLike } from "@/lib/displayName";
 
 type ChatMessage = {
   id: string;
@@ -15,8 +16,10 @@ type ChatMessage = {
   senderUserId: string;
   text: string;
   createdAt: string;
-  senderNickname: string | null;
+  senderDisplayName: string | null;
   senderFirstName: string | null;
+  senderLastName: string | null;
+  senderUsername: string | null;
   senderAvatarUrl: string | null;
 };
 
@@ -280,8 +283,7 @@ export default function ChatRoomPage() {
               });
 
               const senderName =
-                msg.senderNickname ||
-                msg.senderFirstName ||
+                getUserDisplayName(chatMessageSenderToUserLike(msg))
                 "Roommate";
 
               const prev = index > 0 ? messages[index - 1] : null;

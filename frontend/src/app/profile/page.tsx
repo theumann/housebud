@@ -7,9 +7,12 @@ import { apiFetch } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { getUserDisplayName } from "../../lib/displayName";
 
 type ProfilePayload = {
-  nickname: string;
+  firstName: string;
+  lastName: string;
+  displayName: string; // optional in UX, but stored as "" / null here
   school: string;
   collegeYear: string;
   targetCity: string;
@@ -24,7 +27,9 @@ export default function ProfilePage() {
   const router = useRouter();
 
   const [form, setForm] = useState<ProfilePayload>({
-    nickname: "",
+    firstName: "",
+    lastName: "",
+    displayName: "",
     school: "",
     collegeYear: "",
     targetCity: "",
@@ -63,7 +68,9 @@ export default function ProfilePage() {
 
         if (p) {
           const next: ProfilePayload = {
-            nickname: p.nickname || "",
+            firstName: p.firstName || "",
+            lastName: p.lastName || "",
+            displayName: p.displayName || "",
             school: p.school || "",
             collegeYear: p.collegeYear || "",
             targetCity: p.targetCity || "",
@@ -77,7 +84,9 @@ export default function ProfilePage() {
         } else if (user?.profile) {
           // Fallback: use what we already have in AuthContext
           const next: ProfilePayload = {
-            nickname: user.profile.nickname || "",
+            firstName: p.firstName || "",
+            lastName: p.lastName || "",
+            displayName: user.profile.displayName || "",
             school: user.profile.school || "",
             collegeYear: user.profile.collegeYear || "",
             targetCity: user.profile.targetCity || "",
@@ -125,9 +134,8 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!token) return;
 
-    if (!form.nickname.trim()) {
-      setError("Nickname is required.");
-      setSuccess(null);
+    if (form.displayName.length > 50) {
+      setError("Display name is too long (max 50 characters)");
       return;
     }
 
@@ -140,7 +148,16 @@ export default function ProfilePage() {
         method: "PATCH", // your backend uses PATCH, not PUT
         token,
         body: {
-          ...form,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          displayName: form.displayName.trim() || null,
+          school: form.school,
+          collegeYear: form.collegeYear,
+          targetCity: form.targetCity,
+          targetState: form.targetState,
+          targetZip: form.targetZip,
+          bio: form.bio,
+          avatarUrl: form.avatarUrl,
         },
       });
 
@@ -158,7 +175,7 @@ export default function ProfilePage() {
     JSON.stringify(initialForm) !== JSON.stringify(form);
 
   const disableSave =
-    saving || loadingProfile || !form.nickname.trim() || !isDirty;
+    saving || loadingProfile || !isDirty;
 
   const avatarPreview =
     form.avatarUrl && form.avatarUrl.trim().length > 0
@@ -168,7 +185,7 @@ export default function ProfilePage() {
   return (
     <PageContainer data-testid="profile-edit-page">
       <header className="mb-4">
-        <h1 className="text-2xl font-bold">Your profile</h1>
+        <h1>{getUserDisplayName(user)}</h1>
         <p className="mt-1 text-sm text-gray-600">
           This information is used for matching and how you appear to others in
           the app.
@@ -199,19 +216,19 @@ export default function ProfilePage() {
             <div className="grid gap-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.2fr)]">
               {/* Left column */}
               <div className="space-y-4">
-                {/* Nickname */}
+                {/* displayName */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700">
-                    In-app nickname<span className="text-red-500">*</span>
+                    Display name (optional)
                   </label>
                   <input
                     type="text"
-                    value={form.nickname}
+                    value={form.displayName}
                     onChange={(e) =>
-                      handleChange("nickname", e.target.value)
+                      handleChange("displayName", e.target.value)
                     }
                     className="mt-1 w-full rounded-md border border-border-subtle px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="What should other users see?"
+                    placeholder="How others see you"
                   />
                 </div>
 
@@ -356,7 +373,7 @@ export default function ProfilePage() {
 
           <CardFooter className="flex items-center justify-between">
             <p className="text-xs text-gray-500">
-              Your nickname and school help others recognize you. Location is
+              Your display name and school help others recognize you. Location is
               used to filter and sort matches.
             </p>
             <Button

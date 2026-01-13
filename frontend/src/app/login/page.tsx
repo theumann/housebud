@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function LoginPage() {
   const { login, loading, user } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -23,7 +23,7 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      await login(email, password);
+      await login(identifier, password);
       router.replace("/matches");
     } catch (err: any) {
       setError(err.message || "Login failed");
@@ -38,13 +38,14 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold mb-4">Login</h1>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm mb-1">Email</label>
+            <label className="block text-sm mb-1">Email or Username</label>
             <input
-              data-testid="login-email"
+              data-testid="login-identifier"
               className="w-full border rounded px-3 py-2"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="identifier"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="use you username or email"
               required
             />
           </div>

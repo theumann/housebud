@@ -2,7 +2,10 @@ import type { PrismaClient } from "@prisma/client";
 
 type MatchCandidate = {
   userId: string;
-  nickname: string;
+  firstName: string | null;
+  lastName: string | null;
+  displayName: string | null;
+  username: string;
   age: number | null;
   school: string;
   collegeYear: string;
@@ -22,7 +25,10 @@ type ActiveQuestion = {
 };
 
 type CandidateProfile = {
-  nickname: string;
+  firstName: string | null;
+  lastName: string | null;
+  displayName: string | null;
+  username: string;
   birthDate: Date;
   school: string;
   collegeYear: string;
@@ -206,7 +212,10 @@ export async function getMatchesForUser(prisma: PrismaClient,
 
     return {
       userId: u.id,
-      nickname: profile.nickname,
+      username: profile.username,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      displayName: profile.displayName ?? null,
       age,
       school: profile.school,
       collegeYear: profile.collegeYear,

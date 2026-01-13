@@ -1,27 +1,26 @@
 import request from "supertest";
 import { resetDb } from "../helpers/resetDb";
-import type { TestContext } from "../helpers/testFactory";
-import { createTestContext } from "../helpers/testFactory";
 import { describe, beforeAll, beforeEach, afterAll, it, expect } from "vitest";
+import type { TestContext } from "../helpers/testFactory";
+import { getTestContext } from "../helpers/testContext";
 
 let ctx: TestContext;
 
 describe.sequential("Auth + Profile (smoke)", () => {
-    beforeAll(() => {
-        ctx = createTestContext();
-    });
-
-    beforeEach(async () => {
-        await resetDb(ctx.prisma);
+  beforeAll(() => {
+    ctx = getTestContext();
   });
-
+  beforeEach(async () => {
+    await resetDb(ctx.prisma);
+  });
   afterAll(async () => {
     await ctx.prisma.$disconnect();
   });
 
-
-  it("signup -> login -> get profile/me", async () => {
-    const email = "john@example.com";
+  it("signup -> login WITH USERNAME -> get profile/me", async () => {
+    const email = "jdoe@example.com";
+    const username = "johndoe";
+    const identifier = username;
     const password = "Password123!";
 
     const signup = await request(ctx.app).post("/auth/signup").send({
@@ -29,7 +28,8 @@ describe.sequential("Auth + Profile (smoke)", () => {
       password,
       firstName: "John",
       lastName: "Doe",
-      nickname: "JD",
+      username,
+      displayName: "JDD",
       birthDate: "2005-09-15",
       school: "SFSU",
       collegeYear: "Freshman",
@@ -41,7 +41,7 @@ describe.sequential("Auth + Profile (smoke)", () => {
     expect(signup.status).toBe(201);
     expect(signup.body.token).toBeTruthy();
 
-    const login = await request(ctx.app).post("/auth/login").send({ email, password });
+    const login = await request(ctx.app).post("/auth/login").send({ identifier, password });
     expect(login.status).toBe(200);
     const token = login.body.token;
     expect(token).toBeTruthy();
@@ -51,8 +51,47 @@ describe.sequential("Auth + Profile (smoke)", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(me.status).toBe(200);
-    expect(me.body.profile).toHaveProperty("nickname");
-    expect(me.body.profile.nickname).toBe("JD");
+    expect(me.body.profile).toHaveProperty("displayName");
+    expect(me.body.profile.displayName).toBe("JDD");
+    expect(me.body.profile.targetZip).toBe("94110");
+  });
+
+  it("signup -> login WITH EMAIL -> get profile/me", async () => {
+    const email = "jdoe@example.com";
+    const username = "johndoe";
+    const identifier = email;
+    const password = "Password123!";
+
+    const signup = await request(ctx.app).post("/auth/signup").send({
+      email,
+      password,
+      firstName: "John",
+      lastName: "Doe",
+      username,
+      displayName: "JDD",
+      birthDate: "2005-09-15",
+      school: "SFSU",
+      collegeYear: "Freshman",
+      targetCity: "San Francisco",
+      targetState: "CA",
+      targetZip: "94110",
+    });
+
+    expect(signup.status).toBe(201);
+    expect(signup.body.token).toBeTruthy();
+
+    const login = await request(ctx.app).post("/auth/login").send({ identifier, password });
+    expect(login.status).toBe(200);
+    const token = login.body.token;
+    expect(token).toBeTruthy();
+
+    const me = await request(ctx.app)
+      .get("/profile/me")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(me.status).toBe(200);
+    expect(me.body.profile).toHaveProperty("displayName");
+    expect(me.body.profile.displayName).toBe("JDD");
     expect(me.body.profile.targetZip).toBe("94110");
   });
 
@@ -66,7 +105,8 @@ describe.sequential("Auth + Profile (smoke)", () => {
       password,
       firstName: "A",
       lastName: "B",
-      nickname: "AB",
+      username: "abc",
+      displayName: "ABC",
       birthDate: "2005-09-15",
       school: "SFSU",
       collegeYear: "Freshman",
