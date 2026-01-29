@@ -14,10 +14,12 @@ The backend exposes a REST API consumed by the Next.js frontend.
 -   Prisma ORM (code-first schema + migrations)
 -   JWT-based stateless authentication
 -   Modular structure (auth, profile, compatibility, matches, chat)
+-   Automated testing: Vitest for the backend. Commands are in the repo level README file (../README from here)
 
 **Runtime**
 
--   Backend runs on `http://localhost:4000`
+-   Backend runs on `http://localhost:4000`
+-   e2e tests (Playwright) run on `http://localhost:4002`
 -   Frontend runs on its own dev port (e.g. `http://localhost:3000`) and calls the backend API
 
 ---

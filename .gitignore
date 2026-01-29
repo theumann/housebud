@@ -48,3 +48,5 @@ postgres-data/
 
 backend/dist
 dist
+
+frontend/knownBugs.md
