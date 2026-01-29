@@ -34,5 +34,14 @@ export function createApp(prisma: PrismaClient) {
 
     app.use(errorHandler);
 
+    app.get("/health", async (_req, res) => {
+      try {
+        await prisma.$queryRaw`SELECT 1`;
+        res.json({ ok: true, db: "ok" });
+      } catch (e: any) {
+        res.status(500).json({ ok: false, db: "fail", error: e?.message });
+      }
+    });
+
     return app;
 }

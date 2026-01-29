@@ -31,10 +31,10 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
-    let message = `HTTP ${res.status}`;
+    let message = `HTTP ${res.status} on ${path}`;
     try {
       const data = await res.json();
-      if (data.error) message = data.error;
+      if (data.error) message = `${data.error} (${path})`;
     } catch {
       // ignore
     }

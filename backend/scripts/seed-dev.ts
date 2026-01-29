@@ -143,8 +143,22 @@ async function getActiveQuestions() {
 }
 
 async function createUsersWithProfiles(targetCount: number) {
-  const existing = await prisma.user.findMany({ select: { id: true, email: true } });
+  const existing = await prisma.user.findMany({ select: { id: true, email: true, username: true } });
   const existingEmails = new Set(existing.map((u) => u.email.toLowerCase()));
+  const existingUsernames = new Set(
+    existing
+      .map((u) => u.username?.toLowerCase())
+      .filter((u): u is string => Boolean(u))
+  );
+
+  // Deterministic username allocator: always find the next free userN.
+  let nextUserNumber = 1;
+  for (const uname of existingUsernames) {
+    const match = /^user(\d+)$/.exec(uname);
+    if (!match) continue;
+    const n = Number(match[1]);
+    if (Number.isFinite(n) && n >= nextUserNumber) nextUserNumber = n + 1;
+  }
 
   const toCreate: Prisma.UserCreateInput[] = [];
   while (toCreate.length < targetCount) {
@@ -162,7 +176,13 @@ async function createUsersWithProfiles(targetCount: number) {
       "94102","94103","94105","94107","94108","94109","94110","94112","94114","94115","94116","94117","94118","94121","94122","94123","94124","94127","94129","94130","94131","94132","94133","94134"
     ]);
 
-    const username = `user${existingEmails.size + toCreate.length + 1}`;
+    let username = `user${nextUserNumber}`;
+    while (existingUsernames.has(username)) {
+      nextUserNumber += 1;
+      username = `user${nextUserNumber}`;
+    }
+    existingUsernames.add(username);
+    nextUserNumber += 1;
     const displayName = faker.internet.username({ firstName, lastName }).slice(0, 20);
 
     toCreate.push({
@@ -248,7 +268,10 @@ async function seedCompatibilityAnswersForUsers(userIds: string[], activeQuestio
     }
 
     if (rows.length > 0) {
-      await prisma.compatibilityAnswer.createMany({ data: rows });
+      await prisma.compatibilityAnswer.createMany({
+        data: rows,
+        skipDuplicates: true,
+      });
     }
   }
 }
