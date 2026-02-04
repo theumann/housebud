@@ -1,12 +1,12 @@
 # Bunkbuddy
 
-Bunkbuddy is a web application that helps future college roommates find each other,compare lifestyle compatibility, and connect through “meet & greet” chat rooms before committing to a shared household.
+Bunkbuddy is a web application that helps future college roommates find each other, compare lifestyle compatibility, and connect through "meet & greet" chat rooms before committing to a shared household.
 
 ## Tech Stack
 
--   **Frontend**: Next.js (App Router) · TypeScript · Tailwind CSS
--   **Backend**: Node.js + TypeScript · Express
--   **Database**: PostgreSQL (Docker) · Prisma ORM
+-   **Frontend**: Next.js (App Router) - TypeScript - Tailwind CSS
+-   **Backend**: Node.js + TypeScript - Express
+-   **Database**: PostgreSQL (Docker) - Prisma ORM
 -   **Auth**: JWT (stateless)
 
 ## Repository Structure
@@ -14,7 +14,12 @@ Bunkbuddy is a web application that helps future college roommates find each oth
 This repository contains both frontend and backend in a single monorepo-style layout.
 
 ```text
-bunkbuddy/├─ backend/ # Express + Prisma API├─ frontend/ # Next.js frontend├─ README.md # You are here
+bunkbuddy/
+    backend/
+        # Express + Prisma API
+    frontend/
+        # Next.js frontend
+        README.md  # You are here
 ```
 
 ## Local Development
@@ -37,31 +42,41 @@ docker run --name bunkbuddy-postgres -e POSTGRES_USER=bunkbuddy -e POSTGRES_PASS
 
 ### Backend
 
-```bash
-cd backendnpm installnpx prisma migrate devnpm run dev
-```
+`cd backend`
 
-Backend runs at:  
-👉 [http://localhost:4000](http://localhost:4000)
+`npm install`
+
+`npx prisma migrate dev`
+
+`npm run dev`
+
+Backend runs at:`http://localhost:4000`
 
 **Optional: seed demo data:**
 
-```bash
+```
 npm run seed:all
 ```
 
 ### Frontend
 
-```bash
-cd frontendnpm installnpm run dev
+```
+cd frontend
 ```
 
-Frontend runs at:  
-👉 [http://localhost:3000](http://localhost:3000)
+```
+npm install
+```
+
+```
+npm run dev
+```
+
+Frontend runs at:`http://localhost:3000`
 
 ### Environment Variables
 
-Backend uses a `.env` file (not committedto Git):
+Backend uses a `.env` file (not committed to Git):
 
 ```env
 DATABASE_URL=JWT_SECRET=PORT=4000
@@ -71,15 +86,13 @@ See backend/.env.example for reference.
 
 ### Test Automation
 
-**Unit and integration tests** (vitest from bunkbuddy/backend): `npm test`
+**Unit and integration tests** (vitest from bunkbuddy/backend): `npm test`
 
-**End2End** (Playwright from bunkbuddy/frontend): `npx playwright test`
+**End-to-end** (Playwright from bunkbuddy/frontend): `npx playwright test`
 
-e2e tests with the Playwright UI: `npx playwright test --ui`  - Global-setup runs migrations + seed:e2e (including compatibility questions).
-
-(auth-with-ui.spec.ts uses test.use({ storageState: { cookies: [], origins: [] } }) to avoid authed state.
-
-  
+-   e2e tests with the Playwright UI: `npx playwright test --ui`
+-   Global-setup runs migrations + seed:e2e (including compatibility questions)
+-   auth-with-ui.spec.ts uses `test.use({ storageState: { cookies: [], origins: [] } })` to avoid authed state
 
 ### Project Status (Short-term)
 
@@ -96,16 +109,12 @@ e2e tests with the Playwright UI: `npx playwright test --ui`  - Global-setup 
 ## Long term high level roadmap
 
 -   Improved security (shorter token lifetimes, optional token revocation)
-    
 -   Real-time chat (WebSockets replacing HTTP polling)
-    
 -   Household management features:
-    
     -   Shared budget and expenses tracking
     -   Chore rotation
     -   Shopping lists
     -   Household calendar
--   Housing listings and discoveryThis is a high level roadmap - detailed steps live outside this README
-    
+-   Housing listings and discovery
 
-**This is a high level roadmap - detailed tasks live outside this repo.**
+This is a high level roadmap - detailed tasks live outside this repo.
