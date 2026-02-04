@@ -14,7 +14,12 @@ Bunkbuddy is a web application that helps future college roommates find each oth
 This repository contains both frontend and backend in a single monorepo-style layout.
 
 ```text
-bunkbuddy/  backend/   # Express + Prisma API  frontend/  # Next.js frontend  README.md  # You are here
+bunkbuddy/
+    backend/
+        # Express + Prisma API
+    frontend/
+        # Next.js frontend
+        README.md  # You are here
 ```
 
 ## Local Development
@@ -37,25 +42,35 @@ docker run --name bunkbuddy-postgres -e POSTGRES_USER=bunkbuddy -e POSTGRES_PASS
 
 ### Backend
 
-```bash
-cd backendnpm installnpx prisma migrate devnpm run dev
-```
+`cd backend`
+
+`npm install`
+
+`npx prisma migrate dev`
+
+`npm run dev`
 
 Backend runs at:`http://localhost:4000`
 
 **Optional: seed demo data:**
 
-```bash
+```
 npm run seed:all
 ```
 
 ### Frontend
 
-```bash
+```
 cd frontend
 ```
 
-`npm run dev`
+```
+npm install
+```
+
+```
+npm run dev
+```
 
 Frontend runs at:`http://localhost:3000`
 
