@@ -218,64 +218,74 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 {/* displayName */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">
-                    Display name (optional)
-                  </label>
+                  <label className="block text-sm mb-1">Display name</label>
                   <input
                     type="text"
                     value={form.displayName}
                     onChange={(e) =>
                       handleChange("displayName", e.target.value)
                     }
-                    className="mt-1 w-full rounded-md border border-border-subtle px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full border rounded px-3 py-2"
                     placeholder="How others see you"
                   />
                 </div>
 
                 {/* School */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700">
-                    School
-                  </label>
+                <div className="flex flex-col-reverse">
                   <input
+                    id="profile-school"
                     type="text"
                     value={form.school}
                     onChange={(e) =>
                       handleChange("school", e.target.value)
                     }
-                    className="mt-1 w-full rounded-md border border-border-subtle px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="peer w-full border rounded px-3 py-2"
                     placeholder="USF, SFSU, UCSF…"
+                    required
                   />
+                  <label
+                    htmlFor="profile-school"
+                    className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+                  >
+                    School
+                  </label>
                 </div>
 
                 {/* College year */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700">
-                    College year
-                  </label>
-                  <input
-                    type="text"
+                <div className="flex flex-col-reverse">
+                  <select
+                    id="profile-college-year"
                     value={form.collegeYear}
                     onChange={(e) =>
                       handleChange("collegeYear", e.target.value)
                     }
-                    className="mt-1 w-full rounded-md border border-border-subtle px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Freshman, Sophomore, 1st year grad…"
-                  />
+                    className="peer w-full border rounded px-3 py-2 bg-white"
+                    required
+                  >
+                    <option value="">Select year</option>
+                    <option value="Freshman">Freshman</option>
+                    <option value="Sophomore">Sophomore</option>
+                    <option value="Junior">Junior</option>
+                    <option value="Senior">Senior</option>
+                  </select>
+                  <label
+                    htmlFor="profile-college-year"
+                    className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+                  >
+                    College year
+                  </label>
                 </div>
 
                 {/* Bio */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">
-                    Short bio (optional)
-                  </label>
+                  <label className="block text-sm mb-1">Short bio</label>
                   <textarea
                     value={form.bio}
                     onChange={(e) =>
                       handleChange("bio", e.target.value)
                     }
                     rows={3}
-                    className="mt-1 w-full resize-none rounded-md border border-border-subtle px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full resize-none border rounded px-3 py-2"
                     placeholder="Tell potential roommates a bit about yourself."
                   />
                 </div>
@@ -284,67 +294,80 @@ export default function ProfilePage() {
               {/* Right column: Location + avatar */}
               <div className="space-y-4">
                 {/* Target city */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700">
-                    Target city
-                  </label>
+                <div className="flex flex-col-reverse">
                   <input
+                    id="profile-target-city"
                     type="text"
                     value={form.targetCity}
                     onChange={(e) =>
                       handleChange("targetCity", e.target.value)
                     }
-                    className="mt-1 w-full rounded-md border border-border-subtle px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="peer w-full border rounded px-3 py-2"
                     placeholder="San Francisco"
+                    required
                   />
+                  <label
+                    htmlFor="profile-target-city"
+                    className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+                  >
+                    Target city
+                  </label>
                 </div>
 
                 {/* Target state */}
                 <div className="grid grid-cols-[1fr_auto] gap-2">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700">
-                      Target state
-                    </label>
+                  <div className="flex flex-col-reverse">
                     <input
+                      id="profile-target-state"
                       type="text"
                       value={form.targetState}
                       onChange={(e) =>
                         handleChange("targetState", e.target.value)
                       }
-                      className="mt-1 w-full rounded-md border border-border-subtle px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="peer w-full border rounded px-3 py-2"
                       placeholder="CA"
+                      required
                     />
+                    <label
+                      htmlFor="profile-target-state"
+                      className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+                    >
+                      Target state
+                    </label>
                   </div>
 
                   {/* Zip */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700">
-                      Target ZIP
-                    </label>
+                  <div className="flex flex-col-reverse">
                     <input
+                      id="profile-target-zip"
                       type="text"
                       value={form.targetZip}
                       onChange={(e) =>
                         handleChange("targetZip", e.target.value)
                       }
-                      className="mt-1 w-full rounded-md border border-border-subtle px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="peer w-full border rounded px-3 py-2"
                       placeholder="94117"
+                      required
                     />
+                    <label
+                      htmlFor="profile-target-zip"
+                      className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+                    >
+                      Target ZIP
+                    </label>
                   </div>
                 </div>
 
                 {/* Avatar URL + preview */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">
-                    Avatar URL (optional)
-                  </label>
+                  <label className="block text-sm mb-1">Avatar URL</label>
                   <input
                     type="url"
                     value={form.avatarUrl}
                     onChange={(e) =>
                       handleChange("avatarUrl", e.target.value)
                     }
-                    className="mt-1 w-full rounded-md border border-border-subtle px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full border rounded px-3 py-2"
                     placeholder="https://example.com/your-photo.jpg"
                   />
                   {avatarPreview && (
@@ -391,3 +414,4 @@ export default function ProfilePage() {
     </PageContainer>
   );
 }
+
