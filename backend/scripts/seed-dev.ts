@@ -51,7 +51,7 @@ async function ensurePersonalUsers(password: string) {
       firstName: "Me",
       lastName: "Two",
       username: "me2",
-      displayName: "Me2",
+      displayName: "", // Cards should display first and last name if displayName is empty
       school: "SFSU",
       collegeYear: "Sophomore",
       targetCity: "San Francisco",

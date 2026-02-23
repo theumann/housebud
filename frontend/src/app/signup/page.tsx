@@ -47,128 +47,212 @@ export default function SignupPage() {
       <div className="w-full max-w-lg border rounded-lg p-6">
         <h1 className="text-2xl font-bold mb-4">Sign up</h1>
         <form onSubmit={onSubmit} className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <label className="block text-sm mb-1">Email</label>
+          <div className="col-span-2 flex flex-col-reverse">
             <input
+              id="signup-email"
               name="email"
               type="email"
-              className="w-full border rounded px-3 py-2"
+              className="peer w-full border rounded px-3 py-2"
               value={form.email}
               onChange={onChange}
               required
             />
+            <label
+              htmlFor="signup-email"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              Email
+            </label>
           </div>
-          <div className="col-span-2">
-            <label className="block text-sm mb-1">Password</label>
+          <div className="col-span-2 flex flex-col-reverse">
             <input
+              id="signup-password"
               name="password"
               type="password"
-              className="w-full border rounded px-3 py-2"
+              className="peer w-full border rounded px-3 py-2"
               value={form.password}
               onChange={onChange}
               required
             />
+            <label
+              htmlFor="signup-password"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              Password
+            </label>
           </div>
-          <div>
-            <label className="block text-sm mb-1">First name</label>
+          <div className="flex flex-col-reverse">
             <input
+              id="signup-first-name"
               name="firstName"
-              className="w-full border rounded px-3 py-2"
+              className="peer w-full border rounded px-3 py-2"
               value={form.firstName}
               onChange={onChange}
               required
             />
+            <label
+              htmlFor="signup-first-name"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              First name
+            </label>
           </div>
-          <div>
-            <label className="block text-sm mb-1">Last name</label>
+          <div className="flex flex-col-reverse">
             <input
+              id="signup-last-name"
               name="lastName"
-              className="w-full border rounded px-3 py-2"
+              className="peer w-full border rounded px-3 py-2"
               value={form.lastName}
               onChange={onChange}
               required
             />
+            <label
+              htmlFor="signup-last-name"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              Last name
+            </label>
           </div>
-          <div>
-            <label className="block text-sm mb-1">Username</label>
+          <div className="flex flex-col-reverse">
             <input
+              id="signup-username"
               name="username"
-              className="w-full border rounded px-3 py-2"
+              className="peer w-full border rounded px-3 py-2"
               value={form.username}
               onChange={onChange}
               required
             />
+            <label
+              htmlFor="signup-username"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              Username
+            </label>
           </div>
-          <div>
-            <label className="block text-sm mb-1">Display Name</label>
+          <div className="flex flex-col-reverse">
             <input
+              id="signup-display-name"
               name="displayName"
-              className="w-full border rounded px-3 py-2"
+              className="peer w-full border rounded px-3 py-2"
               value={form.displayName}
-              placeholder="How others see you - Optional"
+              placeholder="How others see you."
               onChange={onChange}
             />
+            <label
+              htmlFor="signup-display-name"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              Display Name
+            </label>
           </div>
-          <div>
-            <label className="block text-sm mb-1">Birth date</label>
+          <div className="flex flex-col-reverse">
             <input
+              id="signup-birth-date"
               name="birthDate"
               type="date"
-              className="w-full border rounded px-3 py-2"
+              className={`peer w-full border rounded px-3 py-2 ${
+                form.birthDate ? "text-black" : "text-gray-400"
+              }`}
               value={form.birthDate}
               onChange={onChange}
               required
             />
+            <label
+              htmlFor="signup-birth-date"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              Birth date
+            </label>
           </div>
-          <div>
-            <label className="block text-sm mb-1">School</label>
+          <div className="flex flex-col-reverse">
             <input
+              id="signup-school"
               name="school"
-              className="w-full border rounded px-3 py-2"
+              className="peer w-full border rounded px-3 py-2"
               value={form.school}
               onChange={onChange}
               required
             />
+            <label
+              htmlFor="signup-school"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              School
+            </label>
           </div>
-          <div>
-            <label className="block text-sm mb-1">College year</label>
-            <input
+          <div className="flex flex-col-reverse">
+            <select
+              id="signup-college-year"
               name="collegeYear"
-              className="w-full border rounded px-3 py-2"
+              className={`peer w-full border rounded px-3 py-2 bg-white ${
+                form.collegeYear ? "text-black" : "text-gray-400"
+              }`}
               value={form.collegeYear}
-              onChange={onChange}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, collegeYear: e.target.value }))
+              }
               required
-            />
+            >
+              <option value="">Select year</option>
+              <option value="Freshman">Freshman</option>
+              <option value="Sophomore">Sophomore</option>
+              <option value="Junior">Junior</option>
+              <option value="Senior">Senior</option>
+            </select>
+            <label
+              htmlFor="signup-college-year"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              College year
+            </label>
           </div>
-          <div>
-            <label className="block text-sm mb-1">Target city</label>
+          <div className="flex flex-col-reverse">
             <input
+              id="signup-target-city"
               name="targetCity"
-              className="w-full border rounded px-3 py-2"
+              className="peer w-full border rounded px-3 py-2"
               value={form.targetCity}
               onChange={onChange}
               required
             />
+            <label
+              htmlFor="signup-target-city"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              Target city
+            </label>
           </div>
-          <div>
-            <label className="block text-sm mb-1">Target state</label>
+          <div className="flex flex-col-reverse">
             <input
+              id="signup-target-state"
               name="targetState"
-              className="w-full border rounded px-3 py-2"
+              className="peer w-full border rounded px-3 py-2"
               value={form.targetState}
               onChange={onChange}
               required
             />
+            <label
+              htmlFor="signup-target-state"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              Target state
+            </label>
           </div>
-          <div className="col-span-2">
-            <label className="block text-sm mb-1">Target ZIP</label>
+          <div className="col-span-2 flex flex-col-reverse">
             <input
+              id="signup-target-zip"
               name="targetZip"
-              className="w-full border rounded px-3 py-2"
+              className="peer w-full border rounded px-3 py-2"
               value={form.targetZip}
               onChange={onChange}
               required
             />
+            <label
+              htmlFor="signup-target-zip"
+              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+            >
+              Target ZIP
+            </label>
           </div>
           {error && (
             <p className="col-span-2 text-sm text-red-600">{error}</p>
@@ -180,6 +264,7 @@ export default function SignupPage() {
           >
             {submitting ? "Signing up..." : "Sign up"}
           </button>
+          <p className="col-span-2 text-xs text-red-600">*: required fields</p>
         </form>
         <p className="mt-4 text-sm">
           Already have an account?{" "}
