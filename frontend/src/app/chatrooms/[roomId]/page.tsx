@@ -287,7 +287,6 @@ export default function ChatRoomPage() {
               const senderName = getUserDisplayName(
                 chatMessageSenderToUserLike(msg),
               );
-              ("Roommate");
 
               const prev = index > 0 ? messages[index - 1] : null;
               const isFirstFromSender =
