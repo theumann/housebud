@@ -44,7 +44,7 @@ export default function ChatroomsPage() {
 
   const handleInviteAction = async (
     roomId: string,
-    action: "accept" | "decline"
+    action: "accept" | "decline",
   ) => {
     if (!token) return;
     setActionLoadingId(roomId);
@@ -91,7 +91,9 @@ export default function ChatroomsPage() {
   const hasRooms = rooms.length > 0;
   const unreadRoomsCount = rooms.reduce((acc, room) => {
     const lastSeenMs = getLastSeen(room.id);
-    const latestMs = room.latestMessageAt ? Date.parse(room.latestMessageAt) : 0;
+    const latestMs = room.latestMessageAt
+      ? Date.parse(room.latestMessageAt)
+      : 0;
     return latestMs > lastSeenMs ? acc + 1 : acc;
   }, 0);
 
@@ -137,9 +139,7 @@ export default function ChatroomsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-semibold">
-                        {room.name
-                          ? room.name
-                          : `Room #${room.id.slice(0, 8)}`}
+                        {room.name ? room.name : `Room #${room.id.slice(0, 8)}`}
                       </p>
                       <p className="text-xs text-gray-500">
                         You&apos;ve been invited to join this room.
@@ -157,19 +157,27 @@ export default function ChatroomsPage() {
                   {room.latestMessageAt ? (
                     <p className="mt-2 text-xs text-gray-600">
                       <span className="font-medium">Latest:</span>{" "}
-                      {room.latestMessageText ? room.latestMessageText : "Message"}
+                      {room.latestMessageText
+                        ? room.latestMessageText
+                        : "Message"}
                       <span className="text-gray-400">
                         {" "}
-                        · {new Date(room.latestMessageAt).toLocaleString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        ·{" "}
+                        {new Date(room.latestMessageAt).toLocaleString(
+                          undefined,
+                          {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
                       </span>
                     </p>
                   ) : (
-                    <p className="mt-2 text-xs text-gray-400">No messages yet.</p>
+                    <p className="mt-2 text-xs text-gray-400">
+                      No messages yet.
+                    </p>
                   )}
                 </CardBody>
                 <CardFooter>
@@ -216,7 +224,9 @@ export default function ChatroomsPage() {
               const inactiveLabel =
                 !room.isActive || room.participantsCount < 2;
               const lastSeenMs = getLastSeen(room.id);
-              const latestMs = room.latestMessageAt ? Date.parse(room.latestMessageAt) : 0;
+              const latestMs = room.latestMessageAt
+                ? Date.parse(room.latestMessageAt)
+                : 0;
               const isUnread = latestMs > lastSeenMs;
 
               return (
@@ -278,9 +288,7 @@ export default function ChatroomsPage() {
                         data-testid={`open-chat-${room.id}`}
                         variant="secondary"
                         size="sm"
-                        onClick={() =>
-                          router.push(`/chatrooms/${room.id}`)
-                        }
+                        onClick={() => router.push(`/chatrooms/${room.id}`)}
                       >
                         Open chat
                       </Button>

@@ -4,9 +4,9 @@ Next.js (App Router) frontend for the Bunkbuddy application.
 
 ## Tech
 
--   Next.js (App Router)
--   TypeScript
--   Tailwind CSS
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
 
 ## Development
 

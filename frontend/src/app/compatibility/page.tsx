@@ -42,12 +42,15 @@ export default function CompatibilityPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
-  
-  const grouped = questions.reduce<Record<string, CompatibilityQuestion[]>>((acc, q) => {
-    const cat = (q.category || "General").trim() || "General";
-    (acc[cat] ||= []).push(q);
-    return acc;
-  }, {});
+
+  const grouped = questions.reduce<Record<string, CompatibilityQuestion[]>>(
+    (acc, q) => {
+      const cat = (q.category || "General").trim() || "General";
+      (acc[cat] ||= []).push(q);
+      return acc;
+    },
+    {},
+  );
 
   const categories = Object.entries(grouped).sort(([a], [b]) => {
     const A = a.trim().toLowerCase();
@@ -70,7 +73,7 @@ export default function CompatibilityPage() {
       });
       return initial;
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions.length]);
 
   useEffect(() => {
@@ -88,7 +91,7 @@ export default function CompatibilityPage() {
       try {
         const qs = await apiFetch<CompatibilityQuestion[]>(
           "/compatibility/questions",
-          { token }
+          { token },
         );
         setQuestions(qs || []);
 
@@ -98,17 +101,15 @@ export default function CompatibilityPage() {
         });
 
         // load my answers
-        const myAnswersResp = await apiFetch<any>(
-          "/compatibility/answers/me",
-          { token }
-        );
+        const myAnswersResp = await apiFetch<any>("/compatibility/answers/me", {
+          token,
+        });
 
         const myAnswers: AnswerDto[] = Array.isArray(myAnswersResp)
           ? myAnswersResp
           : Array.isArray(myAnswersResp?.answers)
-          ? myAnswersResp.answers
-          : [];
-
+            ? myAnswersResp.answers
+            : [];
 
         myAnswers.forEach((a) => {
           initial[a.questionId] = a.value;
@@ -148,7 +149,7 @@ export default function CompatibilityPage() {
     if (!token) return;
 
     const payload: AnswerDto[] = Object.entries(answers).map(
-    ([questionId, value]) => ({ questionId, value: value ?? "" })
+      ([questionId, value]) => ({ questionId, value: value ?? "" }),
     );
     setSaving(true);
     setError(null);
@@ -267,99 +268,119 @@ export default function CompatibilityPage() {
               </p>
             )}
 
-          <div className="space-y-3">
-  {categories.map(([cat, qs]) => {
-    const isOpen = openCats[cat] ?? true;
-    const catAnswered = qs.filter((q) => (answers[q.id] ?? "").trim().length > 0).length;
+            <div className="space-y-3">
+              {categories.map(([cat, qs]) => {
+                const isOpen = openCats[cat] ?? true;
+                const catAnswered = qs.filter(
+                  (q) => (answers[q.id] ?? "").trim().length > 0,
+                ).length;
 
-    return (
-      <div key={cat} className="rounded-md border border-border-subtle bg-surface">
-        <button
-          type="button"
-          onClick={() => setOpenCats((prev) => ({ ...prev, [cat]: !isOpen }))}
-          className="flex w-full items-center justify-between px-4 py-3 text-left"
-          data-testid={`compat-category-${toTestId(cat)}`}
-        >
-          <div>
-            <p className="text-sm font-semibold text-gray-900">{cat}</p>
-            <p className="text-xs text-gray-500">
-              {catAnswered} / {qs.length} answered
-            </p>
-          </div>
-          <span className="text-xs text-gray-500">{isOpen ? "Hide" : "Show"}</span>
-        </button>
-
-        {isOpen && (
-          <div className="px-4 pb-4">
-            <div className="space-y-4">
-              {qs.map((q, idx) => {
-                const value = answers[q.id] ?? "";
-                const options = q.options || [];
                 return (
                   <div
-                    key={q.id}
-                    data-testid={`question-${q.id}`}
-                    className="border-b border-border-subtle pb-3 last:border-b-0"
+                    key={cat}
+                    className="rounded-md border border-border-subtle bg-surface"
                   >
-                    <p className="text-sm font-medium text-gray-800">
-                      {q.text}
-                    </p>
-
-                    {q.helperText && (
-                      <p className="mt-1 text-xs text-gray-500">{q.helperText}</p>
-                    )}
-
-                    {q.type === "single_choice" && options.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {options.map((opt) => (
-                          <label
-                            key={opt}
-                            className="flex cursor-pointer items-center gap-2 text-xs text-gray-700"
-                          >
-                            <input
-                              type="radio"
-                              name={q.id}
-                              value={opt}
-                              checked={value === opt}
-                              onChange={() => handleChange(q.id, opt)}
-                              data-testid={`question-${q.id}-option-${toTestId(opt)}`}
-                              className="h-3 w-3"
-                            />
-                            <span>{opt}</span>
-                          </label>
-                        ))}
-
-                        {/* UI-only remove/clear */}
-                        <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-700">
-                          <input
-                            type="radio"
-                            name={q.id}
-                            value=""
-                            checked={value === ""}
-                            onChange={() => handleChange(q.id, "")}
-                            data-testid={`question-${q.id}-option-none`}
-                            className="h-3 w-3"
-                          />
-                          <span className="italic text-gray-500">Prefer not to answer</span>
-                        </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenCats((prev) => ({ ...prev, [cat]: !isOpen }))
+                      }
+                      className="flex w-full items-center justify-between px-4 py-3 text-left"
+                      data-testid={`compat-category-${toTestId(cat)}`}
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {cat}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {catAnswered} / {qs.length} answered
+                        </p>
                       </div>
-                    )}
+                      <span className="text-xs text-gray-500">
+                        {isOpen ? "Hide" : "Show"}
+                      </span>
+                    </button>
 
-                    {q.type === "free_text" && (
-                      <p className="mt-1 text-xs text-gray-500">
-                        (Free text not enabled in MVP UI yet.)
-                      </p>
+                    {isOpen && (
+                      <div className="px-4 pb-4">
+                        <div className="space-y-4">
+                          {qs.map((q, idx) => {
+                            const value = answers[q.id] ?? "";
+                            const options = q.options || [];
+                            return (
+                              <div
+                                key={q.id}
+                                data-testid={`question-${q.id}`}
+                                className="border-b border-border-subtle pb-3 last:border-b-0"
+                              >
+                                <p className="text-sm font-medium text-gray-800">
+                                  {q.text}
+                                </p>
+
+                                {q.helperText && (
+                                  <p className="mt-1 text-xs text-gray-500">
+                                    {q.helperText}
+                                  </p>
+                                )}
+
+                                {q.type === "single_choice" &&
+                                  options.length > 0 && (
+                                    <div className="mt-2 space-y-1">
+                                      {options.map((opt) => (
+                                        <label
+                                          key={opt}
+                                          className="flex cursor-pointer items-center gap-2 text-xs text-gray-700"
+                                        >
+                                          <input
+                                            type="radio"
+                                            name={q.id}
+                                            value={opt}
+                                            checked={value === opt}
+                                            onChange={() =>
+                                              handleChange(q.id, opt)
+                                            }
+                                            data-testid={`question-${q.id}-option-${toTestId(opt)}`}
+                                            className="h-3 w-3"
+                                          />
+                                          <span>{opt}</span>
+                                        </label>
+                                      ))}
+
+                                      {/* UI-only remove/clear */}
+                                      <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-700">
+                                        <input
+                                          type="radio"
+                                          name={q.id}
+                                          value=""
+                                          checked={value === ""}
+                                          onChange={() =>
+                                            handleChange(q.id, "")
+                                          }
+                                          data-testid={`question-${q.id}-option-none`}
+                                          className="h-3 w-3"
+                                        />
+                                        <span className="italic text-gray-500">
+                                          Prefer not to answer
+                                        </span>
+                                      </label>
+                                    </div>
+                                  )}
+
+                                {q.type === "free_text" && (
+                                  <p className="mt-1 text-xs text-gray-500">
+                                    (Free text not enabled in MVP UI yet.)
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     )}
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
-      </div>
-    );
-  })}
-</div>
           </CardBody>
 
           <CardFooter className="flex items-center justify-between">

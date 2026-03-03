@@ -4,10 +4,10 @@ Bunkbuddy is a web application that helps future college roommates find each oth
 
 ## Tech Stack
 
--   **Frontend**: Next.js (App Router) - TypeScript - Tailwind CSS
--   **Backend**: Node.js + TypeScript - Express
--   **Database**: PostgreSQL (Docker) - Prisma ORM
--   **Auth**: JWT (stateless)
+- **Frontend**: Next.js (App Router) - TypeScript - Tailwind CSS
+- **Backend**: Node.js + TypeScript - Express
+- **Database**: PostgreSQL (Docker) - Prisma ORM
+- **Auth**: JWT (stateless)
 
 ## Repository Structure
 
@@ -84,37 +84,45 @@ DATABASE_URL=JWT_SECRET=PORT=4000
 
 See backend/.env.example for reference.
 
+### Code Formatting (Prettier)
+
+From the repo root:
+
+```bash
+npx prettier --write "."
+```
+
 ### Test Automation
 
 **Unit and integration tests** (vitest from bunkbuddy/backend): `npm test`
 
 **End-to-end** (Playwright from bunkbuddy/frontend): `npx playwright test`
 
--   e2e tests with the Playwright UI: `npx playwright test --ui`
--   Global-setup runs migrations + seed:e2e (including compatibility questions)
--   auth-with-ui.spec.ts uses `test.use({ storageState: { cookies: [], origins: [] } })` to avoid authed state
+- e2e tests with the Playwright UI: `npx playwright test --ui`
+- Global-setup runs migrations + seed:e2e (including compatibility questions)
+- auth-with-ui.spec.ts uses `test.use({ storageState: { cookies: [], origins: [] } })` to avoid authed state
 
 ### Project Status (Short-term)
 
--   Backend MVP complete (auth, profiles, compatibility, matching, chat)
--   Frontend MVP functional
--   Next steps:
-    -   UX polish
-    -   Public Profile pages
-    -   Filtering and sorting Matches and Shortlist
-    -   Notifications and notification preferences
-    -   Deeper automated tests (Build on existing vitest and playwright tests)
-    -   Deployment to Production
+- Backend MVP complete (auth, profiles, compatibility, matching, chat)
+- Frontend MVP functional
+- Next steps:
+  - UX polish
+  - Public Profile pages
+  - Filtering and sorting Matches and Shortlist
+  - Notifications and notification preferences
+  - Deeper automated tests (Build on existing vitest and playwright tests)
+  - Deployment to Production
 
 ## Long term high level roadmap
 
--   Improved security (shorter token lifetimes, optional token revocation)
--   Real-time chat (WebSockets replacing HTTP polling)
--   Household management features:
-    -   Shared budget and expenses tracking
-    -   Chore rotation
-    -   Shopping lists
-    -   Household calendar
--   Housing listings and discovery
+- Improved security (shorter token lifetimes, optional token revocation)
+- Real-time chat (WebSockets replacing HTTP polling)
+- Household management features:
+  - Shared budget and expenses tracking
+  - Chore rotation
+  - Shopping lists
+  - Household calendar
+- Housing listings and discovery
 
 This is a high level roadmap - detailed tasks live outside this repo.

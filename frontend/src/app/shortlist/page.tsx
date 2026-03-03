@@ -9,14 +9,18 @@ import { useOwnedRoom } from "@/hooks/useOwnedRoom";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { getUserDisplayName, shortlistedUserToUserLike} from "@/lib/displayName";
+import {
+  getUserDisplayName,
+  shortlistedUserToUserLike,
+} from "@/lib/displayName";
 
 function EmptyShortlistState() {
   return (
     <div className="rounded-card border border-border-subtle bg-surface shadow-soft p-6">
       <h2 className="text-base font-semibold">Your shortlist is empty</h2>
       <p className="mt-1 text-sm text-gray-600">
-        Add a few promising roommates from Matches, then start a Meet &amp; Greet chat.
+        Add a few promising roommates from Matches, then start a Meet &amp;
+        Greet chat.
       </p>
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -35,7 +39,8 @@ function EmptyShortlistState() {
       </div>
 
       <p className="mt-4 text-xs text-gray-500">
-        Tip: Shortlist is private — other users aren’t notified until you invite them to chat.
+        Tip: Shortlist is private — other users aren’t notified until you invite
+        them to chat.
       </p>
     </div>
   );
@@ -73,7 +78,7 @@ export default function ShortlistPage() {
     setSelectedIds((prev) =>
       prev.includes(userId)
         ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
+        : [...prev, userId],
     );
     setError(null);
   };
@@ -86,7 +91,7 @@ export default function ShortlistPage() {
     }
 
     const name = window.prompt(
-      "Room name (optional – leave empty for no name):"
+      "Room name (optional – leave empty for no name):",
     );
 
     if (name === null) {
@@ -130,21 +135,18 @@ export default function ShortlistPage() {
     setInviting(true);
     setError(null);
     try {
-      await apiFetch<{ message: string }>(
-        `/chatrooms/${ownedRoom.id}/invite`,
-        {
-          method: "POST",
-          token,
-          body: {
-            participantIds: selectedIds,
-          },
-        }
-      );
+      await apiFetch<{ message: string }>(`/chatrooms/${ownedRoom.id}/invite`, {
+        method: "POST",
+        token,
+        body: {
+          participantIds: selectedIds,
+        },
+      });
 
       alert(
         `Invites sent to ${selectedIds.length} roommate(s) for room "${
           ownedRoom.name || `Room #${ownedRoom.id.slice(0, 8)}`
-        }".`
+        }".`,
       );
     } catch (err: any) {
       setError(err.message || "Failed to invite selected roommates");
@@ -195,7 +197,7 @@ export default function ShortlistPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {shortlist.map((u) => {
               const displayName = getUserDisplayName(
-                shortlistedUserToUserLike(u)
+                shortlistedUserToUserLike(u),
               );
               const selected = selectedIds.includes(u.userId);
               return (
@@ -214,7 +216,11 @@ export default function ShortlistPage() {
                           <div className="h-10 w-10 overflow-hidden rounded-full bg-surface-muted flex items-center justify-center text-sm font-semibold">
                             {u.avatarUrl ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={u.avatarUrl} alt="" className="h-full w-full object-cover" />
+                              <img
+                                src={u.avatarUrl}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
                             ) : (
                               (displayName[0]?.toUpperCase() ?? "?")
                             )}
@@ -326,7 +332,9 @@ export default function ShortlistPage() {
               onClick={handleStartChat}
               disabled={creating || selectedIds.length === 0}
             >
-              {creating ? "Creating chat room…" : "Start new chat with selected"}
+              {creating
+                ? "Creating chat room…"
+                : "Start new chat with selected"}
             </Button>
 
             {ownedRoom && (
@@ -341,8 +349,7 @@ export default function ShortlistPage() {
                 {inviting
                   ? "Inviting to your room…"
                   : `Invite selected to "${
-                      ownedRoom.name ||
-                      `Room #${ownedRoom.id.slice(0, 8)}`
+                      ownedRoom.name || `Room #${ownedRoom.id.slice(0, 8)}`
                     }"`}
               </Button>
             )}

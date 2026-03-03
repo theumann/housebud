@@ -9,4 +9,3 @@ export function setLastSeen(roomId: string, atMs: number = Date.now()) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(`bb:lastSeen:${roomId}`, String(atMs));
 }
-

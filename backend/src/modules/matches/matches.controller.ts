@@ -6,7 +6,7 @@ import type { PrismaClient } from "@prisma/client";
 export async function getMatchesHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;

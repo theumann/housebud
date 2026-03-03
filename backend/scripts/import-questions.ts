@@ -48,13 +48,13 @@ function parseOptionsJson(raw: unknown): any[] | null {
 async function main() {
   const csvPath = process.argv[2];
   if (!csvPath) {
-    console.error(
-      "Usage: npx tsx scripts/import-questions.ts <path-to-csv>"
-    );
+    console.error("Usage: npx tsx scripts/import-questions.ts <path-to-csv>");
     process.exit(1);
   }
 
-  const abs = path.isAbsolute(csvPath) ? csvPath : path.join(process.cwd(), csvPath);
+  const abs = path.isAbsolute(csvPath)
+    ? csvPath
+    : path.join(process.cwd(), csvPath);
   if (!fs.existsSync(abs)) {
     console.error(`CSV file not found: ${abs}`);
     process.exit(1);
@@ -74,50 +74,54 @@ async function main() {
   }
 
   // Basic validation + normalization
-  const data: Prisma.CompatibilityQuestionCreateManyInput[] = records.map((r, idx) => {
-    const code = (r.code || "").trim();
-    const text = (r.text || "").trim();
-    const helperText = (r.helperText ?? "").trim() || null;
+  const data: Prisma.CompatibilityQuestionCreateManyInput[] = records.map(
+    (r, idx) => {
+      const code = (r.code || "").trim();
+      const text = (r.text || "").trim();
+      const helperText = (r.helperText ?? "").trim() || null;
 
-    // NOTE: your CSV shows `single_choice ` (space). This fixes that.
-    const type = (r.type || "").trim();
+      // NOTE: your CSV shows `single_choice ` (space). This fixes that.
+      const type = (r.type || "").trim();
 
-    const category = (r.category ?? "").trim() || "general";
-    const isActive = parseBool(r.isActive, true);
-    const options = parseOptionsJson(r.options);
+      const category = (r.category ?? "").trim() || "general";
+      const isActive = parseBool(r.isActive, true);
+      const options = parseOptionsJson(r.options);
 
-    if (!code) throw new Error(`Row ${idx + 2}: missing code`);
-    if (!text) throw new Error(`Row ${idx + 2}: missing text`);
-    if (!type) throw new Error(`Row ${idx + 2}: missing type`);
+      if (!code) throw new Error(`Row ${idx + 2}: missing code`);
+      if (!text) throw new Error(`Row ${idx + 2}: missing text`);
+      if (!type) throw new Error(`Row ${idx + 2}: missing type`);
 
-    // Enforce type/options consistency (MVP rules)
-    if (type === "free_text") {
-      // free text should have no options
-      return {
-        code,
-        text,
-        helperText,
-        type,
-        options: Prisma.DbNull,
-        category,
-        isActive,
-      };
-    } else {
-      // structured questions should have options
-      if (!options || options.length === 0) {
-        throw new Error(`Row ${idx + 2} (${code}): options required for type="${type}"`);
+      // Enforce type/options consistency (MVP rules)
+      if (type === "free_text") {
+        // free text should have no options
+        return {
+          code,
+          text,
+          helperText,
+          type,
+          options: Prisma.DbNull,
+          category,
+          isActive,
+        };
+      } else {
+        // structured questions should have options
+        if (!options || options.length === 0) {
+          throw new Error(
+            `Row ${idx + 2} (${code}): options required for type="${type}"`,
+          );
+        }
+        return {
+          code,
+          text,
+          helperText,
+          type,
+          options: options as Prisma.InputJsonValue, // safe
+          category,
+          isActive,
+        };
       }
-      return {
-        code,
-        text,
-        helperText,
-        type,
-        options: options as Prisma.InputJsonValue, // safe
-        category,
-        isActive,
-      };
-    }
-  });
+    },
+  );
 
   // Optional: detect duplicate codes inside the CSV
   const seen = new Set<string>();

@@ -27,7 +27,11 @@ export async function getMyProfile(prisma: PrismaClient, userId: string) {
   };
 }
 
-export async function updateMyProfile(prisma: PrismaClient, userId: string, input: ProfileUpdateInput) {
+export async function updateMyProfile(
+  prisma: PrismaClient,
+  userId: string,
+  input: ProfileUpdateInput,
+) {
   // Prepare update data
   const data: any = { ...input };
 
@@ -44,7 +48,9 @@ export async function updateMyProfile(prisma: PrismaClient, userId: string, inpu
       firstName: input.firstName ?? "First",
       lastName: input.lastName ?? "Last",
       displayName: input.displayName ?? null,
-      birthDate: input.birthDate ? new Date(input.birthDate) : new Date("2000-01-01"),
+      birthDate: input.birthDate
+        ? new Date(input.birthDate)
+        : new Date("2000-01-01"),
       school: input.school ?? "Unknown",
       collegeYear: input.collegeYear ?? "Unknown",
       targetCity: input.targetCity ?? "Unknown",

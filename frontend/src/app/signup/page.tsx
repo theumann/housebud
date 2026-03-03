@@ -43,7 +43,10 @@ export default function SignupPage() {
   };
 
   return (
-    <main data-testid="signup-page" className="min-h-screen flex items-center justify-center">
+    <main
+      data-testid="signup-page"
+      className="min-h-screen flex items-center justify-center"
+    >
       <div className="w-full max-w-lg border rounded-lg p-6">
         <h1 className="text-2xl font-bold mb-4">Sign up</h1>
         <form onSubmit={onSubmit} className="grid grid-cols-2 gap-4">
@@ -254,9 +257,7 @@ export default function SignupPage() {
               Target ZIP
             </label>
           </div>
-          {error && (
-            <p className="col-span-2 text-sm text-red-600">{error}</p>
-          )}
+          {error && <p className="col-span-2 text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             className="col-span-2 bg-black text-white rounded py-2"

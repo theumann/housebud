@@ -5,7 +5,7 @@ test("open an existing chat room if available", async ({ page }) => {
   await gotoAuthed(page, "/chatrooms", { waitForTestId: "chatrooms-page" });
 
   const openButtons = page.locator("[data-testid^='open-chat-']");
-  if (await openButtons.count() === 0) {
+  if ((await openButtons.count()) === 0) {
     test.skip(true, "No active chat rooms to open.");
   }
 

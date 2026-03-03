@@ -5,7 +5,7 @@ import { signup, login } from "./auth.service";
 export async function signupHandler(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const input = SignupSchema.parse(req.body);
@@ -20,7 +20,7 @@ export async function signupHandler(
 export async function loginHandler(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const input = LoginSchema.parse(req.body);

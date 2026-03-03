@@ -15,8 +15,8 @@ type MatchCandidate = {
   bio: string | null;
   avatarUrl: string | null;
   createdAt: Date;
-  score: number | null;      // 0–100 or null
-  coverage: number;          // 0–1
+  score: number | null; // 0–100 or null
+  coverage: number; // 0–1
   hasMinCompatData: boolean;
 };
 
@@ -57,10 +57,11 @@ function calculateAge(birthDate: Date | null): number | null {
   return age;
 }
 
-export async function getMatchesForUser(prisma: PrismaClient, 
+export async function getMatchesForUser(
+  prisma: PrismaClient,
   userId: string,
   page: number = 1,
-  limit: number = 20
+  limit: number = 20,
 ): Promise<{ items: MatchCandidate[]; page: number; total: number }> {
   if (page < 1) page = 1;
   if (limit < 1) limit = 1;

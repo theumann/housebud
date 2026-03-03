@@ -2,7 +2,12 @@ import { beforeAll, beforeEach, afterAll, describe, it, expect } from "vitest";
 import request from "supertest";
 import type { TestContext } from "../helpers/testFactory";
 import { getTestContext } from "../helpers/testContext";
-import { signupUser, createQuestion, answerQuestions, getMyAnswers } from "../helpers/testFactory";
+import {
+  signupUser,
+  createQuestion,
+  answerQuestions,
+  getMyAnswers,
+} from "../helpers/testFactory";
 import { resetDb } from "../helpers/resetDb";
 
 let ctx: TestContext;
@@ -18,11 +23,26 @@ describe.sequential("Compatibility (API)", () => {
     await ctx.prisma.$disconnect();
   });
 
-    it("lists active questions and saves valid answers", async () => {
+  it("lists active questions and saves valid answers", async () => {
     await resetDb(ctx.prisma);
-    const q1 = await createQuestion(ctx, { code: "Q1", text: "Question 1?", options: ["A", "B"], isActive: true });
-    const q2 = await createQuestion(ctx, { code: "Q2", text: "Question 2?",options: ["X", "Y"], isActive: true });
-    await createQuestion(ctx, { code: "INACTIVE", text: "Inactive", options: ["1"], isActive: false });
+    const q1 = await createQuestion(ctx, {
+      code: "Q1",
+      text: "Question 1?",
+      options: ["A", "B"],
+      isActive: true,
+    });
+    const q2 = await createQuestion(ctx, {
+      code: "Q2",
+      text: "Question 2?",
+      options: ["X", "Y"],
+      isActive: true,
+    });
+    await createQuestion(ctx, {
+      code: "INACTIVE",
+      text: "Inactive",
+      options: ["1"],
+      isActive: false,
+    });
 
     const { token } = await signupUser(ctx, {
       email: "a@test.com",
@@ -62,7 +82,12 @@ describe.sequential("Compatibility (API)", () => {
   it("rejects invalid option values with 400", async () => {
     await resetDb(ctx.prisma);
 
-    const q1 = await createQuestion(ctx, { code: "Q1", text: "Question 1?", options: ["A", "B"], isActive: true });
+    const q1 = await createQuestion(ctx, {
+      code: "Q1",
+      text: "Question 1?",
+      options: ["A", "B"],
+      isActive: true,
+    });
 
     const { token } = await signupUser(ctx, {
       email: "b@test.com",
@@ -87,4 +112,3 @@ describe.sequential("Compatibility (API)", () => {
     expect(res.status).toBe(400);
   });
 });
-

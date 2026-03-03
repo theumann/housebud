@@ -15,11 +15,11 @@ export interface TestContext {
 export function createTestContext(): TestContext {
   if (_ctxCreated && process.env.NODE_ENV === "test") {
     throw new Error(
-      "❌ createTestContext() called more than once. Use the shared ctx from tests/setup.ts."
+      "❌ createTestContext() called more than once. Use the shared ctx from tests/setup.ts.",
     );
   }
   _ctxCreated = true;
-  
+
   const prisma = createPrisma();
   const app = createApp(prisma);
   return { prisma, app };
@@ -32,21 +32,23 @@ type SignupResult = {
 
 let userSeq = 1;
 
-
-export async function signupUser(ctx: TestContext, params?: Partial<{
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  username: string;
-  displayName: string;
-  birthDate: string;   // "YYYY-MM-DD"
-  school: string;
-  collegeYear: string;
-  targetCity: string;
-  targetState: string;
-  targetZip: string;
-}>) {
+export async function signupUser(
+  ctx: TestContext,
+  params?: Partial<{
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+    displayName: string;
+    birthDate: string; // "YYYY-MM-DD"
+    school: string;
+    collegeYear: string;
+    targetCity: string;
+    targetState: string;
+    targetZip: string;
+  }>,
+) {
   const n = userSeq++;
 
   const body = {
@@ -64,16 +66,15 @@ export async function signupUser(ctx: TestContext, params?: Partial<{
     targetZip: params?.targetZip ?? "94117",
   };
 
-  const res = await request(ctx.app)
-    .post("/auth/signup")
-    .send(body);
+  const res = await request(ctx.app).post("/auth/signup").send(body);
 
   if (res.status !== 201) {
     throw new Error(`signup failed ${res.status}: ${JSON.stringify(res.body)}`);
   }
 
   const token = res.body?.token as string;
-  if (!token) throw new Error(`signup missing token: ${JSON.stringify(res.body)}`);
+  if (!token)
+    throw new Error(`signup missing token: ${JSON.stringify(res.body)}`);
 
   // Get userId reliably
   const me = await request(ctx.app)
@@ -81,28 +82,38 @@ export async function signupUser(ctx: TestContext, params?: Partial<{
     .set("Authorization", `Bearer ${token}`);
 
   const userId = me.body?.profile?.userId ?? me.body?.userId;
-  if (!userId) throw new Error(`Could not determine userId from /profile/me: ${JSON.stringify(me.body)}`);
+  if (!userId)
+    throw new Error(
+      `Could not determine userId from /profile/me: ${JSON.stringify(me.body)}`,
+    );
 
   return { token, userId, body };
 }
 
-export async function setProfileCreatedAt(ctx: TestContext, userId: string, createdAt: Date) {
+export async function setProfileCreatedAt(
+  ctx: TestContext,
+  userId: string,
+  createdAt: Date,
+) {
   await ctx.prisma.userProfile.update({
     where: { userId },
     data: { createdAt, updatedAt: createdAt },
   });
 }
 
-export async function createQuestion(ctx: TestContext, params: {
-  code: string;
-  text: string;
-  options?: string[] | null;
-  category?: string;
-  helperText?: string | null;
-  isActive?: boolean;
-  orderIndex?: number;
-  type?: "single_choice" | "scale_1_5" | "free_text";
-}) {
+export async function createQuestion(
+  ctx: TestContext,
+  params: {
+    code: string;
+    text: string;
+    options?: string[] | null;
+    category?: string;
+    helperText?: string | null;
+    isActive?: boolean;
+    orderIndex?: number;
+    type?: "single_choice" | "scale_1_5" | "free_text";
+  },
+) {
   return ctx.prisma.compatibilityQuestion.create({
     data: {
       code: params.code,
@@ -120,11 +131,13 @@ export async function createQuestion(ctx: TestContext, params: {
 export async function loginUser(
   app: any,
   params: {
-  identifier: string;
-  password: string;
-  }
+    identifier: string;
+    password: string;
+  },
 ) {
-  const res = await request(app).post("/auth/login").send({ identifier: params.identifier, password: params.password });
+  const res = await request(app)
+    .post("/auth/login")
+    .send({ identifier: params.identifier, password: params.password });
   expect(res.status).toBe(200);
   return {
     token: res.body.token as string,
@@ -132,19 +145,30 @@ export async function loginUser(
   };
 }
 
-export async function answerQuestions(ctx: TestContext, token: string, answers: { questionId: string; value: string }[]) {
+export async function answerQuestions(
+  ctx: TestContext,
+  token: string,
+  answers: { questionId: string; value: string }[],
+) {
   const res = await request(ctx.app)
     .put("/compatibility/answers/me")
     .set("Authorization", `Bearer ${token}`)
     .send(answers);
 
   if (res.status !== 200) {
-    throw new Error(`answerQuestions failed ${res.status}: ${JSON.stringify(res.body)}`);
+    throw new Error(
+      `answerQuestions failed ${res.status}: ${JSON.stringify(res.body)}`,
+    );
   }
   return res.body;
 }
 
-export async function createRoom(ctx: TestContext, token: string, participantIds: string[], name?: string) {
+export async function createRoom(
+  ctx: TestContext,
+  token: string,
+  participantIds: string[],
+  name?: string,
+) {
   const body: any = { participantIds };
   if (name) body.name = name;
 
@@ -154,19 +178,28 @@ export async function createRoom(ctx: TestContext, token: string, participantIds
     .send(body);
 
   if (res.status !== 201) {
-    throw new Error(`createRoom failed ${res.status}: ${JSON.stringify(res.body)}`);
+    throw new Error(
+      `createRoom failed ${res.status}: ${JSON.stringify(res.body)}`,
+    );
   }
   return res.body as { roomId: string };
 }
 
-export async function sendMessage(ctx: TestContext, token: string, roomId: string, text: string) {
+export async function sendMessage(
+  ctx: TestContext,
+  token: string,
+  roomId: string,
+  text: string,
+) {
   const res = await request(ctx.app)
     .post(`/chatrooms/${roomId}/messages`)
     .set("Authorization", `Bearer ${token}`)
     .send({ text });
 
   if (res.status !== 201) {
-    throw new Error(`sendMessage failed ${res.status}: ${JSON.stringify(res.body)}`);
+    throw new Error(
+      `sendMessage failed ${res.status}: ${JSON.stringify(res.body)}`,
+    );
   }
   return res.body;
 }
@@ -177,7 +210,9 @@ export async function listRooms(ctx: TestContext, token: string) {
     .set("Authorization", `Bearer ${token}`);
 
   if (res.status !== 200) {
-    throw new Error(`listRooms failed ${res.status}: ${JSON.stringify(res.body)}`);
+    throw new Error(
+      `listRooms failed ${res.status}: ${JSON.stringify(res.body)}`,
+    );
   }
   return res.body as { rooms: any[]; invites: any[] };
 }
@@ -186,7 +221,7 @@ export async function respondToInvite(
   app: any,
   token: string,
   roomId: string,
-  action: "accept" | "decline"
+  action: "accept" | "decline",
 ) {
   const res = await request(app)
     .post(`/chatrooms/${roomId}/${action}`)

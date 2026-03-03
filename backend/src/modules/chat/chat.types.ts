@@ -19,7 +19,6 @@ export const UpdateChatRoomSchema = z.object({
 
 export type UpdateChatRoomInput = z.infer<typeof UpdateChatRoomSchema>;
 
-
 export const KickParticipantSchema = z.object({
   userId: z.string().uuid(),
 });

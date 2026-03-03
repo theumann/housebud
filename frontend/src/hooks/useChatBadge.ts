@@ -23,13 +23,16 @@ export function useChatBadge(pollMs: number = 15000) {
         // - { items: [...] } with status fields
         // - [...] (array)
         const invites =
-            (Array.isArray(resp?.invites) && resp.invites) ||
-            (Array.isArray(resp?.pendingInvites) && resp.pendingInvites) ||
-            (Array.isArray(resp?.pending) && resp.pending) ||
-            (Array.isArray(resp?.pendingInvites?.items) && resp.pendingInvites.items) ||
-            (Array.isArray(resp?.items) && resp.items.filter((r: any) => r?.status === "pending")) ||
-            (Array.isArray(resp) && resp.filter((r: any) => r?.status === "pending")) ||
-            [];
+          (Array.isArray(resp?.invites) && resp.invites) ||
+          (Array.isArray(resp?.pendingInvites) && resp.pendingInvites) ||
+          (Array.isArray(resp?.pending) && resp.pending) ||
+          (Array.isArray(resp?.pendingInvites?.items) &&
+            resp.pendingInvites.items) ||
+          (Array.isArray(resp?.items) &&
+            resp.items.filter((r: any) => r?.status === "pending")) ||
+          (Array.isArray(resp) &&
+            resp.filter((r: any) => r?.status === "pending")) ||
+          [];
         if (!cancelled) setPendingInvitesCount(invites.length);
       } catch {
         // silently ignore; badge is not critical

@@ -118,10 +118,7 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
-  const handleChange = (
-    field: keyof ProfilePayload,
-    value: string
-  ) => {
+  const handleChange = (field: keyof ProfilePayload, value: string) => {
     setForm((prev) => ({
       ...prev,
       [field]: value,
@@ -171,11 +168,9 @@ export default function ProfilePage() {
   };
 
   const isDirty =
-    !!initialForm &&
-    JSON.stringify(initialForm) !== JSON.stringify(form);
+    !!initialForm && JSON.stringify(initialForm) !== JSON.stringify(form);
 
-  const disableSave =
-    saving || loadingProfile || !isDirty;
+  const disableSave = saving || loadingProfile || !isDirty;
 
   const avatarPreview =
     form.avatarUrl && form.avatarUrl.trim().length > 0
@@ -236,9 +231,7 @@ export default function ProfilePage() {
                     id="profile-school"
                     type="text"
                     value={form.school}
-                    onChange={(e) =>
-                      handleChange("school", e.target.value)
-                    }
+                    onChange={(e) => handleChange("school", e.target.value)}
                     className="peer w-full border rounded px-3 py-2"
                     placeholder="USF, SFSU, UCSF…"
                     required
@@ -281,9 +274,7 @@ export default function ProfilePage() {
                   <label className="block text-sm mb-1">Short bio</label>
                   <textarea
                     value={form.bio}
-                    onChange={(e) =>
-                      handleChange("bio", e.target.value)
-                    }
+                    onChange={(e) => handleChange("bio", e.target.value)}
                     rows={3}
                     className="w-full resize-none border rounded px-3 py-2"
                     placeholder="Tell potential roommates a bit about yourself."
@@ -299,9 +290,7 @@ export default function ProfilePage() {
                     id="profile-target-city"
                     type="text"
                     value={form.targetCity}
-                    onChange={(e) =>
-                      handleChange("targetCity", e.target.value)
-                    }
+                    onChange={(e) => handleChange("targetCity", e.target.value)}
                     className="peer w-full border rounded px-3 py-2"
                     placeholder="San Francisco"
                     required
@@ -364,9 +353,7 @@ export default function ProfilePage() {
                   <input
                     type="url"
                     value={form.avatarUrl}
-                    onChange={(e) =>
-                      handleChange("avatarUrl", e.target.value)
-                    }
+                    onChange={(e) => handleChange("avatarUrl", e.target.value)}
                     className="w-full border rounded px-3 py-2"
                     placeholder="https://example.com/your-photo.jpg"
                   />
@@ -379,8 +366,9 @@ export default function ProfilePage() {
                           alt="Avatar preview"
                           className="h-full w-full object-cover"
                           onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).style.display =
-                              "none";
+                            (
+                              e.currentTarget as HTMLImageElement
+                            ).style.display = "none";
                           }}
                         />
                       </div>
@@ -396,8 +384,8 @@ export default function ProfilePage() {
 
           <CardFooter className="flex items-center justify-between">
             <p className="text-xs text-gray-500">
-              Your display name and school help others recognize you. Location is
-              used to filter and sort matches.
+              Your display name and school help others recognize you. Location
+              is used to filter and sort matches.
             </p>
             <Button
               data-testid="save-profile-button"
@@ -414,4 +402,3 @@ export default function ProfilePage() {
     </PageContainer>
   );
 }
-

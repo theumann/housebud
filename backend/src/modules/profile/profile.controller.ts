@@ -6,7 +6,7 @@ import { getMyProfile, updateMyProfile } from "./profile.service";
 export async function getMyProfileHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     if (!req.userId) {
@@ -23,7 +23,7 @@ export async function getMyProfileHandler(
 export async function updateMyProfileHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     if (!req.userId) {

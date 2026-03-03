@@ -9,8 +9,12 @@ import { useOwnedRoom } from "@/hooks/useOwnedRoom";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { getUserDisplayName, matchItemToUserLike, shortlistedUserToUserLike,
-  authUserToUserLike } from "@/lib/displayName";
+import {
+  getUserDisplayName,
+  matchItemToUserLike,
+  shortlistedUserToUserLike,
+  authUserToUserLike,
+} from "@/lib/displayName";
 
 function MatchCardSkeleton() {
   return (
@@ -37,9 +41,9 @@ function EmptyMatchesState() {
     <div className="rounded-card border border-border-subtle bg-surface shadow-soft p-6">
       <h2 className="text-base font-semibold">No matches yet</h2>
       <p className="mt-1 text-sm text-gray-600">
-        We’re not finding anyone in your target ZIP area right now.
-        Try widening your target ZIP, or answer more compatibility questions to
-        improve match sorting.
+        We’re not finding anyone in your target ZIP area right now. Try widening
+        your target ZIP, or answer more compatibility questions to improve match
+        sorting.
       </p>
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -176,30 +180,26 @@ export default function MatchesPage() {
     }
   };
 
-  const handleInviteToOwnedRoom = async (
-    userId: string,
-  ) => {
+  const handleInviteToOwnedRoom = async (userId: string) => {
     if (!token || !ownedRoom) return;
 
     const user = matches.find((m) => m.userId === userId);
     const displayName = user
-      ? getUserDisplayName(matchItemToUserLike(user)): "this user";
+      ? getUserDisplayName(matchItemToUserLike(user))
+      : "this user";
 
     setInvitingUserId(userId);
     try {
-      await apiFetch<{ message: string }>(
-        `/chatrooms/${ownedRoom.id}/invite`,
-        {
-          method: "POST",
-          token,
-          body: { participantIds: [userId] },
-        }
-      );
+      await apiFetch<{ message: string }>(`/chatrooms/${ownedRoom.id}/invite`, {
+        method: "POST",
+        token,
+        body: { participantIds: [userId] },
+      });
 
       alert(
         `Invite sent to ${displayName} for room "${
           ownedRoom.name || `Room #${ownedRoom.id.slice(0, 8)}`
-        }".`
+        }".`,
       );
     } catch (err: any) {
       alert(err.message || "Failed to invite user to room");
@@ -222,14 +222,20 @@ export default function MatchesPage() {
         <div>
           <h1 className="text-2xl font-bold">Your Matches</h1>
           <p className="text-sm text-gray-600">
-            Potential roommates near your target location, sorted by compatibility.
+            Potential roommates near your target location, sorted by
+            compatibility.
           </p>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="hidden sm:inline text-gray-600">
-            Logged in as <strong>{getUserDisplayName(authUserToUserLike(user))}</strong>
+            Logged in as{" "}
+            <strong>{getUserDisplayName(authUserToUserLike(user))}</strong>
           </span>
-          <a href="/compatibility" data-testid="improve-compatibility-link" className="text-blue-600 underline">
+          <a
+            href="/compatibility"
+            data-testid="improve-compatibility-link"
+            className="text-blue-600 underline"
+          >
             Improve compatibility
           </a>
         </div>
@@ -245,31 +251,41 @@ export default function MatchesPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <MatchCardSkeleton key={i} />
-        ))}
+          ))}
         </div>
       )}
 
-      {!hasMatches && !fetching && !error && (
-        <EmptyMatchesState />
-      )}
+      {!hasMatches && !fetching && !error && <EmptyMatchesState />}
 
       {hasMatches && !fetching && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"  >
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {matches.map((m) => {
             const shortlisted = isShortlisted(m.userId);
             const compatPercent = (m.coverage * 100).toFixed(0);
 
             return (
-              <Card key={m.userId} data-testid={`match-card-header-${m.userId}`}>
+              <Card
+                key={m.userId}
+                data-testid={`match-card-header-${m.userId}`}
+              >
                 <CardHeader>
-                  <div data-testid={`match-card-header-${m.userId}`} className="flex items-center gap-3">
+                  <div
+                    data-testid={`match-card-header-${m.userId}`}
+                    className="flex items-center gap-3"
+                  >
                     <div className="h-10 w-10 overflow-hidden rounded-full bg-surface-muted flex items-center justify-center text-sm font-semibold">
-                       {m.avatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={m.avatarUrl} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          (getUserDisplayName(matchItemToUserLike(m))?.[0]?.toUpperCase() ?? "?")
-                  )}
+                      {m.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={m.avatarUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        (getUserDisplayName(
+                          matchItemToUserLike(m),
+                        )?.[0]?.toUpperCase() ?? "?")
+                      )}
                     </div>
                     <div>
                       <h2 className="text-base font-semibold">
@@ -286,12 +302,14 @@ export default function MatchesPage() {
                   </div>
                 </CardHeader>
 
-                <CardBody>
-                  {m.bio && (
-                    <p className="text-sm text-gray-700 line-clamp-3 mb-3">
-                      {m.bio}
-                    </p>
-                  )}
+                <CardBody className="flex flex-col">
+                  <div className="flex-1">
+                    {m.bio && (
+                      <p className="text-sm text-gray-700 line-clamp-3 mb-3">
+                        {m.bio}
+                      </p>
+                    )}
+                  </div>
 
                   <div className="flex items-center justify-between text-xs">
                     <div>
@@ -322,9 +340,14 @@ export default function MatchesPage() {
                       variant={shortlisted ? "secondary" : "secondary"}
                       size="sm"
                       data-testid={
-                        shortlisted ? `shortlist-remove-button-${m.userId}` : `shortlist-add-button-${m.userId}`}
+                        shortlisted
+                          ? `shortlist-remove-button-${m.userId}`
+                          : `shortlist-add-button-${m.userId}`
+                      }
                       className={
-                        shortlisted ? "border-green-500 text-green-700" : ""
+                        shortlisted
+                          ? "border-green-500 text-green-700 dark:text-green-400"
+                          : ""
                       }
                       onClick={() => {
                         if (shortlisted) {
@@ -332,7 +355,9 @@ export default function MatchesPage() {
                         } else {
                           add({
                             userId: m.userId,
-                            displayName: getUserDisplayName(shortlistedUserToUserLike(m)),
+                            displayName: getUserDisplayName(
+                              shortlistedUserToUserLike(m),
+                            ),
                             age: m.age,
                             school: m.school,
                             collegeYear: m.collegeYear,
@@ -345,15 +370,15 @@ export default function MatchesPage() {
                         }
                       }}
                     >
-                      {shortlisted ? "Remove from shortlist" : "Add to shortlist"}
+                      {shortlisted
+                        ? "Remove from shortlist"
+                        : "Add to shortlist"}
                     </Button>
                     <Button
                       data-testid={`start-chat-button-${m.userId}`}
                       variant="primary"
                       size="sm"
-                      onClick={() =>
-                        handleStartChatWithUser(m.userId)
-                      }
+                      onClick={() => handleStartChatWithUser(m.userId)}
                     >
                       Start chat
                     </Button>
@@ -365,9 +390,7 @@ export default function MatchesPage() {
                       size="sm"
                       className="w-full border border-blue-500 text-blue-700 hover:bg-blue-50 mt-1"
                       disabled={invitingUserId === m.userId}
-                      onClick={() =>
-                        handleInviteToOwnedRoom(m.userId)
-                      }
+                      onClick={() => handleInviteToOwnedRoom(m.userId)}
                     >
                       {invitingUserId === m.userId
                         ? "Inviting..."
@@ -388,14 +411,14 @@ export default function MatchesPage() {
         <div className="flex items-center gap-3">
           {hasMatches && (
             <span>
-                Page <strong>{page}</strong>
-                {total > 0 && (
-                  <>
-                    {" "}
-                    of <strong>{Math.max(1, Math.ceil(total / pageSize))}</strong>
-                  </>
-                )}
-                {total > 0 && <> · total {total}</>}
+              Page <strong>{page}</strong>
+              {total > 0 && (
+                <>
+                  {" "}
+                  of <strong>{Math.max(1, Math.ceil(total / pageSize))}</strong>
+                </>
+              )}
+              {total > 0 && <> · total {total}</>}
             </span>
           )}
           {shortlist.length > 0 && (

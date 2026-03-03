@@ -8,7 +8,7 @@ const API = "http://localhost:4002";
 const backendDir = path.resolve(__dirname, "../../../backend");
 const storageStatePath = path.resolve(
   __dirname,
-  "../../playwright/.auth/storageState.json"
+  "../../playwright/.auth/storageState.json",
 );
 
 function run(cmd: string) {
@@ -53,17 +53,19 @@ export default async function globalSetup(_config: FullConfig) {
   run(
     process.platform === "win32"
       ? "npx.cmd dotenv -e .env.e2e -- npx.cmd prisma migrate deploy --schema prisma/schema.prisma"
-      : "npx dotenv -e .env.e2e -- prisma migrate deploy --schema prisma/schema.prisma"
+      : "npx dotenv -e .env.e2e -- prisma migrate deploy --schema prisma/schema.prisma",
   );
 
   // 2) Seed e2e data
-  run(process.platform === "win32" ? "npm.cmd run seed:e2e" : "npm run seed:e2e");
+  run(
+    process.platform === "win32" ? "npm.cmd run seed:e2e" : "npm run seed:e2e",
+  );
 
   // 3) Login and cache auth
   await loginAndSaveStorage();
 
   const st = await stat(storageStatePath);
   console.log(
-    `Global setup: saved storage state to ${storageStatePath} (${st.size} bytes).`
+    `Global setup: saved storage state to ${storageStatePath} (${st.size} bytes).`,
   );
 }

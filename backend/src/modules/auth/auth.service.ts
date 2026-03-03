@@ -5,7 +5,6 @@ import { issueAuthResponse } from "./auth.utils";
 import { AuthError } from "../../errors/auth.error";
 
 export async function signup(prisma: PrismaClient, input: SignupInput) {
-
   const email = input.email.toLowerCase();
   const username = input.username.toLowerCase();
   const passwordHash = await bcrypt.hash(input.password, 10);
@@ -45,10 +44,7 @@ export async function login(prisma: PrismaClient, input: LoginInput) {
   const identifier = input.identifier.toLowerCase();
   const user = await prisma.user.findFirst({
     where: {
-      OR: [
-        { email: identifier },
-        { username: identifier },
-      ],
+      OR: [{ email: identifier }, { username: identifier }],
     },
     include: { profile: true },
   });

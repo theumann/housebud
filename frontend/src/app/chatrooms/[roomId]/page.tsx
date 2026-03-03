@@ -8,7 +8,10 @@ import { apiFetch } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { setLastSeen } from "@/lib/unread";
-import { getUserDisplayName, chatMessageSenderToUserLike } from "@/lib/displayName";
+import {
+  getUserDisplayName,
+  chatMessageSenderToUserLike,
+} from "@/lib/displayName";
 
 type ChatMessage = {
   id: string;
@@ -78,7 +81,7 @@ export default function ChatRoomPage() {
 
     loadRoom();
   }, [token, roomId]);
-  
+
   useEffect(() => {
     if (!messagesEndRef.current) return;
     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -103,7 +106,7 @@ export default function ChatRoomPage() {
       try {
         const data = await apiFetch<ChatMessage[]>(
           `/chatrooms/${roomId}/messages`,
-          { token }
+          { token },
         );
         if (!cancelled) {
           setMessages(data);
@@ -171,14 +174,11 @@ export default function ChatRoomPage() {
 
     setSending(true);
     try {
-      const msg = await apiFetch<ChatMessage>(
-        `/chatrooms/${roomId}/messages`,
-        {
-          method: "POST",
-          token,
-          body: { text },
-        }
-      );
+      const msg = await apiFetch<ChatMessage>(`/chatrooms/${roomId}/messages`, {
+        method: "POST",
+        token,
+        body: { text },
+      });
 
       // Optimistic append
       setMessages((prev) => [...prev, msg]);
@@ -201,8 +201,7 @@ export default function ChatRoomPage() {
 
   if (!user) return null;
 
-  const roomTitle =
-    roomInfo?.name || `Room #${String(roomId).slice(0, 8)}`;
+  const roomTitle = roomInfo?.name || `Room #${String(roomId).slice(0, 8)}`;
 
   const isOwner = roomInfo?.myRole === "owner";
 
@@ -231,8 +230,8 @@ export default function ChatRoomPage() {
               {roomInfo && (
                 <>
                   {" "}
-                  · Role: {roomInfo.myRole} ·{" "}
-                  {roomInfo.participantsCount} participant
+                  · Role: {roomInfo.myRole} · {roomInfo.participantsCount}{" "}
+                  participant
                   {roomInfo.participantsCount !== 1 ? "s" : ""}
                   {!roomInfo.isActive && " · Inactive"}
                 </>
@@ -257,7 +256,10 @@ export default function ChatRoomPage() {
 
         {/* Messages area */}
         <div className="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white flex flex-col overflow-hidden">
-          <div data-testid="message-container" className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+          <div
+            data-testid="message-container"
+            className="flex-1 overflow-y-auto px-3 py-3 space-y-2"
+          >
             {messagesError && (
               <div className="rounded border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
                 {messagesError}
@@ -282,13 +284,14 @@ export default function ChatRoomPage() {
                 minute: "2-digit",
               });
 
-              const senderName =
-                getUserDisplayName(chatMessageSenderToUserLike(msg))
-                "Roommate";
+              const senderName = getUserDisplayName(
+                chatMessageSenderToUserLike(msg),
+              );
+              ("Roommate");
 
               const prev = index > 0 ? messages[index - 1] : null;
               const isFirstFromSender =
-                !prev || prev.senderUserId !== msg.senderUserId
+                !prev || prev.senderUserId !== msg.senderUserId;
               const senderAvatar = msg.senderAvatarUrl;
 
               return (
@@ -298,7 +301,7 @@ export default function ChatRoomPage() {
                   className={clsx(
                     "flex",
                     isMine ? "justify-end" : "justify-start",
-                    isFirstFromSender ? "mt-3" : "mt-1"
+                    isFirstFromSender ? "mt-3" : "mt-1",
                   )}
                 >
                   <div className="max-w-[75%]">
@@ -307,20 +310,26 @@ export default function ChatRoomPage() {
                         <div className="h-5 w-5 overflow-hidden rounded-full bg-surface-muted flex items-center justify-center text-[10px] font-semibold text-gray-600">
                           {senderAvatar ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={senderAvatar} alt="" className="h-full w-full object-cover" />
+                            <img
+                              src={senderAvatar}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
                           ) : (
-                            senderName[0]?.toUpperCase() ?? "?"
+                            (senderName[0]?.toUpperCase() ?? "?")
                           )}
                         </div>
-                        <p className="text-[11px] font-medium text-gray-600">{senderName}</p>
+                        <p className="text-[11px] font-medium text-gray-600">
+                          {senderName}
+                        </p>
                       </div>
                     )}
                     <div
                       className={clsx(
                         "rounded-2xl px-3 py-2 text-sm shadow-soft",
                         isMine
-                          ? "bg-black text-white rounded-br-sm"
-                          : "bg-gray-100 text-gray-900 rounded-bl-sm"
+                          ? "bg-gray-600 text-white rounded-br-sm"
+                          : "bg-gray-100 text-gray-900 rounded-bl-sm",
                       )}
                     >
                       <p className="whitespace-pre-wrap wrap-break-word">

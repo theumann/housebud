@@ -24,7 +24,7 @@ type ShortlistContextValue = {
 };
 
 const ShortlistContext = createContext<ShortlistContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 const STORAGE_KEY = "bb_shortlist";

@@ -42,7 +42,7 @@ export function useOwnedRoom() {
           (r) =>
             r.role === "owner" &&
             r.status === "accepted" &&
-            r.isActive === true
+            r.isActive === true,
         );
         setOwnedRoom(mine || null);
       } catch (err: any) {

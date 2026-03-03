@@ -72,7 +72,11 @@ export default function LoginPage() {
         </form>
         <p className="mt-4 text-sm">
           Don&apos;t have an account?{" "}
-          <a href="/signup" data-testid="signup-link" className="text-blue-600 underline">
+          <a
+            href="/signup"
+            data-testid="signup-link"
+            className="text-blue-600 underline"
+          >
             Sign up
           </a>
         </p>

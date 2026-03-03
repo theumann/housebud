@@ -1,7 +1,10 @@
 import { defineConfig } from "@playwright/test";
 import path from "node:path";
 
-const storageStatePath = path.resolve(__dirname, "playwright/.auth/storageState.json");
+const storageStatePath = path.resolve(
+  __dirname,
+  "playwright/.auth/storageState.json",
+);
 
 export default defineConfig({
   globalSetup: "./tests/e2e/global-setup",

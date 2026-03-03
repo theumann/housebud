@@ -59,7 +59,9 @@ export function useChatroomsFeed(pollMs: number = 10_000) {
   const unreadRoomsCount = useMemo(() => {
     return rooms.reduce((acc, room) => {
       const lastSeenMs = getLastSeen(room.id);
-      const latestMs = room.latestMessageAt ? Date.parse(room.latestMessageAt) : 0;
+      const latestMs = room.latestMessageAt
+        ? Date.parse(room.latestMessageAt)
+        : 0;
       return latestMs > lastSeenMs ? acc + 1 : acc;
     }, 0);
   }, [rooms]);

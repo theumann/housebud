@@ -23,10 +23,10 @@ const PLAN_100: SeedPlan = {
   chatrooms: 30,
   maxMessagesPerRoom: 101,
   answerBuckets: [
-    { pct: 0.2, min: 0.0, max: 0.0 },      // 0 answers
-    { pct: 0.2, min: 0.01, max: 0.19 },    // >0 but <20%
-    { pct: 0.4, min: 0.2, max: 0.8 },      // 20%–80%
-    { pct: 0.2, min: 0.81, max: 1.0 },     // 80%–100%
+    { pct: 0.2, min: 0.0, max: 0.0 }, // 0 answers
+    { pct: 0.2, min: 0.01, max: 0.19 }, // >0 but <20%
+    { pct: 0.4, min: 0.2, max: 0.8 }, // 20%–80%
+    { pct: 0.2, min: 0.81, max: 1.0 }, // 80%–100%
   ],
 };
 
@@ -109,7 +109,10 @@ function pickBucket(plan: SeedPlan): { min: number; max: number } {
     acc += b.pct;
     if (r <= acc) return { min: b.min, max: b.max };
   }
-  return { min: plan.answerBuckets.at(-1)!.min, max: plan.answerBuckets.at(-1)!.max };
+  return {
+    min: plan.answerBuckets.at(-1)!.min,
+    max: plan.answerBuckets.at(-1)!.max,
+  };
 }
 
 function clampInt(n: number, min: number, max: number) {
@@ -143,12 +146,14 @@ async function getActiveQuestions() {
 }
 
 async function createUsersWithProfiles(targetCount: number) {
-  const existing = await prisma.user.findMany({ select: { id: true, email: true, username: true } });
+  const existing = await prisma.user.findMany({
+    select: { id: true, email: true, username: true },
+  });
   const existingEmails = new Set(existing.map((u) => u.email.toLowerCase()));
   const existingUsernames = new Set(
     existing
       .map((u) => u.username?.toLowerCase())
-      .filter((u): u is string => Boolean(u))
+      .filter((u): u is string => Boolean(u)),
   );
 
   // Deterministic username allocator: always find the next free userN.
@@ -173,7 +178,30 @@ async function createUsersWithProfiles(targetCount: number) {
     const targetCity = "San Francisco";
     const targetState = "CA";
     const targetZip = faker.helpers.arrayElement([
-      "94102","94103","94105","94107","94108","94109","94110","94112","94114","94115","94116","94117","94118","94121","94122","94123","94124","94127","94129","94130","94131","94132","94133","94134"
+      "94102",
+      "94103",
+      "94105",
+      "94107",
+      "94108",
+      "94109",
+      "94110",
+      "94112",
+      "94114",
+      "94115",
+      "94116",
+      "94117",
+      "94118",
+      "94121",
+      "94122",
+      "94123",
+      "94124",
+      "94127",
+      "94129",
+      "94130",
+      "94131",
+      "94132",
+      "94133",
+      "94134",
     ]);
 
     let username = `user${nextUserNumber}`;
@@ -183,7 +211,9 @@ async function createUsersWithProfiles(targetCount: number) {
     }
     existingUsernames.add(username);
     nextUserNumber += 1;
-    const displayName = faker.internet.username({ firstName, lastName }).slice(0, 20);
+    const displayName = faker.internet
+      .username({ firstName, lastName })
+      .slice(0, 20);
 
     toCreate.push({
       email,
@@ -196,12 +226,25 @@ async function createUsersWithProfiles(targetCount: number) {
           displayName, // cosmetic only
           birthDate: faker.date.birthdate({ min: 18, max: 24, mode: "age" }),
           school: faker.helpers.arrayElement(["USF", "UCSF", "SFSU"]),
-          collegeYear: faker.helpers.arrayElement(["Freshman", "Sophomore", "Junior", "Senior", "Grad"]),
+          collegeYear: faker.helpers.arrayElement([
+            "Freshman",
+            "Sophomore",
+            "Junior",
+            "Senior",
+            "Grad",
+          ]),
           targetCity,
           targetState,
           targetZip,
-          bio: faker.helpers.maybe(() => faker.lorem.sentences({ min: 1, max: 2 }), { probability: 0.6 }) ?? null,
-          avatarUrl: faker.helpers.maybe(() => faker.image.avatar(), { probability: 0.5 }) ?? null,
+          bio:
+            faker.helpers.maybe(
+              () => faker.lorem.sentences({ min: 1, max: 2 }),
+              { probability: 0.6 },
+            ) ?? null,
+          avatarUrl:
+            faker.helpers.maybe(() => faker.image.avatar(), {
+              probability: 0.5,
+            }) ?? null,
         },
       },
     });
@@ -222,7 +265,10 @@ async function createUsersWithProfiles(targetCount: number) {
   return all.map((u) => u.id);
 }
 
-async function seedCompatibilityAnswersForUsers(userIds: string[], activeQuestions: Awaited<ReturnType<typeof getActiveQuestions>>) {
+async function seedCompatibilityAnswersForUsers(
+  userIds: string[],
+  activeQuestions: Awaited<ReturnType<typeof getActiveQuestions>>,
+) {
   if (activeQuestions.length === 0) {
     console.log("No active questions found. Skipping answers seeding.");
     return;
@@ -233,11 +279,16 @@ async function seedCompatibilityAnswersForUsers(userIds: string[], activeQuestio
   for (const userId of userIds) {
     const bucket = pickBucket(PLAN_100);
 
-    const fraction = bucket.min === bucket.max
-      ? bucket.min
-      : faker.number.float({ min: bucket.min, max: bucket.max });
+    const fraction =
+      bucket.min === bucket.max
+        ? bucket.min
+        : faker.number.float({ min: bucket.min, max: bucket.max });
 
-    const count = clampInt(fraction * activeQuestions.length, 0, activeQuestions.length);
+    const count = clampInt(
+      fraction * activeQuestions.length,
+      0,
+      activeQuestions.length,
+    );
 
     if (count === 0) continue;
 
@@ -305,21 +356,29 @@ async function seedChatroomsAndMessages(userIds: string[], plan: SeedPlan) {
     markAccepted(ownerId);
 
     // Pick 1–4 other participants (some accepted, some pending)
-    const possibleOthers = userIds.filter((id) => id !== ownerId && canJoin(id));
-    const others = sampleMany(possibleOthers, faker.number.int({ min: 1, max: 4 }));
+    const possibleOthers = userIds.filter(
+      (id) => id !== ownerId && canJoin(id),
+    );
+    const others = sampleMany(
+      possibleOthers,
+      faker.number.int({ min: 1, max: 4 }),
+    );
 
     // Decide how many accepted initially (need at least 2 accepted for messages)
     const acceptedCount = faker.helpers.arrayElement([1, 2, 2, 3]); // bias toward having at least 2
-    const acceptedOthers = others.slice(0, Math.min(acceptedCount - 1, others.length)); // minus owner
+    const acceptedOthers = others.slice(
+      0,
+      Math.min(acceptedCount - 1, others.length),
+    ); // minus owner
     const pendingOthers = others.slice(acceptedOthers.length);
 
     // mark accepted users against 3-room cap
     for (const uid of acceptedOthers) markAccepted(uid);
 
-    const roomName = faker.helpers.maybe(
-      () => faker.company.catchPhrase().slice(0, 60),
-      { probability: 0.25 }
-    ) ?? null;
+    const roomName =
+      faker.helpers.maybe(() => faker.company.catchPhrase().slice(0, 60), {
+        probability: 0.25,
+      }) ?? null;
 
     const room = await prisma.chatRoom.create({
       data: {
@@ -329,8 +388,16 @@ async function seedChatroomsAndMessages(userIds: string[], plan: SeedPlan) {
         participants: {
           create: [
             { userId: ownerId, role: "owner", status: "accepted" },
-            ...acceptedOthers.map((uid) => ({ userId: uid, role: "member", status: "accepted" as const })),
-            ...pendingOthers.map((uid) => ({ userId: uid, role: "member", status: "pending" as const })),
+            ...acceptedOthers.map((uid) => ({
+              userId: uid,
+              role: "member",
+              status: "accepted" as const,
+            })),
+            ...pendingOthers.map((uid) => ({
+              userId: uid,
+              role: "member",
+              status: "pending" as const,
+            })),
           ],
         },
       },
@@ -341,7 +408,10 @@ async function seedChatroomsAndMessages(userIds: string[], plan: SeedPlan) {
 
     // Messages: only from accepted participants
     const acceptedSenders = [ownerId, ...acceptedOthers];
-    const messagesToCreate = faker.number.int({ min: 0, max: plan.maxMessagesPerRoom });
+    const messagesToCreate = faker.number.int({
+      min: 0,
+      max: plan.maxMessagesPerRoom,
+    });
 
     if (messagesToCreate > 0 && acceptedSenders.length >= 2) {
       const msgRows: Prisma.ChatMessageCreateManyInput[] = [];
@@ -366,7 +436,7 @@ async function seedChatroomsAndMessages(userIds: string[], plan: SeedPlan) {
 
 async function main() {
   await ensurePersonalUsers("Password123!");
-  
+
   faker.seed(42); // deterministic-ish runs
 
   const activeQuestions = await getActiveQuestions();
@@ -375,7 +445,9 @@ async function main() {
   // You asked for "100 users" — we’ll interpret it as "seed 100 new users", while keeping manual users intact.
   const beforeCount = await prisma.user.count();
   const targetNew = PLAN_100.totalUsers; // new users
-  console.log(`Users before seed: ${beforeCount}. Seeding ${targetNew} new users...`);
+  console.log(
+    `Users before seed: ${beforeCount}. Seeding ${targetNew} new users...`,
+  );
 
   const allUserIds = await createUsersWithProfiles(targetNew);
 

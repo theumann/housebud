@@ -1,9 +1,7 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../../middleware/authMiddleware";
 import type { PrismaClient } from "@prisma/client";
-import {
-  CompatibilityAnswersUpdateSchema,
-} from "./compatibility.types";
+import { CompatibilityAnswersUpdateSchema } from "./compatibility.types";
 import {
   getActiveQuestions,
   getMyAnswers,
@@ -13,7 +11,7 @@ import {
 export async function getQuestionsHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;
@@ -27,7 +25,7 @@ export async function getQuestionsHandler(
 export async function getMyAnswersHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;
@@ -45,7 +43,7 @@ export async function getMyAnswersHandler(
 export async function updateMyAnswersHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;

@@ -7,16 +7,15 @@ import {
   UpdateChatRoomInput,
 } from "./chat.types";
 
-type MessageWithSenderProfile =
-  Prisma.ChatMessageGetPayload<{
-    include: {
-      sender: {
-        include: {
-          profile: true;
-        };
+type MessageWithSenderProfile = Prisma.ChatMessageGetPayload<{
+  include: {
+    sender: {
+      include: {
+        profile: true;
       };
     };
-  }>;
+  };
+}>;
 
 type RoomSummary = {
   id: string;
@@ -63,7 +62,10 @@ type ChatRoomDetail = {
   participantsCount: number;
 };
 
-async function getAcceptedRoomCount(prisma: PrismaClient, userId: string): Promise<number> {
+async function getAcceptedRoomCount(
+  prisma: PrismaClient,
+  userId: string,
+): Promise<number> {
   const count = await prisma.chatRoomParticipant.count({
     where: {
       userId,
@@ -76,7 +78,9 @@ async function getAcceptedRoomCount(prisma: PrismaClient, userId: string): Promi
 async function ensureCanJoinAnotherRoom(prisma: PrismaClient, userId: string) {
   const count = await getAcceptedRoomCount(prisma, userId);
   if (count >= 3) {
-    const err: any = new Error("User is already in the maximum number of rooms (3)");
+    const err: any = new Error(
+      "User is already in the maximum number of rooms (3)",
+    );
     err.status = 400;
     throw err;
   }
@@ -84,7 +88,7 @@ async function ensureCanJoinAnotherRoom(prisma: PrismaClient, userId: string) {
 
 export async function listChatRoomsForUser(
   prisma: PrismaClient,
-  userId: string
+  userId: string,
 ): Promise<{ rooms: RoomSummary[]; invites: RoomSummary[] }> {
   const participants = await prisma.chatRoomParticipant.findMany({
     where: { userId },
@@ -120,7 +124,7 @@ export async function listChatRoomsForUser(
       role: p.role,
       status: p.status,
       participantsCount: room.participants.filter(
-        (rp: ChatParticipant) => rp.status === "accepted"
+        (rp: ChatParticipant) => rp.status === "accepted",
       ).length,
       latestMessageAt: latest ? latest.createdAt.toISOString() : null,
       latestMessageText: latest ? latest.text : null,
@@ -139,9 +143,9 @@ export async function listChatRoomsForUser(
 export async function createChatRoom(
   prisma: PrismaClient,
   ownerUserId: string,
-  input: CreateChatRoomInput
+  input: CreateChatRoomInput,
 ): Promise<{ roomId: string }> {
-  const {name, participantIds} = input;
+  const { name, participantIds } = input;
   // Enforce: user can own at most 1 active room (accepted)
   const ownedCount = await prisma.chatRoomParticipant.count({
     where: {
@@ -161,11 +165,13 @@ export async function createChatRoom(
 
   // Filter out duplicates and self from participants
   const uniqueParticipantIds = Array.from(
-    new Set(input.participantIds.filter((id) => id !== ownerUserId))
+    new Set(input.participantIds.filter((id) => id !== ownerUserId)),
   );
 
   if (uniqueParticipantIds.length === 0) {
-    const err: any = new Error("Chat room must include at least one other user");
+    const err: any = new Error(
+      "Chat room must include at least one other user",
+    );
     err.status = 400;
     throw err;
   }
@@ -190,7 +196,7 @@ export async function createChatRoom(
   for (const participantId of uniqueParticipantIds) {
     if ((countsByUser[participantId] || 0) >= 3) {
       const err: any = new Error(
-        `User ${participantId} is already in the maximum number of rooms (3)`
+        `User ${participantId} is already in the maximum number of rooms (3)`,
       );
       err.status = 400;
       throw err;
@@ -226,7 +232,7 @@ export async function inviteToChatRoom(
   prisma: PrismaClient,
   requesterId: string,
   roomId: string,
-  input: InviteToChatInput
+  input: InviteToChatInput,
 ): Promise<void> {
   const room = await prisma.chatRoom.findUnique({
     where: { id: roomId },
@@ -241,9 +247,9 @@ export async function inviteToChatRoom(
     throw err;
   }
 
-const requester = room.participants.find(
-    (p: ChatParticipant) => p.userId === requesterId
-);
+  const requester = room.participants.find(
+    (p: ChatParticipant) => p.userId === requesterId,
+  );
 
   if (!requester || requester.status !== "accepted") {
     const err: any = new Error("Only room participants can invite others");
@@ -251,10 +257,10 @@ const requester = room.participants.find(
     throw err;
   }
   const existingUserIds = new Set(
-    room.participants.map((p: ChatParticipant) => p.userId)
+    room.participants.map((p: ChatParticipant) => p.userId),
   );
   const newParticipantIds = input.participantIds.filter(
-    (id) => !existingUserIds.has(id)
+    (id) => !existingUserIds.has(id),
   );
 
   if (newParticipantIds.length === 0) {
@@ -281,7 +287,7 @@ const requester = room.participants.find(
   for (const participantId of newParticipantIds) {
     if ((countsByUser[participantId] || 0) >= 3) {
       const err: any = new Error(
-        `User ${participantId} is already in the maximum number of rooms (3)`
+        `User ${participantId} is already in the maximum number of rooms (3)`,
       );
       err.status = 400;
       throw err;
@@ -302,7 +308,7 @@ export async function respondToInvite(
   prisma: PrismaClient,
   userId: string,
   roomId: string,
-  accept: boolean
+  accept: boolean,
 ): Promise<void> {
   const participant = await prisma.chatRoomParticipant.findFirst({
     where: {
@@ -343,7 +349,7 @@ export async function respondToInvite(
 export async function getChatRoomDetailsForUser(
   prisma: PrismaClient,
   userId: string,
-  roomId: string
+  roomId: string,
 ): Promise<ChatRoomDetail> {
   const room = await prisma.chatRoom.findUnique({
     where: { id: roomId },
@@ -359,17 +365,19 @@ export async function getChatRoomDetailsForUser(
   }
 
   const myParticipant = room.participants.find(
-    (p: ChatParticipant) => p.userId === userId
+    (p: ChatParticipant) => p.userId === userId,
   );
 
   if (!myParticipant || myParticipant.status !== "accepted") {
-    const err: any = new Error("You are not an accepted participant in this room");
+    const err: any = new Error(
+      "You are not an accepted participant in this room",
+    );
     err.status = 403;
     throw err;
   }
 
   const participantsCount = room.participants.filter(
-    (p: ChatParticipant) => p.status === "accepted"
+    (p: ChatParticipant) => p.status === "accepted",
   ).length;
 
   return {
@@ -388,7 +396,7 @@ export async function renameChatRoom(
   prisma: PrismaClient,
   requesterId: string,
   roomId: string,
-  input: UpdateChatRoomInput
+  input: UpdateChatRoomInput,
 ): Promise<void> {
   const room = await prisma.chatRoom.findUnique({
     where: { id: roomId },
@@ -404,10 +412,14 @@ export async function renameChatRoom(
   }
 
   const requester = room.participants.find(
-    (p: ChatParticipant) => p.userId === requesterId
+    (p: ChatParticipant) => p.userId === requesterId,
   );
 
-  if (!requester || requester.role !== "owner" || requester.status !== "accepted") {
+  if (
+    !requester ||
+    requester.role !== "owner" ||
+    requester.status !== "accepted"
+  ) {
     const err: any = new Error("Only the room owner can rename the room");
     err.status = 403;
     throw err;
@@ -421,11 +433,10 @@ export async function renameChatRoom(
   });
 }
 
-
 export async function leaveChatRoom(
   prisma: PrismaClient,
   userId: string,
-  roomId: string
+  roomId: string,
 ): Promise<void> {
   const room = await prisma.chatRoom.findUnique({
     where: { id: roomId },
@@ -441,10 +452,12 @@ export async function leaveChatRoom(
   }
 
   const participant = room.participants.find(
-    (p: ChatParticipant) => p.userId === userId
-);
+    (p: ChatParticipant) => p.userId === userId,
+  );
   if (!participant || participant.status !== "accepted") {
-    const err: any = new Error("User is not an active participant in this room");
+    const err: any = new Error(
+      "User is not an active participant in this room",
+    );
     err.status = 400;
     throw err;
   }
@@ -458,14 +471,13 @@ export async function leaveChatRoom(
   // If user was owner, transfer ownership to oldest accepted member
   if (participant.role === "owner") {
     const remainingAccepted = room.participants
-    .filter(
-        (p: ChatParticipant) =>
-        p.userId !== userId && p.status === "accepted"
-    )
-    .sort(
+      .filter(
+        (p: ChatParticipant) => p.userId !== userId && p.status === "accepted",
+      )
+      .sort(
         (a: ChatParticipant, b: ChatParticipant) =>
-        a.createdAt.getTime() - b.createdAt.getTime()
-    );
+          a.createdAt.getTime() - b.createdAt.getTime(),
+      );
 
     if (remainingAccepted.length > 0) {
       const newOwner = remainingAccepted[0];
@@ -503,7 +515,7 @@ export async function kickParticipant(
   prisma: PrismaClient,
   requesterId: string,
   roomId: string,
-  targetUserId: string
+  targetUserId: string,
 ): Promise<void> {
   const room = await prisma.chatRoom.findUnique({
     where: { id: roomId },
@@ -519,17 +531,21 @@ export async function kickParticipant(
   }
 
   const requester = room.participants.find(
-  (p: ChatParticipant) => p.userId === requesterId
-);
-  if (!requester || requester.role !== "owner" || requester.status !== "accepted") {
+    (p: ChatParticipant) => p.userId === requesterId,
+  );
+  if (
+    !requester ||
+    requester.role !== "owner" ||
+    requester.status !== "accepted"
+  ) {
     const err: any = new Error("Only the owner can kick participants");
     err.status = 403;
     throw err;
   }
 
-const target = room.participants.find(
-  (p: ChatParticipant) => p.userId === targetUserId
-);
+  const target = room.participants.find(
+    (p: ChatParticipant) => p.userId === targetUserId,
+  );
   if (!target) {
     const err: any = new Error("Target user is not a participant in this room");
     err.status = 400;
@@ -564,7 +580,7 @@ const target = room.participants.find(
 }
 
 export async function getMessages(
-  prisma: PrismaClient, 
+  prisma: PrismaClient,
   userId: string,
   roomId: string,
   after?: Date,
@@ -578,7 +594,9 @@ export async function getMessages(
   });
 
   if (!participant) {
-    const err: any = new Error("User is not an accepted participant in this room");
+    const err: any = new Error(
+      "User is not an accepted participant in this room",
+    );
     err.status = 403;
     throw err;
   }
@@ -617,7 +635,7 @@ export async function sendMessage(
   prisma: PrismaClient,
   userId: string,
   roomId: string,
-  input: SendMessageInput
+  input: SendMessageInput,
 ): Promise<MessageDto> {
   const participant = await prisma.chatRoomParticipant.findFirst({
     where: {
@@ -628,7 +646,9 @@ export async function sendMessage(
   });
 
   if (!participant) {
-    const err: any = new Error("User is not an accepted participant in this room");
+    const err: any = new Error(
+      "User is not an accepted participant in this room",
+    );
     err.status = 403;
     throw err;
   }
