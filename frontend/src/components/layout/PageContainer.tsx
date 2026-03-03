@@ -21,9 +21,7 @@ export function PageContainer({
         {...props}
         className={clsx("min-h-screen bg-surface-muted", className)}
       >
-        <section className="max-w-5xl mx-auto px-4 py-6">
-          {children}
-        </section>
+        <section className="max-w-5xl mx-auto px-4 py-6">{children}</section>
       </main>
     </>
   );

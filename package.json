@@ -1,0 +1,24 @@
+{
+  "name": "bunkbuddy",
+  "version": "1.0.0",
+  "description": "Bunkbuddy is a web application that helps future college roommates find each other, compare lifestyle compatibility, and connect through \"meet & greet\" chat rooms before committing to a shared household.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theumann/bunkbuddy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/theumann/bunkbuddy/issues"
+  },
+  "homepage": "https://github.com/theumann/bunkbuddy#readme",
+  "devDependencies": {
+    "prettier": "^3.8.1"
+  }
+}

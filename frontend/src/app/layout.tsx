@@ -15,13 +15,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-background text-foreground">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Runs before paint to avoid flash of wrong theme */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}})()`,
+          }}
+        />
+      </head>
+      <body className="bg-gradient-to-br from-theme-from to-theme-to min-h-screen text-foreground">
         <AuthProvider>
           <ShortlistProvider>
-            <ChatroomsFeedProvider>
-              {children}
-            </ChatroomsFeedProvider>
+            <ChatroomsFeedProvider>{children}</ChatroomsFeedProvider>
           </ShortlistProvider>
         </AuthProvider>
       </body>

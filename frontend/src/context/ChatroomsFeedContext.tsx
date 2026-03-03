@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { getLastSeen } from "@/lib/unread";
@@ -84,7 +91,9 @@ export function ChatroomsFeedProvider({
   const unreadRoomsCount = useMemo(() => {
     return rooms.reduce((acc, room) => {
       const lastSeenMs = getLastSeen(room.id);
-      const latestMs = room.latestMessageAt ? Date.parse(room.latestMessageAt) : 0;
+      const latestMs = room.latestMessageAt
+        ? Date.parse(room.latestMessageAt)
+        : 0;
       return latestMs > lastSeenMs ? acc + 1 : acc;
     }, 0);
   }, [rooms]);
@@ -109,7 +118,9 @@ export function ChatroomsFeedProvider({
 export function useChatroomsFeed() {
   const ctx = useContext(ChatroomsFeedContext);
   if (!ctx) {
-    throw new Error("useChatroomsFeed must be used within ChatroomsFeedProvider");
+    throw new Error(
+      "useChatroomsFeed must be used within ChatroomsFeedProvider",
+    );
   }
   return ctx;
 }

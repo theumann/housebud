@@ -9,7 +9,7 @@ export interface AuthRequest extends Request {
 export function authMiddleware(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
@@ -18,9 +18,9 @@ export function authMiddleware(
 
   const token = authHeader.substring("Bearer ".length);
 
-const payload = jwt.verify(token, env.JWT_SECRET) as any;
-console.log("JWT payload:", payload);
-  
+  const payload = jwt.verify(token, env.JWT_SECRET) as any;
+  console.log("JWT payload:", payload);
+
   try {
     const payload = jwt.verify(token, env.JWT_SECRET) as { userId: string };
     req.userId = payload.userId;

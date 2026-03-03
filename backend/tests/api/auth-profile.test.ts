@@ -41,7 +41,9 @@ describe.sequential("Auth + Profile (smoke)", () => {
     expect(signup.status).toBe(201);
     expect(signup.body.token).toBeTruthy();
 
-    const login = await request(ctx.app).post("/auth/login").send({ identifier, password });
+    const login = await request(ctx.app)
+      .post("/auth/login")
+      .send({ identifier, password });
     expect(login.status).toBe(200);
     const token = login.body.token;
     expect(token).toBeTruthy();
@@ -80,7 +82,9 @@ describe.sequential("Auth + Profile (smoke)", () => {
     expect(signup.status).toBe(201);
     expect(signup.body.token).toBeTruthy();
 
-    const login = await request(ctx.app).post("/auth/login").send({ identifier, password });
+    const login = await request(ctx.app)
+      .post("/auth/login")
+      .send({ identifier, password });
     expect(login.status).toBe(200);
     const token = login.body.token;
     expect(token).toBeTruthy();

@@ -11,7 +11,6 @@ import type { PrismaClient } from "@prisma/client";
 
 //export const app = express();
 
-
 export function createApp(prisma: PrismaClient) {
   const app = express();
 
@@ -23,25 +22,25 @@ export function createApp(prisma: PrismaClient) {
     next();
   });
 
-    app.use(cors());
-    app.use(express.json());
+  app.use(cors());
+  app.use(express.json());
 
-    app.use("/auth", authRoutes);
-    app.use("/profile", profileRoutes);
-    app.use("/compatibility", compatibilityRoutes);
-    app.use("/matches", matchesRoutes);
-    app.use("/chatrooms", chatRoutes);
+  app.use("/auth", authRoutes);
+  app.use("/profile", profileRoutes);
+  app.use("/compatibility", compatibilityRoutes);
+  app.use("/matches", matchesRoutes);
+  app.use("/chatrooms", chatRoutes);
 
-    app.use(errorHandler);
+  app.use(errorHandler);
 
-    app.get("/health", async (_req, res) => {
-      try {
-        await prisma.$queryRaw`SELECT 1`;
-        res.json({ ok: true, db: "ok" });
-      } catch (e: any) {
-        res.status(500).json({ ok: false, db: "fail", error: e?.message });
-      }
-    });
+  app.get("/health", async (_req, res) => {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      res.json({ ok: true, db: "ok" });
+    } catch (e: any) {
+      res.status(500).json({ ok: false, db: "fail", error: e?.message });
+    }
+  });
 
-    return app;
+  return app;
 }

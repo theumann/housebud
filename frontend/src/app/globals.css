@@ -1,43 +1,65 @@
 @import "tailwindcss";
 
+/* Class-based dark mode — toggled by adding .dark to <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Raw CSS variables — the single source of truth for themeable values */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --surface: #ffffff;
+  --surface-muted: oklch(0.96 0.02 350);
+  --border-subtle: #e5e7eb;
+  /* Shared gradient palette used across page bg, nav, and cards */
+  --theme-from: oklch(0.97 0.03 230);
+  --theme-to: oklch(0.95 0.03 350);
+  --nav-from: oklch(0.93 0.06 230);
+  --nav-to: oklch(0.93 0.05 350);
 }
 
+.dark {
+  --background: oklch(0.14 0.04 240);
+  --foreground: oklch(0.93 0.01 240);
+  --surface: oklch(0.19 0.04 240);
+  --surface-muted: oklch(0.23 0.04 290);
+  --border-subtle: oklch(0.3 0.02 240);
+  --theme-from: oklch(0.21 0.06 230);
+  --theme-to: oklch(0.2 0.06 350);
+  --nav-from: oklch(0.25 0.07 230);
+  --nav-to: oklch(0.23 0.07 350);
+}
+
+/* Inline tokens — reference the CSS variables so they respond to .dark */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border-subtle: var(--border-subtle);
+  --color-theme-from: var(--theme-from);
+  --color-theme-to: var(--theme-to);
+  --color-nav-from: var(--nav-from);
+  --color-nav-to: var(--nav-to);
 }
 
-/* Small custom design system: brand color, surfaces, radius, shadow */
+/* Static tokens — compile-time values that don't need to change with theme */
 @theme {
-  /* Brand color (blue-ish) */
-  --color-primary-50: oklch(0.97 0.02 240);
-  --color-primary-100: oklch(0.93 0.04 240);
-  --color-primary-500: oklch(0.65 0.14 240);
-  --color-primary-600: oklch(0.58 0.14 240);
+  /* Brand color — pastel blue */
+  --color-primary-50: oklch(0.97 0.03 230);
+  --color-primary-100: oklch(0.93 0.06 230);
+  --color-primary-500: oklch(0.68 0.11 230);
+  --color-primary-600: oklch(0.6 0.13 230);
 
-  /* Neutral surfaces */
-  --color-surface: #ffffff;
-  --color-surface-muted: #f3f4f6; /* gray-100-ish */
-  --color-border-subtle: #e5e7eb; /* gray-200-ish */
+  /* Pink accent */
+  --color-pink-50: oklch(0.97 0.02 350);
+  --color-pink-100: oklch(0.93 0.05 350);
+  --color-pink-500: oklch(0.72 0.1 350);
 
-  /* Semantic accent */
   --color-accent: var(--color-primary-500);
-
-  /* Radius + shadow */
-  --radius-card: 0.75rem; /* rounded-card */
-  --shadow-soft: 0 1px 3px rgba(15, 23, 42, 0.08); /* shadow-soft */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-card: 0.75rem;
+  --shadow-soft: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 body {

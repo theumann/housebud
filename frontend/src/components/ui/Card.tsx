@@ -10,8 +10,8 @@ export function Card({ children, className, ...props }: CardProps) {
     <article
       {...props}
       className={clsx(
-        "rounded-card border border-border-subtle bg-surface shadow-soft",
-        className
+        "flex flex-col rounded-card border border-border-subtle bg-gradient-to-br from-theme-from to-theme-to shadow-soft",
+        className,
       )}
     >
       {children}
@@ -33,7 +33,7 @@ type CardBodyProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function CardBody({ children, className, ...props }: CardBodyProps) {
   return (
-    <div {...props} className={clsx("px-4 pb-3 pt-1", className)}>
+    <div {...props} className={clsx("flex-1 px-4 pb-3 pt-1", className)}>
       {children}
     </div>
   );
@@ -46,8 +46,8 @@ export function CardFooter({ children, className, ...props }: CardFooterProps) {
     <footer
       {...props}
       className={clsx(
-        "px-4 pb-4 pt-2 border-t border-gray-100 flex flex-col gap-2",
-        className
+        "px-4 pb-4 pt-2 border-t border-border-subtle flex flex-col gap-2",
+        className,
       )}
     >
       {children}

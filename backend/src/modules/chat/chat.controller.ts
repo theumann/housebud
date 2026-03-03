@@ -24,7 +24,7 @@ import {
 export async function listChatRoomsHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;
@@ -40,7 +40,7 @@ export async function listChatRoomsHandler(
 export async function createChatRoomHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;
@@ -57,7 +57,7 @@ export async function createChatRoomHandler(
 export async function inviteToChatRoomHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;
@@ -76,7 +76,7 @@ export async function inviteToChatRoomHandler(
 export async function acceptInviteHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;
@@ -93,7 +93,7 @@ export async function acceptInviteHandler(
 export async function declineInviteHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;
@@ -110,7 +110,7 @@ export async function declineInviteHandler(
 export async function getChatRoomDetailsHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;
@@ -127,7 +127,7 @@ export async function getChatRoomDetailsHandler(
 export async function renameChatRoomHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const prisma = (req as any).prisma as PrismaClient;
@@ -146,10 +146,10 @@ export async function renameChatRoomHandler(
 export async function leaveChatRoomHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
-    const prisma = (req as any).prisma as PrismaClient
+    const prisma = (req as any).prisma as PrismaClient;
     if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
     const roomId = req.params.roomId;
@@ -163,10 +163,10 @@ export async function leaveChatRoomHandler(
 export async function kickParticipantHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
-    const prisma = (req as any).prisma as PrismaClient
+    const prisma = (req as any).prisma as PrismaClient;
     if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
     const roomId = req.params.roomId;
@@ -182,10 +182,10 @@ export async function kickParticipantHandler(
 export async function getMessagesHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
-    const prisma = (req as any).prisma as PrismaClient
+    const prisma = (req as any).prisma as PrismaClient;
     if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
     const roomId = req.params.roomId;
@@ -202,10 +202,10 @@ export async function getMessagesHandler(
 export async function sendMessageHandler(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
-    const prisma = (req as any).prisma as PrismaClient
+    const prisma = (req as any).prisma as PrismaClient;
     if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
     const roomId = req.params.roomId;

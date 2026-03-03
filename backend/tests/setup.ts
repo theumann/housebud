@@ -8,7 +8,7 @@ import { setTestContext, getTestContext } from "./helpers/testContext";
 
 dotenv.config({
   path: path.resolve(__dirname, "../.env.test"),
-  override: true
+  override: true,
 });
 
 function withSchema(url: string, schema: string) {
@@ -26,9 +26,7 @@ beforeAll(async () => {
 
   // Vitest provides a worker id env var in many setups. (Fallback to 0.)
   const workerId =
-    process.env.VITEST_WORKER_ID ??
-    process.env.VITEST_POOL_ID ??
-    "0";
+    process.env.VITEST_WORKER_ID ?? process.env.VITEST_POOL_ID ?? "0";
 
   const schema = `test_w${workerId}`;
   const schemaUrl = withSchema(baseUrl, schema);
@@ -54,7 +52,7 @@ beforeAll(async () => {
         ...process.env,
         DATABASE_URL: schemaUrl, // per-worker schema
       },
-    }
+    },
   );
   const ctx = createTestContext();
   setTestContext(ctx);

@@ -4,7 +4,11 @@ type GotoAuthedOptions = {
   waitForTestId?: string;
 };
 
-export async function gotoAuthed(page: Page, path: string, options: GotoAuthedOptions = {}) {
+export async function gotoAuthed(
+  page: Page,
+  path: string,
+  options: GotoAuthedOptions = {},
+) {
   await page.goto(path);
   await expect(page.getByTestId("nav-logo")).toBeVisible();
   if (options.waitForTestId) {

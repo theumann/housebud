@@ -1,10 +1,14 @@
 import request from "supertest";
 import { resetDb } from "../helpers/resetDb";
 import type { TestContext } from "../helpers/testFactory";
-import { signupUser, createRoom, listRooms, sendMessage } from "../helpers/testFactory";
+import {
+  signupUser,
+  createRoom,
+  listRooms,
+  sendMessage,
+} from "../helpers/testFactory";
 import { getTestContext } from "../helpers/testContext";
 import { beforeAll, afterEach, afterAll, describe, it, expect } from "vitest";
-
 
 let ctx: TestContext;
 
@@ -12,7 +16,7 @@ describe.sequential("Chat", () => {
   beforeAll(() => {
     ctx = getTestContext();
   });
- afterEach(async () => {
+  afterEach(async () => {
     await resetDb(ctx.prisma);
   });
   afterAll(async () => {
@@ -23,7 +27,12 @@ describe.sequential("Chat", () => {
     const owner = await signupUser(ctx, { displayName: "owner" });
     const invitee = await signupUser(ctx, { displayName: "invitee" });
 
-    const created = await createRoom(ctx, owner.token, [invitee.userId], "Test Room");
+    const created = await createRoom(
+      ctx,
+      owner.token,
+      [invitee.userId],
+      "Test Room",
+    );
     expect(created.roomId).toBeTruthy();
 
     // invitee should see invite
@@ -45,7 +54,12 @@ describe.sequential("Chat", () => {
     const owner = await signupUser(ctx, { displayName: "owner" });
     const invitee = await signupUser(ctx, { displayName: "invitee" });
 
-    const created = await createRoom(ctx, owner.token, [invitee.userId], "Msg Room");
+    const created = await createRoom(
+      ctx,
+      owner.token,
+      [invitee.userId],
+      "Msg Room",
+    );
 
     // accept invitee so both can read
     await request(ctx.app)
