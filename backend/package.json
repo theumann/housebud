@@ -52,8 +52,5 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
-  },
-  "test": "cross-env NODE_ENV=test vitest run",
-  "test:watch": "cross-env NODE_ENV=test vitest --watch",
-  "test:api": "cross-env NODE_ENV=test vitest run tests/api"
+  }
 }

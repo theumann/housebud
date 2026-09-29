@@ -37,7 +37,7 @@ docker start bunkbuddy-postgres
 Otherwise:
 
 ```bash
-docker run --name bunkbuddy-postgres -e POSTGRES_USER=bunkbuddy -e POSTGRES_PASSWORD=bunkbuddy -e POSTGRES_DB=bunkbuddy -p 5433:5433 -d postgres:16
+docker run --name bunkbuddy-postgres -e POSTGRES_USER=bunkbuddy -e POSTGRES_PASSWORD=bunkbuddy -e POSTGRES_DB=bunkbuddy -p 5433:5432 -d postgres:16
 ```
 
 ### Backend

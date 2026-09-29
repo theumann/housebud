@@ -238,3 +238,49 @@ export async function getMyAnswers(app: any, token: string) {
   const answers = Array.isArray(res.body) ? res.body : res.body.answers;
   return answers as Array<{ questionId: string; value: string }>;
 }
+
+export async function createHousehold(
+  ctx: TestContext,
+  token: string,
+  name = "Test House",
+) {
+  const res = await request(ctx.app)
+    .post("/households")
+    .set("Authorization", `Bearer ${token}`)
+    .send({ name });
+  expect(res.status).toBe(201);
+  return res.body as {
+    id: string;
+    name: string;
+    joinCode: string;
+    settings: Record<string, boolean>;
+    members: any[];
+  };
+}
+
+export async function inviteToHousehold(
+  ctx: TestContext,
+  token: string,
+  householdId: string,
+  email: string,
+) {
+  const res = await request(ctx.app)
+    .post(`/households/${householdId}/invites`)
+    .set("Authorization", `Bearer ${token}`)
+    .send({ email });
+  expect(res.status).toBe(201);
+  return res.body as { id: string; email: string };
+}
+
+export async function joinHouseholdByCode(
+  ctx: TestContext,
+  token: string,
+  joinCode: string,
+) {
+  const res = await request(ctx.app)
+    .post("/households/join")
+    .set("Authorization", `Bearer ${token}`)
+    .send({ joinCode });
+  expect(res.status).toBe(200);
+  return res.body;
+}

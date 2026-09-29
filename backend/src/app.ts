@@ -5,7 +5,9 @@ import profileRoutes from "./modules/profile/profile.routes";
 import compatibilityRoutes from "./modules/compatibility/compatibility.routes";
 import matchesRoutes from "./modules/matches/matches.routes";
 import chatRoutes from "./modules/chat/chat.routes";
+import householdRoutes from "./modules/household/household.routes";
 import { errorHandler } from "./middleware/errorHandler";
+import { env } from "./config/env";
 
 import type { PrismaClient } from "@prisma/client";
 
@@ -27,11 +29,13 @@ export function createApp(prisma: PrismaClient) {
 
   app.use("/auth", authRoutes);
   app.use("/profile", profileRoutes);
-  app.use("/compatibility", compatibilityRoutes);
-  app.use("/matches", matchesRoutes);
-  app.use("/chatrooms", chatRoutes);
+  app.use("/households", householdRoutes);
 
-  app.use(errorHandler);
+  if (env.FEATURE_MATCHING) {
+    app.use("/compatibility", compatibilityRoutes);
+    app.use("/matches", matchesRoutes);
+    app.use("/chatrooms", chatRoutes);
+  }
 
   app.get("/health", async (_req, res) => {
     try {
@@ -41,6 +45,8 @@ export function createApp(prisma: PrismaClient) {
       res.status(500).json({ ok: false, db: "fail", error: e?.message });
     }
   });
+
+  app.use(errorHandler);
 
   return app;
 }
