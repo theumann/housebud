@@ -198,6 +198,17 @@ Required backend vars: `DATABASE_URL`, `JWT_SECRET`, `PORT`
 
 ---
 
+## Deployment (Railway — not yet deployed)
+
+Everything (Postgres, backend, frontend) goes on Railway.
+
+- Backend: build with `npm run build`, start with `npm start` (`node dist/server.js`), with `npx prisma migrate deploy` as the pre-deploy command so each deploy applies pending migrations before starting.
+- `migrate deploy` applies only migrations missing from the database's `_prisma_migrations` table — on a fresh database that is all of them, in order. Never use `migrate dev` or `db push` against production.
+- `prisma` is a devDependency: confirm the CLI is available at deploy time.
+- Nothing is in production yet, so migrations could be squashed into a single `init` before the first deploy. Not worth it unless the list grows; it forces a reset of every dev/e2e database.
+
+---
+
 ## What to avoid
 
 - Don't run `prisma migrate dev` or seed commands without confirming — they mutate the database
