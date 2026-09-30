@@ -16,46 +16,115 @@ generator client {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id           String   @id @default(uuid())
+  email        String   @unique
   username     String   @unique
   passwordHash String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  profile        UserProfile?
-  settings       UserSettings?
-  answers        CompatibilityAnswer[]
-  shortlists     Shortlist[]        @relation("UserShortlistOwner")
-  shortlistedBy  Shortlist[]        @relation("UserShortlistTarget")
-  createdRooms   ChatRoom[]         @relation("ChatRoomCreator")
-  participants   ChatRoomParticipant[]
-  messages       ChatMessage[]
-  resetTokens    PasswordResetToken[]
+  profile       UserProfile?
+  settings      UserSettings?
+  answers       CompatibilityAnswer[]
+  shortlists    Shortlist[]           @relation("UserShortlistOwner")
+  shortlistedBy Shortlist[]           @relation("UserShortlistTarget")
+  createdRooms  ChatRoom[]            @relation("ChatRoomCreator")
+  participants  ChatRoomParticipant[]
+  messages      ChatMessage[]
+  resetTokens   PasswordResetToken[]
+
+  householdMemberships HouseholdMember[]
+  createdHouseholds    Household[]       @relation("HouseholdCreator")
+  sentHouseholdInvites HouseholdInvite[] @relation("HouseholdInviter")
 
   @@index([username])
 }
 
-model UserProfile {
-  userId       String   @id
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Household {
+  id              String   @id @default(uuid())
+  name            String
+  joinCode        String   @unique
+  createdByUserId String?
+  createdByUser   User?    @relation("HouseholdCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  firstName    String
-  lastName     String
-  displayName  String?
-  birthDate    DateTime
-  school       String
-  collegeYear  String
-  originalCity String?
+  members  HouseholdMember[]
+  invites  HouseholdInvite[]
+  settings HouseholdSettings?
+
+  @@index([joinCode])
+}
+
+model HouseholdMember {
+  id          String   @id @default(uuid())
+  householdId String
+  userId      String
+  role        String // 'owner' | 'member'
+  status      String // 'active' | 'left' | 'removed'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, userId])
+  @@index([userId])
+  @@index([householdId])
+}
+
+model HouseholdInvite {
+  id              String    @id @default(uuid())
+  householdId     String
+  email           String
+  token           String    @unique
+  invitedByUserId String?
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  invitedByUser User?     @relation("HouseholdInviter", fields: [invitedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([householdId])
+  @@index([token])
+  @@index([email])
+}
+
+model HouseholdSettings {
+  householdId String    @id
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  choresEnabled   Boolean @default(true)
+  shoppingEnabled Boolean @default(true)
+  expensesEnabled Boolean @default(false)
+  calendarEnabled Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserProfile {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName     String
+  lastName      String
+  displayName   String?
+  birthDate     DateTime
+  school        String
+  collegeYear   String
+  originalCity  String?
   originalState String?
-  targetCity   String
-  targetState  String
-  targetZip    String
-  bio          String?
-  avatarUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  targetCity    String
+  targetState   String
+  targetZip     String
+  bio           String?
+  avatarUrl     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model CompatibilityQuestion {
@@ -71,58 +140,58 @@ model CompatibilityQuestion {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  answers    CompatibilityAnswer[]
+  answers CompatibilityAnswer[]
 }
 
 model CompatibilityAnswer {
-  id          String   @id @default(uuid())
-  userId      String
-  questionId  String
-  value       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  userId     String
+  questionId String
+  value      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  question    CompatibilityQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question CompatibilityQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([userId, questionId])
 }
 
 model Shortlist {
-  id            String   @id @default(uuid())
-  ownerUserId   String
-  targetUserId  String
-  createdAt     DateTime @default(now())
+  id           String   @id @default(uuid())
+  ownerUserId  String
+  targetUserId String
+  createdAt    DateTime @default(now())
 
-  owner   User @relation("UserShortlistOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
-  target  User @relation("UserShortlistTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  owner  User @relation("UserShortlistOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  target User @relation("UserShortlistTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
 
   @@unique([ownerUserId, targetUserId])
 }
 
 model ChatRoom {
-  id               String   @id @default(uuid())
-  createdByUserId  String?
-  createdByUser    User?    @relation("ChatRoomCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  name             String?
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
+  id              String   @id @default(uuid())
+  createdByUserId String?
+  createdByUser   User?    @relation("ChatRoomCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  name            String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
 
-  participants     ChatRoomParticipant[]
-  messages         ChatMessage[]
+  participants ChatRoomParticipant[]
+  messages     ChatMessage[]
 }
 
 model ChatRoomParticipant {
-  id          String   @id @default(uuid())
-  chatRoomId  String
-  userId      String
-  status      String   // 'pending', 'accepted', 'declined', 'removed', 'left'
-  role        String   // 'owner', 'member'
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  chatRoomId String
+  userId     String
+  status     String // 'pending', 'accepted', 'declined', 'removed', 'left'
+  role       String // 'owner', 'member'
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([chatRoomId, userId])
   @@index([userId])
@@ -136,33 +205,32 @@ model ChatMessage {
   text         String
   createdAt    DateTime @default(now())
 
-  chatRoom     ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
-  sender       User     @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+  chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  sender   User     @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
 
   @@index([chatRoomId, createdAt])
 }
 
 model UserSettings {
-  userId                         String @id
-  user                           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  emailNotificationsEnabled      Boolean @default(true)
-  chatInviteNotificationsEnabled Boolean @default(true)
-  marketingNotificationsEnabled  Boolean @default(false)
+  userId                         String   @id
+  user                           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNotificationsEnabled      Boolean  @default(true)
+  chatInviteNotificationsEnabled Boolean  @default(true)
+  marketingNotificationsEnabled  Boolean  @default(false)
   createdAt                      DateTime @default(now())
   updatedAt                      DateTime @updatedAt
 }
 
 model PasswordResetToken {
-  id         String   @id @default(uuid())
-  userId     String
-  token      String   @unique
-  expiresAt  DateTime
-  usedAt     DateTime?
-  createdAt  DateTime @default(now())
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
 }
-

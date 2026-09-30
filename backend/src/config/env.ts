@@ -11,6 +11,9 @@ export const env = {
   DATABASE_URL: process.env.DATABASE_URL!,
   JWT_SECRET: process.env.JWT_SECRET!,
   PORT: Number(process.env.PORT || 4000),
+  // Matching (matches, shortlist, compatibility, chat) is built and tested but
+  // not part of the product yet. Set to "false" in production to unmount it.
+  FEATURE_MATCHING: process.env.FEATURE_MATCHING !== "false",
 };
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
