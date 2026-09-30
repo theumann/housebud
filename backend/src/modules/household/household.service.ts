@@ -38,6 +38,15 @@ async function generateUniqueJoinCode(prisma: PrismaClient) {
   throw new Error("Could not generate a unique join code");
 }
 
+function newInviteData(email: string, invitedByUserId: string) {
+  return {
+    email,
+    token: crypto.randomBytes(32).toString("hex"),
+    invitedByUserId,
+    expiresAt: new Date(Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000),
+  };
+}
+
 const pendingInviteWhere = () => ({
   acceptedAt: null,
   declinedAt: null,
@@ -112,6 +121,7 @@ export async function createHousehold(
   prisma: PrismaClient,
   userId: string,
   input: CreateHouseholdInput,
+  options: { sourceChatRoomId?: string; inviteEmails?: string[] } = {},
 ) {
   const joinCode = await generateUniqueJoinCode(prisma);
 
@@ -120,8 +130,14 @@ export async function createHousehold(
       name: input.name,
       joinCode,
       createdByUserId: userId,
+      sourceChatRoomId: options.sourceChatRoomId,
       settings: { create: {} },
       members: { create: { userId, role: "owner", status: "active" } },
+      invites: {
+        create: (options.inviteEmails ?? []).map((email) =>
+          newInviteData(email, userId),
+        ),
+      },
     },
     include: householdInclude,
   });
@@ -226,18 +242,8 @@ export async function inviteByEmail(
     throw conflict("That person already has a pending invite");
   }
 
-  const expiresAt = new Date(
-    Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000,
-  );
-
   return prisma.householdInvite.create({
-    data: {
-      householdId,
-      email: input.email,
-      token: crypto.randomBytes(32).toString("hex"),
-      invitedByUserId: userId,
-      expiresAt,
-    },
+    data: { householdId, ...newInviteData(input.email, userId) },
   });
 }
 

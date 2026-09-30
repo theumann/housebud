@@ -6,6 +6,14 @@ import {
   SendMessageInput,
   UpdateChatRoomInput,
 } from "./chat.types";
+import type { CreateHouseholdInput } from "../household/household.types";
+import { createHousehold } from "../household/household.service";
+import {
+  badRequest,
+  conflict,
+  forbidden,
+  notFound,
+} from "../../errors/http.error";
 
 type MessageWithSenderProfile = Prisma.ChatMessageGetPayload<{
   include: {
@@ -60,6 +68,7 @@ type ChatRoomDetail = {
   myRole: string;
   myStatus: string;
   participantsCount: number;
+  household: { id: string; name: string } | null;
 };
 
 async function getAcceptedRoomCount(
@@ -355,6 +364,7 @@ export async function getChatRoomDetailsForUser(
     where: { id: roomId },
     include: {
       participants: true,
+      household: { select: { id: true, name: true } },
     },
   });
 
@@ -389,7 +399,50 @@ export async function getChatRoomDetailsForUser(
     myRole: myParticipant.role,
     myStatus: myParticipant.status,
     participantsCount,
+    household: room.household,
   };
+}
+
+export async function formHouseholdFromRoom(
+  prisma: PrismaClient,
+  userId: string,
+  roomId: string,
+  input: CreateHouseholdInput,
+) {
+  const room = await prisma.chatRoom.findUnique({
+    where: { id: roomId },
+    include: {
+      participants: {
+        where: { status: "accepted" },
+        include: { user: { select: { email: true } } },
+      },
+      household: { select: { id: true } },
+    },
+  });
+  if (!room) throw notFound("Chat room not found");
+
+  const me = room.participants.find((p) => p.userId === userId);
+  if (!me || me.role !== "owner") {
+    throw forbidden("Only the room owner can form a household");
+  }
+  if (!room.isActive) {
+    throw badRequest("This chat room is no longer active");
+  }
+  if (room.household) {
+    throw conflict("This chat room has already formed a household");
+  }
+
+  const inviteEmails = room.participants
+    .filter((p) => p.userId !== userId)
+    .map((p) => p.user.email);
+  if (inviteEmails.length === 0) {
+    throw badRequest("Nobody else has joined this chat room yet");
+  }
+
+  return createHousehold(prisma, userId, input, {
+    sourceChatRoomId: roomId,
+    inviteEmails,
+  });
 }
 
 export async function renameChatRoom(
@@ -601,13 +654,8 @@ export async function getMessages(
     throw err;
   }
 
-  const where: any = { chatRoomId: roomId };
-  if (after) {
-    where.createdAt = { gt: after };
-  }
-
   const messages = (await prisma.chatMessage.findMany({
-    where: { chatRoomId: roomId },
+    where: { chatRoomId: roomId, ...(after && { createdAt: { gt: after } }) },
     orderBy: { createdAt: "asc" },
     include: {
       sender: {

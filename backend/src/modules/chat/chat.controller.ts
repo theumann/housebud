@@ -3,6 +3,7 @@ import { AuthRequest } from "../../middleware/authMiddleware";
 import type { PrismaClient } from "@prisma/client";
 import {
   CreateChatRoomSchema,
+  GetMessagesQuerySchema,
   InviteToChatSchema,
   KickParticipantSchema,
   SendMessageSchema,
@@ -19,7 +20,9 @@ import {
   sendMessage,
   getChatRoomDetailsForUser,
   renameChatRoom,
+  formHouseholdFromRoom,
 } from "./chat.service";
+import { CreateHouseholdSchema } from "../household/household.types";
 
 export async function listChatRoomsHandler(
   req: AuthRequest,
@@ -143,6 +146,25 @@ export async function renameChatRoomHandler(
   }
 }
 
+export async function formHouseholdHandler(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const input = CreateHouseholdSchema.parse(req.body);
+    const household = await formHouseholdFromRoom(
+      req.prisma,
+      req.userId!,
+      req.params.roomId,
+      input,
+    );
+    res.status(201).json(household);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function leaveChatRoomHandler(
   req: AuthRequest,
   res: Response,
@@ -189,8 +211,7 @@ export async function getMessagesHandler(
     if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
     const roomId = req.params.roomId;
-    const afterParam = req.query.after as string | undefined;
-    const after = afterParam ? new Date(afterParam) : undefined;
+    const { after } = GetMessagesQuerySchema.parse(req.query);
 
     const messages = await getMessages(prisma, req.userId, roomId, after);
     res.json(messages);
