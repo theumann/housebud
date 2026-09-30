@@ -185,6 +185,53 @@ export async function acceptInviteHandler(
   }
 }
 
+export async function listMyInvitesHandler(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await service.listMyInvites(req.prisma, req.userId!);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function acceptInviteByIdHandler(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await service.acceptInviteById(
+      req.prisma,
+      req.userId!,
+      req.params.inviteId,
+    );
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function declineInviteHandler(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await service.declineInvite(
+      req.prisma,
+      req.userId!,
+      req.params.inviteId,
+    );
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function joinByCodeHandler(
   req: AuthRequest,
   res: Response,

@@ -83,6 +83,7 @@ model HouseholdInvite {
   invitedByUserId String?
   expiresAt       DateTime
   acceptedAt      DateTime?
+  declinedAt      DateTime?
   createdAt       DateTime  @default(now())
 
   household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)

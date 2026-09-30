@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import {
   badRequest,
   conflict,
@@ -37,6 +37,12 @@ async function generateUniqueJoinCode(prisma: PrismaClient) {
   }
   throw new Error("Could not generate a unique join code");
 }
+
+const pendingInviteWhere = () => ({
+  acceptedAt: null,
+  declinedAt: null,
+  expiresAt: { gt: new Date() },
+});
 
 const householdInclude = {
   settings: true,
@@ -213,6 +219,13 @@ export async function inviteByEmail(
     }
   }
 
+  const pending = await prisma.householdInvite.findFirst({
+    where: { householdId, email: input.email, ...pendingInviteWhere() },
+  });
+  if (pending) {
+    throw conflict("That person already has a pending invite");
+  }
+
   const expiresAt = new Date(
     Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000,
   );
@@ -236,7 +249,7 @@ export async function listInvites(
   await requireOwner(prisma, householdId, userId);
 
   return prisma.householdInvite.findMany({
-    where: { householdId, acceptedAt: null, expiresAt: { gt: new Date() } },
+    where: { householdId, ...pendingInviteWhere() },
     orderBy: { createdAt: "desc" },
     select: { id: true, email: true, expiresAt: true, createdAt: true },
   });
@@ -261,17 +274,42 @@ export async function revokeInvite(
   return { ok: true };
 }
 
-async function addMember(
-  prisma: PrismaClient,
-  householdId: string,
-  userId: string,
-) {
+function addMember(prisma: PrismaClient, householdId: string, userId: string) {
   // Someone who previously left or was removed rejoins as a plain member.
   return prisma.householdMember.upsert({
     where: { householdId_userId: { householdId, userId } },
     create: { householdId, userId, role: "member", status: "active" },
     update: { status: "active" },
   });
+}
+
+type InviteWithHousehold = Prisma.HouseholdInviteGetPayload<{
+  include: { household: true };
+}>;
+
+function assertInviteUsable(invite: InviteWithHousehold) {
+  if (invite.acceptedAt || invite.declinedAt || invite.expiresAt < new Date()) {
+    throw badRequest("This invite is no longer valid");
+  }
+  if (!invite.household.isActive) {
+    throw badRequest("This household is no longer active");
+  }
+}
+
+async function joinFromInvite(
+  prisma: PrismaClient,
+  invite: InviteWithHousehold,
+  userId: string,
+) {
+  await prisma.$transaction([
+    addMember(prisma, invite.householdId, userId),
+    prisma.householdInvite.update({
+      where: { id: invite.id },
+      data: { acceptedAt: new Date() },
+    }),
+  ]);
+
+  return getHousehold(prisma, invite.householdId, userId);
 }
 
 export async function acceptInvite(
@@ -283,34 +321,87 @@ export async function acceptInvite(
     where: { token },
     include: { household: true },
   });
+  if (!invite) throw badRequest("This invite is no longer valid");
+  assertInviteUsable(invite);
 
-  if (!invite || invite.acceptedAt || invite.expiresAt < new Date()) {
-    throw badRequest("This invite is no longer valid");
-  }
-  if (!invite.household.isActive) {
-    throw badRequest("This household is no longer active");
-  }
+  return joinFromInvite(prisma, invite, userId);
+}
 
-  await prisma.$transaction([
-    prisma.householdMember.upsert({
-      where: {
-        householdId_userId: { householdId: invite.householdId, userId },
-      },
-      create: {
-        householdId: invite.householdId,
-        userId,
-        role: "member",
-        status: "active",
-      },
-      update: { status: "active" },
+async function requireMyInvite(
+  prisma: PrismaClient,
+  inviteId: string,
+  userId: string,
+) {
+  const [invite, user] = await Promise.all([
+    prisma.householdInvite.findUnique({
+      where: { id: inviteId },
+      include: { household: true },
     }),
-    prisma.householdInvite.update({
-      where: { id: invite.id },
-      data: { acceptedAt: new Date() },
+    prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { email: true },
     }),
   ]);
+  if (!invite || invite.email !== user.email) {
+    throw notFound("Invite not found");
+  }
+  assertInviteUsable(invite);
+  return invite;
+}
 
-  return getHousehold(prisma, invite.householdId, userId);
+export async function listMyInvites(prisma: PrismaClient, userId: string) {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: { email: true },
+  });
+
+  return prisma.householdInvite.findMany({
+    where: {
+      email: user.email,
+      ...pendingInviteWhere(),
+      household: {
+        isActive: true,
+        members: { none: { userId, status: "active" } },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      expiresAt: true,
+      createdAt: true,
+      household: { select: { id: true, name: true } },
+      invitedByUser: {
+        select: {
+          id: true,
+          username: true,
+          profile: { select: { displayName: true, firstName: true } },
+        },
+      },
+    },
+  });
+}
+
+export async function acceptInviteById(
+  prisma: PrismaClient,
+  userId: string,
+  inviteId: string,
+) {
+  const invite = await requireMyInvite(prisma, inviteId, userId);
+  return joinFromInvite(prisma, invite, userId);
+}
+
+export async function declineInvite(
+  prisma: PrismaClient,
+  userId: string,
+  inviteId: string,
+) {
+  await requireMyInvite(prisma, inviteId, userId);
+
+  await prisma.householdInvite.update({
+    where: { id: inviteId },
+    data: { declinedAt: new Date() },
+  });
+  return { ok: true };
 }
 
 export async function joinByCode(

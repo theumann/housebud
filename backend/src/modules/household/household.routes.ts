@@ -11,6 +11,9 @@ router.get("/", controller.listMyHouseholdsHandler);
 
 router.post("/join", controller.joinByCodeHandler);
 router.post("/invites/accept", controller.acceptInviteHandler);
+router.get("/invites/mine", controller.listMyInvitesHandler);
+router.post("/invites/:inviteId/accept", controller.acceptInviteByIdHandler);
+router.post("/invites/:inviteId/decline", controller.declineInviteHandler);
 
 router.get("/:householdId", controller.getHouseholdHandler);
 router.patch("/:householdId", controller.updateHouseholdHandler);
