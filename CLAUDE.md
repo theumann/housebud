@@ -1,38 +1,34 @@
 # Bunkbuddy — Claude Code Instructions
 
-  
-
 ## Project Description
 
 Bunkbuddy helps students find roommates and then run the household they form. Matching and household management are one app (see Current Direction below):
 
--   Matching workflow (built):
-    -   See other Users Cards -> Add other users to a Shortlist (optional) -> Invite and/or get invited to a chatroom.
--   Chatroom -> Household (in progress): a group that met through matching forms a household from its chat room.
--   High level Roadmap:
-    -   Household management: Once a household is formed ->
-        -   House schedule Management
-        -   Chores management
-        -   house budget management
-        -   Common shopping list
-        -   House rules
-        -   More to be determined later
-    -   House, Appartment and room listings (later phase)
-        -   Rental app for shared units
+- Matching workflow (built):
+  - See other Users Cards -> Add other users to a Shortlist (optional) -> Invite and/or get invited to a chatroom.
+- Chatroom -> Household (in progress): a group that met through matching forms a household from its chat room.
+- High level Roadmap:
+  - Household management: Once a household is formed ->
+    - House schedule Management
+    - Chores management
+    - house budget management
+    - Common shopping list
+    - House rules
+    - More to be determined later
+  - House, Appartment and room listings (later phase)
+    - Rental app for shared units
 
-  
-
-## Current Direction (branch `household-pivot`)
+## Current Direction
 
 Matching and household management are **one app, not two**. Matching is how households get formed: people meet through matching, talk in a chat room, then form a household from that room and use the household side of the app.
 
 ### Done so far
 
--   `backend/src/modules/household/` — create/list/get/rename, module toggles (`HouseholdSettings`: chores + shopping on by default, expenses + calendar off), join code, email invites (token, 14-day expiry), leave, remove member, transfer ownership. Guards: `requireActiveMember`, `requireOwner`, `requireEnabledModule` (for upcoming modules).
--   `backend/src/errors/http.error.ts` — `HttpError` + `badRequest`/`forbidden`/`notFound`/`conflict`; `errorHandler` reads `statusCode`.
--   `FEATURE_MATCHING` env flag gates the compatibility/matches/chatrooms routers. Matching is **not** being turned off — keep the flag only as an emergency off switch (or drop it) and fix the comment in `env.ts`.
--   Frontend matching pages moved into the `(matching)` route group (URLs unchanged).
--   No Prisma migration created yet for the household models.
+- `backend/src/modules/household/` — create/list/get/rename, module toggles (`HouseholdSettings`: chores + shopping on by default, expenses + calendar off), join code, email invites (token, 14-day expiry), leave, remove member, transfer ownership. Guards: `requireActiveMember`, `requireOwner`, `requireEnabledModule` (for upcoming modules).
+- `backend/src/errors/http.error.ts` — `HttpError` + `badRequest`/`forbidden`/`notFound`/`conflict`; `errorHandler` reads `statusCode`.
+- `FEATURE_MATCHING` env flag gates the compatibility/matches/chatrooms routers. Matching is **not** being turned off — keep the flag only as an emergency off switch (or drop it) and fix the comment in `env.ts`.
+- Frontend matching pages moved into the `(matching)` route group (URLs unchanged).
+- Migrations: `add_households`, `add_invite_declined_at`.
 
 ### The bridge: chat room → household
 
@@ -43,24 +39,22 @@ Matching and household management are **one app, not two**. Matching is how hous
 
 Planned build order:
 
-1.  **In-app invites** — "my pending invites" endpoint (invites whose `email` matches the logged-in user) + accept/decline by invite id. Email-token and join-code invites stay for roommates who didn't come through matching.
+1.  **In-app invites** (backend done) — `GET /households/invites/mine` (pending invites whose `email` matches the logged-in user) + `POST /households/invites/:inviteId/accept|decline`. Declines are recorded in `HouseholdInvite.declinedAt`; one pending invite per email per household. Email-token and join-code invites stay for roommates who didn't come through matching.
 2.  **`POST /chatrooms/:roomId/household`** — lives on the chat side, reuses the household service, creates the household and invites in one transaction. The household module does not depend on chat.
 3.  **Frontend** — household pages, invite inbox, "Form household" in chat rooms, state-based landing and nav.
 
 Open questions:
 
--   Does the chat room become the household's chat (keeps history, ties the two together) or stay a provenance link only?
--   Who may form a household from a room — any accepted participant or only the room owner?
--   Later: households with an open spot appear in matching as "looking for a roommate" (fits the listings phase). Not now, but don't design it out.
-
-  
+- Does the chat room become the household's chat (keeps history, ties the two together) or stay a provenance link only?
+- Who may form a household from a room — any accepted participant or only the room owner?
+- Later: households with an open spot appear in matching as "looking for a roommate" (fits the listings phase). Not now, but don't design it out.
 
 ## Project Layout
 
 Monorepo with two independent packages:
 
--   `backend/` — Express + Prisma API (port 4000)
--   `frontend/` — Next.js App Router (port 3000)
+- `backend/` — Express + Prisma API (port 4000)
+- `frontend/` — Next.js App Router (port 3000)
 
 Always run `npm` commands from within the relevant subdirectory (`backend/` or `frontend/`), not the repo root.
 
@@ -73,7 +67,10 @@ Always run `npm` commands from within the relevant subdirectory (`backend/` or `
 Each feature lives in `backend/src/modules/[feature]/` with four files:
 
 ```
-[feature].routes.ts      # Router (default export)[feature].controller.ts  # Handler functions[feature].service.ts     # Business logic (receives prisma as first arg)[feature].types.ts       # Zod schemas + inferred TS types
+[feature].routes.ts      # Router (default export)
+[feature].controller.ts  # Handler functions
+[feature].service.ts     # Business logic (receives prisma as first arg)
+[feature].types.ts       # Zod schemas + inferred TS types
 ```
 
 ### Handler pattern
@@ -81,31 +78,43 @@ Each feature lives in `backend/src/modules/[feature]/` with four files:
 All handlers follow this exact shape — Zod parse, delegate to service, pass errors to `next`:
 
 ```typescript
-export async function fooHandler(req: AuthRequest, res: Response, next: NextFunction) {  try {    const input = FooSchema.parse(req.body);    const result = await fooService(req.prisma, input);    res.status(200).json(result);  } catch (err) {    next(err);  }}
+export async function fooHandler(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const input = FooSchema.parse(req.body);
+    const result = await fooService(req.prisma, input);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
 ```
 
--   Validate with Zod at the controller level, not in the service
--   Services are pure functions — they receive `prisma: PrismaClient` as the first parameter
--   Errors fall through to the global `errorHandler` middleware in `src/middleware/errorHandler.ts`
--   Custom errors extend or resemble `AuthError` (statusCode + message)
+- Validate with Zod at the controller level, not in the service
+- Services are pure functions — they receive `prisma: PrismaClient` as the first parameter
+- Errors fall through to the global `errorHandler` middleware in `src/middleware/errorHandler.ts`
+- Custom errors extend or resemble `AuthError` (statusCode + message)
 
 ### Prisma
 
--   Client is instantiated once in `server.ts` via `createPrisma()` and injected into every request via middleware
--   Access in handlers via `req.prisma` (typed via `backend/src/types/express.d.ts`)
--   Never import or instantiate PrismaClient directly in a handler or service
+- Client is instantiated once in `server.ts` via `createPrisma()` and injected into every request via middleware
+- Access in handlers via `req.prisma` (typed via `backend/src/types/express.d.ts`)
+- Never import or instantiate PrismaClient directly in a handler or service
 
 ### Auth
 
--   Protected routes use `authMiddleware` from `src/middleware/authMiddleware.ts`
--   Middleware extracts `userId` from a `Bearer <token>` header and attaches it to `req.userId`
--   JWT payload shape: `{ userId: string }`, 7-day expiry
--   Passwords hashed with bcrypt, 10 rounds
+- Protected routes use `authMiddleware` from `src/middleware/authMiddleware.ts`
+- Middleware extracts `userId` from a `Bearer <token>` header and attaches it to `req.userId`
+- JWT payload shape: `{ userId: string }`, 7-day expiry
+- Passwords hashed with bcrypt, 10 rounds
 
 ### Types
 
--   Define a Zod schema first, then derive the TS type: `export type FooInput = z.infer<typeof FooSchema>`
--   Keep schemas and types in `[feature].types.ts`
+- Define a Zod schema first, then derive the TS type: `export type FooInput = z.infer<typeof FooSchema>`
+- Keep schemas and types in `[feature].types.ts`
 
 ---
 
@@ -116,31 +125,35 @@ export async function fooHandler(req: AuthRequest, res: Response, next: NextFunc
 All backend communication goes through `src/lib/api.ts`:
 
 ```typescript
-const data = await apiFetch<SomeType>("/endpoint", { method: "POST", token, body: payload });
+const data = await apiFetch<SomeType>("/endpoint", {
+  method: "POST",
+  token,
+  body: payload,
+});
 ```
 
--   Always pass the token from `useAuth()`: `const { token } = useAuth()`
--   Never use raw `fetch` — always use `apiFetch`
--   API base URL comes from `NEXT_PUBLIC_API_BASE_URL` (defaults to `http://localhost:4000`)
+- Always pass the token from `useAuth()`: `const { token } = useAuth()`
+- Never use raw `fetch` — always use `apiFetch`
+- API base URL comes from `NEXT_PUBLIC_API_BASE_URL` (defaults to `http://localhost:4000`)
 
 ### Components & pages
 
--   All pages use `"use client"` — there are no Server Components currently
--   Components are PascalCase, hooks are camelCase with a `use` prefix
--   Styling is Tailwind only — no CSS modules or inline style objects
--   UI primitives live in `src/components/ui/` (Button, Card, etc.)
--   Reusable UI components wrap HTML elements with `forwardRef` and extend the relevant HTML attribute interface
+- All pages use `"use client"` — there are no Server Components currently
+- Components are PascalCase, hooks are camelCase with a `use` prefix
+- Styling is Tailwind only — no CSS modules or inline style objects
+- UI primitives live in `src/components/ui/` (Button, Card, etc.)
+- Reusable UI components wrap HTML elements with `forwardRef` and extend the relevant HTML attribute interface
 
 ### State & data fetching
 
--   Global state via React Context: `AuthContext`, `ShortlistContext`, `ChatroomsFeedContext`
--   Data fetching lives in custom hooks in `src/hooks/` — hooks manage loading/error state and return them to the component
--   Chat uses HTTP polling (no WebSockets yet) — hooks accept a `pollMs` param and clean up intervals on unmount
+- Global state via React Context: `AuthContext`, `ShortlistContext`, `ChatroomsFeedContext`
+- Data fetching lives in custom hooks in `src/hooks/` — hooks manage loading/error state and return them to the component
+- Chat uses HTTP polling (no WebSockets yet) — hooks accept a `pollMs` param and clean up intervals on unmount
 
 ### Types
 
--   Frontend types are defined inline in context/hook files, not in a shared types directory
--   Response shapes are typed directly on `apiFetch<T>` calls
+- Frontend types are defined inline in context/hook files, not in a shared types directory
+- Response shapes are typed directly on `apiFetch<T>` calls
 
 ---
 
@@ -149,44 +162,37 @@ const data = await apiFetch<SomeType>("/endpoint", { method: "POST", token, body
 ### Backend (Vitest) — run from `backend/`
 
 ```bash
-npm test                  # all testsnpm run test:api          # API integration tests onlynpm run test:coverage     # with coverage
+npm test                  # all tests
+npm run test:api          # API integration tests only
+npm run test:coverage     # with coverage
 ```
 
--   Tests use worker-isolated PostgreSQL schemas (`test_w{workerId}`) — requires `DATABASE_URL` pointing to `bunkbuddy_test`
--   `resetDb()` is called in `beforeEach` — each test starts with a clean schema
--   Use the factory helpers in `tests/helpers/testFactory.ts` (`signupUser`, etc.) rather than calling endpoints manually
--   HTTP testing via `supertest`: `request(ctx.app).post("/auth/signup").send(...)`
+- Tests use worker-isolated PostgreSQL schemas (`test_w{workerId}`) — requires `DATABASE_URL` pointing to `bunkbuddy_test`
+- `resetDb()` is called in `beforeEach` — each test starts with a clean schema
+- Use the factory helpers in `tests/helpers/testFactory.ts` (`signupUser`, etc.) rather than calling endpoints manually
+- HTTP testing via `supertest`: `request(ctx.app).post("/auth/signup").send(...)`
 
 ### Frontend E2E (Playwright) — run from `frontend/`
 
 ```bash
-npx playwright testnpx playwright test --ui
+npx playwright test
+npx playwright test --ui
 ```
 
--   Global setup runs migrations + `seed:e2e` and pre-authenticates as `me1` / `Password123!`
--   Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests
--   Tests that need a logged-out state use: `test.use({ storageState: { cookies: [], origins: [] } })`
--   Use `data-testid` attributes for selectors; add them when writing new components that need E2E coverage
+- Global setup runs migrations + `seed:e2e` and pre-authenticates as `me1` / `Password123!`
+- Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests
+- Tests that need a logged-out state use: `test.use({ storageState: { cookies: [], origins: [] } })`
+- Use `data-testid` attributes for selectors; add them when writing new components that need E2E coverage
 
 ---
 
 ## Environment
 
-File
-
-Used for
-
-`backend/.env`
-
-Local dev
-
-`backend/.env.test`
-
-Vitest API tests
-
-`backend/.env.e2e`
-
-Playwright e2e (backend runs on port 4002)
+| File                | Used for                                   |
+| ------------------- | ------------------------------------------ |
+| `backend/.env`      | Local dev                                  |
+| `backend/.env.test` | Vitest API tests                           |
+| `backend/.env.e2e`  | Playwright e2e (backend runs on port 4002) |
 
 Required backend vars: `DATABASE_URL`, `JWT_SECRET`, `PORT`
 
@@ -194,8 +200,8 @@ Required backend vars: `DATABASE_URL`, `JWT_SECRET`, `PORT`
 
 ## What to avoid
 
--   Don't run `prisma migrate dev` or seed commands without confirming — they mutate the database
--   Don't add comments unless the logic isn't self-evident
--   Don't add error handling for cases that can't happen; trust Zod and Prisma
--   Don't create shared utility files for one-off operations
--   Don't bypass auth middleware for routes that should be protected
+- Don't run `prisma migrate dev` or seed commands without confirming — they mutate the database
+- Don't add comments unless the logic isn't self-evident
+- Don't add error handling for cases that can't happen; trust Zod and Prisma
+- Don't create shared utility files for one-off operations
+- Don't bypass auth middleware for routes that should be protected

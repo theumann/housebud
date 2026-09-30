@@ -389,6 +389,166 @@ describe.sequential("Households", () => {
     expect(stillThere).not.toBeNull();
   });
 
+  it("rejects a second pending invite to the same email", async () => {
+    const owner = await signupUser(ctx);
+    const house = await createHousehold(ctx, owner.token);
+    await inviteToHousehold(ctx, owner.token, house.id, "twice@example.com");
+
+    const res = await request(ctx.app)
+      .post(`/households/${house.id}/invites`)
+      .set(auth(owner.token))
+      .send({ email: "twice@example.com" });
+    expect(res.status).toBe(409);
+  });
+
+  it("lists my pending invites with household and inviter", async () => {
+    const owner = await signupUser(ctx);
+    const invitee = await signupUser(ctx);
+    const pendingHouse = await createHousehold(ctx, owner.token, "Pending");
+    const expiredHouse = await createHousehold(ctx, owner.token, "Expired");
+    const declinedHouse = await createHousehold(ctx, owner.token, "Declined");
+    const email = invitee.body.email;
+
+    await inviteToHousehold(ctx, owner.token, pendingHouse.id, email);
+    await inviteToHousehold(ctx, owner.token, pendingHouse.id, "x@example.com");
+    const expired = await inviteToHousehold(
+      ctx,
+      owner.token,
+      expiredHouse.id,
+      email,
+    );
+    const declined = await inviteToHousehold(
+      ctx,
+      owner.token,
+      declinedHouse.id,
+      email,
+    );
+
+    await ctx.prisma.householdInvite.update({
+      where: { id: expired.id },
+      data: { expiresAt: new Date(Date.now() - 1000) },
+    });
+    await request(ctx.app)
+      .post(`/households/invites/${declined.id}/decline`)
+      .set(auth(invitee.token))
+      .expect(200);
+
+    const res = await request(ctx.app)
+      .get("/households/invites/mine")
+      .set(auth(invitee.token));
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].household).toEqual({
+      id: pendingHouse.id,
+      name: "Pending",
+    });
+    expect(res.body[0].invitedByUser.id).toBe(owner.userId);
+    expect(res.body[0]).not.toHaveProperty("token");
+  });
+
+  it("hides invites to households I already belong to", async () => {
+    const owner = await signupUser(ctx);
+    const member = await signupUser(ctx);
+    const house = await createHousehold(ctx, owner.token);
+    await inviteToHousehold(ctx, owner.token, house.id, member.body.email);
+    await joinHouseholdByCode(ctx, member.token, house.joinCode);
+
+    const res = await request(ctx.app)
+      .get("/households/invites/mine")
+      .set(auth(member.token));
+    expect(res.body).toEqual([]);
+  });
+
+  it("accepting an invite by id joins the household", async () => {
+    const owner = await signupUser(ctx);
+    const invitee = await signupUser(ctx);
+    const house = await createHousehold(ctx, owner.token);
+    const invite = await inviteToHousehold(
+      ctx,
+      owner.token,
+      house.id,
+      invitee.body.email,
+    );
+
+    const res = await request(ctx.app)
+      .post(`/households/invites/${invite.id}/accept`)
+      .set(auth(invitee.token));
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(house.id);
+    expect(res.body.myRole).toBe("member");
+
+    const again = await request(ctx.app)
+      .post(`/households/invites/${invite.id}/accept`)
+      .set(auth(invitee.token));
+    expect(again.status).toBe(400);
+
+    const mine = await request(ctx.app)
+      .get("/households/invites/mine")
+      .set(auth(invitee.token));
+    expect(mine.body).toEqual([]);
+  });
+
+  it("cannot accept or decline someone else's invite", async () => {
+    const owner = await signupUser(ctx);
+    const invitee = await signupUser(ctx);
+    const other = await signupUser(ctx);
+    const house = await createHousehold(ctx, owner.token);
+    const invite = await inviteToHousehold(
+      ctx,
+      owner.token,
+      house.id,
+      invitee.body.email,
+    );
+
+    const accept = await request(ctx.app)
+      .post(`/households/invites/${invite.id}/accept`)
+      .set(auth(other.token));
+    expect(accept.status).toBe(404);
+
+    const decline = await request(ctx.app)
+      .post(`/households/invites/${invite.id}/decline`)
+      .set(auth(other.token));
+    expect(decline.status).toBe(404);
+
+    const members = await ctx.prisma.householdMember.count({
+      where: { householdId: house.id },
+    });
+    expect(members).toBe(1);
+  });
+
+  it("declining an invite closes it and allows a fresh invite", async () => {
+    const owner = await signupUser(ctx);
+    const invitee = await signupUser(ctx);
+    const house = await createHousehold(ctx, owner.token);
+    const invite = await inviteToHousehold(
+      ctx,
+      owner.token,
+      house.id,
+      invitee.body.email,
+    );
+    const stored = await ctx.prisma.householdInvite.findUnique({
+      where: { id: invite.id },
+    });
+
+    const res = await request(ctx.app)
+      .post(`/households/invites/${invite.id}/decline`)
+      .set(auth(invitee.token));
+    expect(res.status).toBe(200);
+
+    const byToken = await request(ctx.app)
+      .post("/households/invites/accept")
+      .set(auth(invitee.token))
+      .send({ token: stored!.token });
+    expect(byToken.status).toBe(400);
+
+    const ownerView = await request(ctx.app)
+      .get(`/households/${house.id}/invites`)
+      .set(auth(owner.token));
+    expect(ownerView.body).toEqual([]);
+
+    await inviteToHousehold(ctx, owner.token, house.id, invitee.body.email);
+  });
+
   it("requires authentication", async () => {
     const res = await request(ctx.app).get("/households");
     expect(res.status).toBe(401);
