@@ -42,14 +42,17 @@ model User {
 }
 
 model Household {
-  id              String   @id @default(uuid())
-  name            String
-  joinCode        String   @unique
-  createdByUserId String?
-  createdByUser   User?    @relation("HouseholdCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String    @id @default(uuid())
+  name             String
+  joinCode         String    @unique
+  createdByUserId  String?
+  createdByUser    User?     @relation("HouseholdCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  // The matching chat room this household was formed from, if any. A room forms at most one household.
+  sourceChatRoomId String?   @unique
+  sourceChatRoom   ChatRoom? @relation(fields: [sourceChatRoomId], references: [id], onDelete: SetNull)
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   members  HouseholdMember[]
   invites  HouseholdInvite[]
@@ -180,6 +183,7 @@ model ChatRoom {
 
   participants ChatRoomParticipant[]
   messages     ChatMessage[]
+  household    Household?
 }
 
 model ChatRoomParticipant {

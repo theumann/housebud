@@ -12,6 +12,7 @@ import {
   sendMessageHandler,
   getChatRoomDetailsHandler,
   renameChatRoomHandler,
+  formHouseholdHandler,
 } from "./chat.controller";
 
 const router = Router();
@@ -34,6 +35,9 @@ router.post("/:roomId/invite", authMiddleware, inviteToChatRoomHandler);
 // Accept / decline invite
 router.post("/:roomId/accept", authMiddleware, acceptInviteHandler);
 router.post("/:roomId/decline", authMiddleware, declineInviteHandler);
+
+// Form a household from the room (owner only)
+router.post("/:roomId/household", authMiddleware, formHouseholdHandler);
 
 // Leave room
 router.post("/:roomId/leave", authMiddleware, leaveChatRoomHandler);

@@ -32,21 +32,23 @@ Matching and household management are **one app, not two**. Matching is how hous
 
 ### The bridge: chat room → household
 
-1.  In a chat room, an accepted participant clicks **Form household**.
-2.  A `Household` is created, linked to the room via optional `Household.sourceChatRoomId`; the creator becomes owner.
+1.  In a chat room, the **room owner** clicks **Form household** (owner only; if the owner leaves the room, ownership passes automatically to the longest-standing accepted participant).
+2.  A `Household` is created, linked to the room via optional `Household.sourceChatRoomId` (unique — a room forms at most one household); the creator becomes owner.
 3.  The room's other accepted participants get an **in-app invite** and each accepts or declines — nobody is added without consent.
 4.  The room shows "This group formed _House name_". Landing page depends on state: no household → Matches, has a household → household.
 
 Planned build order:
 
 1.  **In-app invites** (backend done) — `GET /households/invites/mine` (pending invites whose `email` matches the logged-in user) + `POST /households/invites/:inviteId/accept|decline`. Declines are recorded in `HouseholdInvite.declinedAt`; one pending invite per email per household. Email-token and join-code invites stay for roommates who didn't come through matching.
-2.  **`POST /chatrooms/:roomId/household`** — lives on the chat side, reuses the household service, creates the household and invites in one transaction. The household module does not depend on chat.
+2.  **`POST /chatrooms/:roomId/household`** (backend done) — lives on the chat side, reuses the household service (`createHousehold` with `sourceChatRoomId` + `inviteEmails`), creates the household and invites in one nested write. Rejects non-owners (403), inactive rooms or rooms with no other accepted participant (400), and rooms that already formed a household (409). `GET /chatrooms/:roomId` returns `household: { id, name } | null`. The household module does not depend on chat.
 3.  **Frontend** — household pages, invite inbox, "Form household" in chat rooms, state-based landing and nav.
+
+Decided:
+
+- **The household gets its own chat**, separate from the matching room. The matching chat shows full history to every accepted participant, so carrying it over would expose pre-household conversations to members added later and keep non-joiners in the household's conversation. The matching room stays as-is for its participants, linked via `sourceChatRoomId`. Household chat is not built yet.
 
 Open questions:
 
-- Does the chat room become the household's chat (keeps history, ties the two together) or stay a provenance link only?
-- Who may form a household from a room — any accepted participant or only the room owner?
 - Later: households with an open spot appear in matching as "looking for a roommate" (fits the listings phase). Not now, but don't design it out.
 
 ## Project Layout

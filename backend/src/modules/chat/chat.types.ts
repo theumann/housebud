@@ -25,6 +25,12 @@ export const KickParticipantSchema = z.object({
 
 export type KickParticipantInput = z.infer<typeof KickParticipantSchema>;
 
+export const GetMessagesQuerySchema = z.object({
+  after: z.coerce.date().optional(),
+});
+
+export type GetMessagesQuery = z.infer<typeof GetMessagesQuerySchema>;
+
 export const SendMessageSchema = z.object({
   text: z.string().min(1).max(5000),
 });
