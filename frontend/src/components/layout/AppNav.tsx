@@ -10,6 +10,7 @@ import { getUserDisplayName } from "@/lib/displayName";
 import { useTheme } from "@/hooks/useTheme";
 
 const links = [
+  { href: "/household", label: "Household" },
   { href: "/matches", label: "Matches" },
   { href: "/shortlist", label: "Shortlist" },
   { href: "/compatibility", label: "Compatibility" },

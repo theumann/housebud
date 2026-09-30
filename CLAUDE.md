@@ -41,7 +41,12 @@ Planned build order:
 
 1.  **In-app invites** (backend done) — `GET /households/invites/mine` (pending invites whose `email` matches the logged-in user) + `POST /households/invites/:inviteId/accept|decline`. Declines are recorded in `HouseholdInvite.declinedAt`; one pending invite per email per household. Email-token and join-code invites stay for roommates who didn't come through matching.
 2.  **`POST /chatrooms/:roomId/household`** (backend done) — lives on the chat side, reuses the household service (`createHousehold` with `sourceChatRoomId` + `inviteEmails`), creates the household and invites in one nested write. Rejects non-owners (403), inactive rooms or rooms with no other accepted participant (400), and rooms that already formed a household (409). `GET /chatrooms/:roomId` returns `household: { id, name } | null`. The household module does not depend on chat.
-3.  **Frontend** — household pages, invite inbox, "Form household" in chat rooms, state-based landing and nav.
+3.  **Frontend** — in slices:
+    1. Household basics (done) — `/household` in the `(household)` route group: create, join by code, join code + member list; `useHouseholds` hook; "Household" is the first nav link.
+    2. Invite inbox — pending invites with accept/decline, nav badge.
+    3. "Form household" button for the room owner + "This group formed _X_" banner in chat rooms.
+    4. State-based landing: household → `/household`, otherwise `/matches`.
+    5. Owner management — rename, module toggles, email invites, remove member, transfer ownership.
 
 Decided:
 
@@ -185,6 +190,7 @@ npx playwright test --ui
 - Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests
 - Tests that need a logged-out state use: `test.use({ storageState: { cookies: [], origins: [] } })`
 - Use `data-testid` attributes for selectors; add them when writing new components that need E2E coverage
+- The e2e schema is never reset between runs. Tests that create persistent state (households, invites) sign up fresh users through the API and put their token in `localStorage` (`bb_token`) instead of using `me1` — see `tests/e2e/household.spec.ts`
 
 ---
 

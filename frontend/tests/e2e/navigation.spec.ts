@@ -13,6 +13,9 @@ test("nav links route to core pages", async ({ page }) => {
   await page.getByTestId("nav-chat").click();
   await expect(page.getByTestId("chatrooms-page")).toBeVisible();
 
+  await page.getByTestId("nav-household").click();
+  await expect(page.getByTestId("household-page")).toBeVisible();
+
   await page.getByTestId("nav-profile").click();
   await expect(page.getByTestId("profile-edit-page")).toBeVisible();
 });
