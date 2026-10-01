@@ -215,6 +215,7 @@ Everything (Postgres, backend, frontend) goes on Railway.
 - Backend: build with `npm run build`, start with `npm start` (`node dist/server.js`), with `npx prisma migrate deploy` as the pre-deploy command so each deploy applies pending migrations before starting.
 - `migrate deploy` applies only migrations missing from the database's `_prisma_migrations` table — on a fresh database that is all of them, in order. Never use `migrate dev` or `db push` against production.
 - `prisma` is a devDependency: confirm the CLI is available at deploy time.
+- Seed data in production: run `seed:questions` once after the first deploy (matching needs the compatibility questions). It uses `createMany` with `skipDuplicates`, so re-running only **adds** questions with new codes — edits to an existing question in the CSV are silently ignored and need a separate update. `seed:users` (`seed-dev.ts`: fake users, chats, messages) must never run in production; it refuses unless `DATABASE_URL` points at localhost and `NODE_ENV` isn't `production`.
 - Nothing is in production yet, so migrations could be squashed into a single `init` before the first deploy. Not worth it unless the list grows; it forces a reset of every dev/e2e database.
 
 ### Before the app sends any real email

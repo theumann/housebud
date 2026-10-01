@@ -4,6 +4,24 @@ import { faker } from "@faker-js/faker";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 
+// Fake users, chats and messages must never reach production. Checking the
+// host (not just NODE_ENV) also catches a local shell that has production
+// credentials in DATABASE_URL.
+function assertLocalDatabase() {
+  const url = process.env.DATABASE_URL;
+  const host = url ? new URL(url).hostname : "";
+  if (
+    process.env.NODE_ENV === "production" ||
+    !["localhost", "127.0.0.1"].includes(host)
+  ) {
+    throw new Error(
+      `Refusing to seed fake data: database host "${host || "unset"}", NODE_ENV "${process.env.NODE_ENV ?? ""}". seed-dev only runs against a local database.`,
+    );
+  }
+}
+
+assertLocalDatabase();
+
 const prisma = createPrisma();
 
 type SeedPlan = {
