@@ -13,7 +13,6 @@ import {
   getUserDisplayName,
   matchItemToUserLike,
   shortlistedUserToUserLike,
-  authUserToUserLike,
 } from "@/lib/displayName";
 
 function MatchCardSkeleton() {
@@ -227,10 +226,6 @@ export default function MatchesPage() {
           </p>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <span className="hidden sm:inline text-gray-600">
-            Logged in as{" "}
-            <strong>{getUserDisplayName(authUserToUserLike(user))}</strong>
-          </span>
           <a
             href="/compatibility"
             data-testid="improve-compatibility-link"

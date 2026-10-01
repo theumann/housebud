@@ -14,8 +14,10 @@ export function PageContainer({
 }: PageContainerProps) {
   const { user } = useAuth();
 
+  // A real wrapper element (not a fragment) keeps the nav and <main> under a
+  // parent only React touches, so the nav is always inserted above <main>.
   return (
-    <>
+    <div>
       {user && <AppNav />}
       <main
         {...props}
@@ -23,6 +25,6 @@ export function PageContainer({
       >
         <section className="max-w-5xl mx-auto px-4 py-6">{children}</section>
       </main>
-    </>
+    </div>
   );
 }

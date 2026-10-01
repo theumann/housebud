@@ -4,6 +4,24 @@ import { faker } from "@faker-js/faker";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 
+// Fake users, chats and messages must never reach production. Checking the
+// host (not just NODE_ENV) also catches a local shell that has production
+// credentials in DATABASE_URL.
+function assertLocalDatabase() {
+  const url = process.env.DATABASE_URL;
+  const host = url ? new URL(url).hostname : "";
+  if (
+    process.env.NODE_ENV === "production" ||
+    !["localhost", "127.0.0.1"].includes(host)
+  ) {
+    throw new Error(
+      `Refusing to seed fake data: database host "${host || "unset"}", NODE_ENV "${process.env.NODE_ENV ?? ""}". seed-dev only runs against a local database.`,
+    );
+  }
+}
+
+assertLocalDatabase();
+
 const prisma = createPrisma();
 
 type SeedPlan = {
@@ -69,6 +87,30 @@ async function ensurePersonalUsers(password: string) {
       targetCity: "randomCity",
       targetState: "randomState",
       targetZip: "78000",
+    },
+    {
+      email: "me4@bunkbuddy.dev",
+      firstName: "Me",
+      lastName: "Four",
+      username: "me4",
+      displayName: "Me4",
+      school: "UCSF",
+      collegeYear: "Senior",
+      targetCity: "San Francisco",
+      targetState: "CA",
+      targetZip: "94117",
+    },
+    {
+      email: "me5@bunkbuddy.dev",
+      firstName: "Me",
+      lastName: "Five",
+      username: "me5",
+      displayName: "Me5",
+      school: "USF",
+      collegeYear: "Sophomore",
+      targetCity: "San Francisco",
+      targetState: "CA",
+      targetZip: "94122",
     },
   ];
 

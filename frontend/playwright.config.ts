@@ -12,6 +12,9 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
+  // The Next dev server compiles each page on first request; parallel workers
+  // overwhelm it and tests time out. Revisit when the suite gets slow.
+  workers: 1,
   use: {
     baseURL: "http://localhost:3000",
     storageState: storageStatePath,

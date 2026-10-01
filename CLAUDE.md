@@ -41,7 +41,12 @@ Planned build order:
 
 1.  **In-app invites** (backend done) — `GET /households/invites/mine` (pending invites whose `email` matches the logged-in user) + `POST /households/invites/:inviteId/accept|decline`. Declines are recorded in `HouseholdInvite.declinedAt`; one pending invite per email per household. Email-token and join-code invites stay for roommates who didn't come through matching.
 2.  **`POST /chatrooms/:roomId/household`** (backend done) — lives on the chat side, reuses the household service (`createHousehold` with `sourceChatRoomId` + `inviteEmails`), creates the household and invites in one nested write. Rejects non-owners (403), inactive rooms or rooms with no other accepted participant (400), and rooms that already formed a household (409). `GET /chatrooms/:roomId` returns `household: { id, name } | null`. The household module does not depend on chat.
-3.  **Frontend** — household pages, invite inbox, "Form household" in chat rooms, state-based landing and nav.
+3.  **Frontend** — in slices:
+    1. Household basics (done) — `/household` in the `(household)` route group: create, join by code, join code + member list; `useHouseholds` hook; "Household" is the first nav link.
+    2. Invite inbox (done) — `HouseholdInvitesContext` polls `/households/invites/mine` every 30s; invitations with accept/decline at the top of `/household`; badge on the Household nav link.
+    3. "Form household" button for the room owner + "This group formed _X_" banner in chat rooms.
+    4. State-based landing: household → `/household`, otherwise `/matches`.
+    5. Owner management — rename, module toggles, email invites, remove member, transfer ownership.
 
 Decided:
 
@@ -148,7 +153,7 @@ const data = await apiFetch<SomeType>("/endpoint", {
 
 ### State & data fetching
 
-- Global state via React Context: `AuthContext`, `ShortlistContext`, `ChatroomsFeedContext`
+- Global state via React Context: `AuthContext`, `ShortlistContext`, `ChatroomsFeedContext`, `HouseholdInvitesContext`
 - Data fetching lives in custom hooks in `src/hooks/` — hooks manage loading/error state and return them to the component
 - Chat uses HTTP polling (no WebSockets yet) — hooks accept a `pollMs` param and clean up intervals on unmount
 
@@ -181,10 +186,13 @@ npx playwright test
 npx playwright test --ui
 ```
 
-- Global setup runs migrations + `seed:e2e` and pre-authenticates as `me1` / `Password123!`
+- E2E data lives in the `e2e` schema of the dev database (`backend/.env.e2e`), not in `bunkbuddy_test`
+- Global setup resets that schema (`prisma migrate reset --force --skip-seed`), runs `seed:e2e`, and pre-authenticates as `me1` / `Password123!` — every run starts clean, and data from the last run stays around for debugging until the next one
+- Tests run with `workers: 1`: the Next dev server compiles pages on first request and parallel workers make tests time out. Revisit (or switch to `next build` + `next start`) when the suite gets slow
 - Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests
 - Tests that need a logged-out state use: `test.use({ storageState: { cookies: [], origins: [] } })`
 - Use `data-testid` attributes for selectors; add them when writing new components that need E2E coverage
+- Tests that create persistent state (households, invites) sign up fresh users through the API and put their token in `localStorage` (`bb_token`) instead of using `me1`, so they don't change what other tests in the same run see — see `tests/e2e/household.spec.ts`
 
 ---
 
@@ -207,7 +215,16 @@ Everything (Postgres, backend, frontend) goes on Railway.
 - Backend: build with `npm run build`, start with `npm start` (`node dist/server.js`), with `npx prisma migrate deploy` as the pre-deploy command so each deploy applies pending migrations before starting.
 - `migrate deploy` applies only migrations missing from the database's `_prisma_migrations` table — on a fresh database that is all of them, in order. Never use `migrate dev` or `db push` against production.
 - `prisma` is a devDependency: confirm the CLI is available at deploy time.
+- Seed data in production: run `seed:questions` once after the first deploy (matching needs the compatibility questions). It uses `createMany` with `skipDuplicates`, so re-running only **adds** questions with new codes — edits to an existing question in the CSV are silently ignored and need a separate update. `seed:users` (`seed-dev.ts`: fake users, chats, messages) must never run in production; it refuses unless `DATABASE_URL` points at localhost and `NODE_ENV` isn't `production`.
 - Nothing is in production yet, so migrations could be squashed into a single `init` before the first deploy. Not worth it unless the list grows; it forces a reset of every dev/e2e database.
+
+### Before the app sends any real email
+
+The app sends no email today, so seed and test addresses never need to exist. Before adding email sending (invite links, password resets, notifications), fix the seed data so no mail can reach real inboxes:
+
+- `backend/scripts/seed-dev.ts` — `me1`…`me5` use `@bunkbuddy.dev`, a real TLD on a domain we don't own. Switch them to a reserved domain (`@example.com` or `.test`), and update `frontend/tests/e2e/auth-with-ui.spec.ts`, which logs in as `me1@bunkbuddy.dev`.
+- The same script's Faker users get `faker.internet.email()` addresses on real providers (gmail.com, yahoo.com…). Pass a reserved `provider` (e.g. `example.com`).
+- Dev and e2e databases must never point at a real mail transport; use a sandbox/catcher in development.
 
 ---
 

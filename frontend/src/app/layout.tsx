@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ShortlistProvider } from "@/context/ShortlistContext";
 import { ChatroomsFeedProvider } from "@/context/ChatroomsFeedContext";
+import { HouseholdInvitesProvider } from "@/context/HouseholdInvitesContext";
 
 export const metadata: Metadata = {
   title: "Bunkbuddy",
@@ -25,11 +26,18 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-gradient-to-br from-theme-from to-theme-to min-h-screen text-foreground">
-        <AuthProvider>
-          <ShortlistProvider>
-            <ChatroomsFeedProvider>{children}</ChatroomsFeedProvider>
-          </ShortlistProvider>
-        </AuthProvider>
+        {/* React's tree lives in its own container, not directly in <body>:
+            browser extensions (password managers) inject nodes into <body>,
+            which made React insert the nav in the wrong place after login. */}
+        <div id="app-root">
+          <AuthProvider>
+            <ShortlistProvider>
+              <ChatroomsFeedProvider>
+                <HouseholdInvitesProvider>{children}</HouseholdInvitesProvider>
+              </ChatroomsFeedProvider>
+            </ShortlistProvider>
+          </AuthProvider>
+        </div>
       </body>
     </html>
   );
