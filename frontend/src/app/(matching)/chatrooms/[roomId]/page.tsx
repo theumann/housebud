@@ -2,6 +2,7 @@
 
 import { useEffect, useState, FormEvent, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
@@ -35,6 +36,7 @@ type ChatRoomInfo = {
   myRole: string;
   myStatus: string;
   participantsCount: number;
+  household: { id: string; name: string } | null;
 };
 
 export default function ChatRoomPage() {
@@ -55,6 +57,7 @@ export default function ChatRoomPage() {
   const [sending, setSending] = useState(false);
 
   const [renaming, setRenaming] = useState(false);
+  const [formingHousehold, setFormingHousehold] = useState(false);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -166,6 +169,39 @@ export default function ChatRoomPage() {
     }
   };
 
+  const handleFormHousehold = async () => {
+    if (!token || !roomId || !roomInfo) return;
+
+    const name = window.prompt(
+      "Name your household. Everyone else in this chat will get an invite to join.",
+      roomInfo.name ?? "",
+    );
+    if (name === null) return;
+
+    const trimmed = name.trim();
+    if (!trimmed) {
+      alert("Household name cannot be empty.");
+      return;
+    }
+
+    setFormingHousehold(true);
+    try {
+      const household = await apiFetch<{ id: string; name: string }>(
+        `/chatrooms/${roomId}/household`,
+        { method: "POST", token, body: { name: trimmed } },
+      );
+      setRoomInfo((prev) =>
+        prev
+          ? { ...prev, household: { id: household.id, name: household.name } }
+          : prev,
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to form household");
+    } finally {
+      setFormingHousehold(false);
+    }
+  };
+
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (!token || !roomId) return;
@@ -204,6 +240,11 @@ export default function ChatRoomPage() {
   const roomTitle = roomInfo?.name || `Room #${String(roomId).slice(0, 8)}`;
 
   const isOwner = roomInfo?.myRole === "owner";
+  const canFormHousehold =
+    isOwner &&
+    !!roomInfo?.isActive &&
+    !roomInfo.household &&
+    roomInfo.participantsCount >= 2;
 
   return (
     <PageContainer data-testid="chatroom-page">
@@ -222,6 +263,17 @@ export default function ChatRoomPage() {
                   className="text-xs px-2 py-1"
                 >
                   {renaming ? "Renaming…" : "Rename"}
+                </Button>
+              )}
+              {canFormHousehold && (
+                <Button
+                  data-testid="form-household-button"
+                  size="sm"
+                  onClick={handleFormHousehold}
+                  disabled={formingHousehold}
+                  className="text-xs px-2 py-1"
+                >
+                  {formingHousehold ? "Forming…" : "Form household"}
                 </Button>
               )}
             </div>
@@ -251,6 +303,27 @@ export default function ChatRoomPage() {
         {roomError && (
           <div className="mb-2 rounded border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
             {roomError}
+          </div>
+        )}
+
+        {roomInfo?.household && (
+          <div
+            data-testid="room-household-banner"
+            className="mb-3 flex flex-col gap-2 rounded-card border border-border-subtle bg-surface px-4 py-3 text-sm shadow-soft sm:flex-row sm:items-center sm:justify-between"
+          >
+            <p>
+              This group formed{" "}
+              <strong data-testid="room-household-name">
+                {roomInfo.household.name}
+              </strong>
+              .
+            </p>
+            <Link
+              href="/household"
+              className="text-sm font-medium text-primary-600 underline underline-offset-2"
+            >
+              Go to Household
+            </Link>
           </div>
         )}
 

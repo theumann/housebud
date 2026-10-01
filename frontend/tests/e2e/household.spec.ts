@@ -1,54 +1,8 @@
-import {
-  test,
-  expect,
-  type Page,
-  type APIRequestContext,
-} from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 import { gotoAuthed } from "./utils/auth";
+import { apiPost, loginAs, signupFreshUser } from "./utils/users";
 
-const API = "http://localhost:4002";
-
-// Fresh users per run, so households never accumulate on the shared seed account.
 test.use({ storageState: { cookies: [], origins: [] } });
-
-async function signupFreshUser(request: APIRequestContext, label: string) {
-  const suffix = `${label}${Date.now()}${Math.floor(Math.random() * 1000)}`;
-  const res = await request.post(`${API}/auth/signup`, {
-    data: {
-      email: `${suffix}@e2e.test`,
-      username: suffix,
-      password: "Password123!",
-      firstName: label,
-      lastName: "Tester",
-      displayName: suffix.slice(0, 32),
-      birthDate: "2005-09-15",
-      school: "USF",
-      collegeYear: "Freshman",
-      targetCity: "San Francisco",
-      targetState: "CA",
-      targetZip: "94117",
-    },
-  });
-  expect(res.status()).toBe(201);
-  return {
-    token: (await res.json()).token as string,
-    email: `${suffix}@e2e.test`,
-  };
-}
-
-async function apiPost(
-  request: APIRequestContext,
-  token: string,
-  path: string,
-  data: object,
-) {
-  const res = await request.post(`${API}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    data,
-  });
-  expect(res.ok()).toBe(true);
-  return res.json();
-}
 
 async function inviteFreshRoommate(request: APIRequestContext) {
   const owner = await signupFreshUser(request, "owner");
@@ -63,11 +17,6 @@ async function inviteFreshRoommate(request: APIRequestContext) {
     { email: roommate.email },
   );
   return { roommate, inviteId: invite.id as string };
-}
-
-async function loginAs(page: Page, token: string) {
-  await page.goto("/login");
-  await page.evaluate((t) => localStorage.setItem("bb_token", t), token);
 }
 
 test("create a household, then a roommate joins with the code", async ({
