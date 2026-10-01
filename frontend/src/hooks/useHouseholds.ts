@@ -79,6 +79,7 @@ export function useHouseholds() {
     households,
     loadingHouseholds,
     householdsError,
+    reload,
     createHousehold,
     joinByCode,
   };

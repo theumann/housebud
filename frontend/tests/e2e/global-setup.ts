@@ -49,11 +49,13 @@ async function loginAndSaveStorage() {
 export default async function globalSetup(_config: FullConfig) {
   console.log("Global setup: starting migrations, seed, and auth storage.");
 
-  // 1) Apply migrations to the e2e schema (same env file as seed:e2e)
+  // 1) Reset the e2e schema (drop, re-apply all migrations) so every run starts
+  // from the same state, even after a crashed or interrupted run. Only the
+  // schema in .env.e2e is touched.
   run(
     process.platform === "win32"
-      ? "npx.cmd dotenv -e .env.e2e -- npx.cmd prisma migrate deploy --schema prisma/schema.prisma"
-      : "npx dotenv -e .env.e2e -- prisma migrate deploy --schema prisma/schema.prisma",
+      ? "npx.cmd dotenv -e .env.e2e -- npx.cmd prisma migrate reset --force --skip-seed --schema prisma/schema.prisma"
+      : "npx dotenv -e .env.e2e -- prisma migrate reset --force --skip-seed --schema prisma/schema.prisma",
   );
 
   // 2) Seed e2e data

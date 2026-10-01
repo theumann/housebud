@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ShortlistProvider } from "@/context/ShortlistContext";
 import { ChatroomsFeedProvider } from "@/context/ChatroomsFeedContext";
+import { HouseholdInvitesProvider } from "@/context/HouseholdInvitesContext";
 
 export const metadata: Metadata = {
   title: "Bunkbuddy",
@@ -27,7 +28,9 @@ export default function RootLayout({
       <body className="bg-gradient-to-br from-theme-from to-theme-to min-h-screen text-foreground">
         <AuthProvider>
           <ShortlistProvider>
-            <ChatroomsFeedProvider>{children}</ChatroomsFeedProvider>
+            <ChatroomsFeedProvider>
+              <HouseholdInvitesProvider>{children}</HouseholdInvitesProvider>
+            </ChatroomsFeedProvider>
           </ShortlistProvider>
         </AuthProvider>
       </body>

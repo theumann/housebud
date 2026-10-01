@@ -8,6 +8,19 @@ import { Button } from "@/components/ui/Button";
 import { useChatroomsFeed } from "@/context/ChatroomsFeedContext";
 import { getUserDisplayName } from "@/lib/displayName";
 import { useTheme } from "@/hooks/useTheme";
+import { useHouseholdInvites } from "@/context/HouseholdInvitesContext";
+
+function NavBadge({ count, testId }: { count: number; testId?: string }) {
+  if (count <= 0) return null;
+  return (
+    <span
+      data-testid={testId}
+      className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white"
+    >
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
 
 const links = [
   { href: "/household", label: "Household" },
@@ -23,6 +36,7 @@ export function AppNav() {
   const { user, logout } = useAuth() as any; // adjust if your AuthContext typing is stricter
   const { pendingInvitesCount, unreadRoomsCount } = useChatroomsFeed();
   const totalBadgeCount = pendingInvitesCount + unreadRoomsCount;
+  const householdInvitesCount = useHouseholdInvites().invites.length;
   const { isDark, toggle } = useTheme();
 
   const handleLogout = async () => {
@@ -76,6 +90,12 @@ export function AppNav() {
               >
                 <span className="relative inline-flex items-center gap-2">
                   <span>{link.label}</span>
+                  {link.href === "/household" && (
+                    <NavBadge
+                      count={householdInvitesCount}
+                      testId="nav-household-badge"
+                    />
+                  )}
                   {link.href === "/chatrooms" && totalBadgeCount > 0 && (
                     <span
                       data-testid="nav-chat-badge"
@@ -179,6 +199,9 @@ export function AppNav() {
               >
                 <span className="relative inline-flex items-center gap-2">
                   <span>{link.label}</span>
+                  {link.href === "/household" && (
+                    <NavBadge count={householdInvitesCount} />
+                  )}
                   {link.href === "/chatrooms" && pendingInvitesCount > 0 && (
                     <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
                       {pendingInvitesCount > 9 ? "9+" : pendingInvitesCount}

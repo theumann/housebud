@@ -30,7 +30,39 @@ async function signupFreshUser(request: APIRequestContext, label: string) {
     },
   });
   expect(res.status()).toBe(201);
-  return (await res.json()).token as string;
+  return {
+    token: (await res.json()).token as string,
+    email: `${suffix}@e2e.test`,
+  };
+}
+
+async function apiPost(
+  request: APIRequestContext,
+  token: string,
+  path: string,
+  data: object,
+) {
+  const res = await request.post(`${API}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data,
+  });
+  expect(res.ok()).toBe(true);
+  return res.json();
+}
+
+async function inviteFreshRoommate(request: APIRequestContext) {
+  const owner = await signupFreshUser(request, "owner");
+  const roommate = await signupFreshUser(request, "roommate");
+  const house = await apiPost(request, owner.token, "/households", {
+    name: "Invite House",
+  });
+  const invite = await apiPost(
+    request,
+    owner.token,
+    `/households/${house.id}/invites`,
+    { email: roommate.email },
+  );
+  return { roommate, inviteId: invite.id as string };
 }
 
 async function loginAs(page: Page, token: string) {
@@ -42,8 +74,8 @@ test("create a household, then a roommate joins with the code", async ({
   page,
   request,
 }) => {
-  const ownerToken = await signupFreshUser(request, "owner");
-  await loginAs(page, ownerToken);
+  const owner = await signupFreshUser(request, "owner");
+  await loginAs(page, owner.token);
   await gotoAuthed(page, "/household", { waitForTestId: "household-page" });
 
   await page.getByTestId("create-household-input").fill("E2E House");
@@ -55,8 +87,8 @@ test("create a household, then a roommate joins with the code", async ({
   )?.trim();
   expect(joinCode).toMatch(/^[A-Z2-9]{6}$/);
 
-  const roommateToken = await signupFreshUser(request, "roommate");
-  await loginAs(page, roommateToken);
+  const roommate = await signupFreshUser(request, "roommate");
+  await loginAs(page, roommate.token);
   await gotoAuthed(page, "/household", { waitForTestId: "household-page" });
 
   await page.getByTestId("join-household-input").fill(joinCode!.toLowerCase());
@@ -69,7 +101,7 @@ test("create a household, then a roommate joins with the code", async ({
 });
 
 test("an unknown join code shows an error", async ({ page, request }) => {
-  await loginAs(page, await signupFreshUser(request, "stray"));
+  await loginAs(page, (await signupFreshUser(request, "stray")).token);
   await gotoAuthed(page, "/household", { waitForTestId: "household-page" });
 
   await page.getByTestId("join-household-input").fill("ZZZZZZ");
@@ -78,4 +110,43 @@ test("an unknown join code shows an error", async ({ page, request }) => {
   await expect(page.getByTestId("join-household")).toContainText(
     "No household found for that code",
   );
+});
+
+test("an invited user sees the badge and can accept the invite", async ({
+  page,
+  request,
+}) => {
+  const { roommate, inviteId } = await inviteFreshRoommate(request);
+  await loginAs(page, roommate.token);
+  await gotoAuthed(page, "/profile");
+
+  await expect(page.getByTestId("nav-household-badge")).toHaveText("1");
+  await page.getByTestId("nav-household").click();
+
+  await expect(page.getByTestId(`household-invite-${inviteId}`)).toContainText(
+    "Invite House",
+  );
+  await page.getByTestId(`household-invite-accept-${inviteId}`).click();
+
+  await expect(page.getByTestId("household-name")).toHaveText("Invite House");
+  await expect(page.getByTestId("household-members").locator("li")).toHaveCount(
+    2,
+  );
+  await expect(page.getByTestId("household-invites")).toHaveCount(0);
+  await expect(page.getByTestId("nav-household-badge")).toHaveCount(0);
+});
+
+test("declining an invite removes it and leaves the user without a household", async ({
+  page,
+  request,
+}) => {
+  const { roommate, inviteId } = await inviteFreshRoommate(request);
+  await loginAs(page, roommate.token);
+  await gotoAuthed(page, "/household", { waitForTestId: "household-page" });
+
+  await page.getByTestId(`household-invite-decline-${inviteId}`).click();
+
+  await expect(page.getByTestId("household-invites")).toHaveCount(0);
+  await expect(page.getByTestId("create-household")).toBeVisible();
+  await expect(page.getByTestId("nav-household-badge")).toHaveCount(0);
 });

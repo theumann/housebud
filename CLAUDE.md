@@ -43,7 +43,7 @@ Planned build order:
 2.  **`POST /chatrooms/:roomId/household`** (backend done) — lives on the chat side, reuses the household service (`createHousehold` with `sourceChatRoomId` + `inviteEmails`), creates the household and invites in one nested write. Rejects non-owners (403), inactive rooms or rooms with no other accepted participant (400), and rooms that already formed a household (409). `GET /chatrooms/:roomId` returns `household: { id, name } | null`. The household module does not depend on chat.
 3.  **Frontend** — in slices:
     1. Household basics (done) — `/household` in the `(household)` route group: create, join by code, join code + member list; `useHouseholds` hook; "Household" is the first nav link.
-    2. Invite inbox — pending invites with accept/decline, nav badge.
+    2. Invite inbox (done) — `HouseholdInvitesContext` polls `/households/invites/mine` every 30s; invitations with accept/decline at the top of `/household`; badge on the Household nav link.
     3. "Form household" button for the room owner + "This group formed _X_" banner in chat rooms.
     4. State-based landing: household → `/household`, otherwise `/matches`.
     5. Owner management — rename, module toggles, email invites, remove member, transfer ownership.
@@ -153,7 +153,7 @@ const data = await apiFetch<SomeType>("/endpoint", {
 
 ### State & data fetching
 
-- Global state via React Context: `AuthContext`, `ShortlistContext`, `ChatroomsFeedContext`
+- Global state via React Context: `AuthContext`, `ShortlistContext`, `ChatroomsFeedContext`, `HouseholdInvitesContext`
 - Data fetching lives in custom hooks in `src/hooks/` — hooks manage loading/error state and return them to the component
 - Chat uses HTTP polling (no WebSockets yet) — hooks accept a `pollMs` param and clean up intervals on unmount
 
@@ -186,11 +186,13 @@ npx playwright test
 npx playwright test --ui
 ```
 
-- Global setup runs migrations + `seed:e2e` and pre-authenticates as `me1` / `Password123!`
+- E2E data lives in the `e2e` schema of the dev database (`backend/.env.e2e`), not in `bunkbuddy_test`
+- Global setup resets that schema (`prisma migrate reset --force --skip-seed`), runs `seed:e2e`, and pre-authenticates as `me1` / `Password123!` — every run starts clean, and data from the last run stays around for debugging until the next one
+- Tests run with `workers: 1`: the Next dev server compiles pages on first request and parallel workers make tests time out. Revisit (or switch to `next build` + `next start`) when the suite gets slow
 - Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests
 - Tests that need a logged-out state use: `test.use({ storageState: { cookies: [], origins: [] } })`
 - Use `data-testid` attributes for selectors; add them when writing new components that need E2E coverage
-- The e2e schema is never reset between runs. Tests that create persistent state (households, invites) sign up fresh users through the API and put their token in `localStorage` (`bb_token`) instead of using `me1` — see `tests/e2e/household.spec.ts`
+- Tests that create persistent state (households, invites) sign up fresh users through the API and put their token in `localStorage` (`bb_token`) instead of using `me1`, so they don't change what other tests in the same run see — see `tests/e2e/household.spec.ts`
 
 ---
 
