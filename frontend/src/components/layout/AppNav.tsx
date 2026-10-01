@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
@@ -23,12 +24,22 @@ function NavBadge({ count, testId }: { count: number; testId?: string }) {
 }
 
 const links = [
-  { href: "/household", label: "Household" },
   { href: "/matches", label: "Matches" },
   { href: "/shortlist", label: "Shortlist" },
   { href: "/compatibility", label: "Compatibility" },
   { href: "/chatrooms", label: "Chat" },
+  { href: "/household", label: "Household" },
 ];
+
+// Household is a separate area from the matching links, shown after a divider.
+function NavDivider({ href }: { href: string }) {
+  if (href !== "/household") return null;
+  return (
+    <span aria-hidden="true" className="self-center text-gray-400">
+      |
+    </span>
+  );
+}
 
 export function AppNav() {
   const pathname = usePathname();
@@ -76,36 +87,38 @@ export function AppNav() {
           {links.map((link) => {
             const active = pathname.startsWith(link.href);
             return (
-              <Link
-                key={link.href}
-                href={link.href}
-                data-testid={`nav-${link.label.toLowerCase()}`}
-                className={clsx(
-                  "rounded-full px-3 py-1",
-                  active
-                    ? "bg-primary-100 text-primary-600 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
-                    : "text-gray-600 hover:bg-surface-muted dark:text-slate-400",
-                )}
-                aria-current={active ? "page" : undefined}
-              >
-                <span className="relative inline-flex items-center gap-2">
-                  <span>{link.label}</span>
-                  {link.href === "/household" && (
-                    <NavBadge
-                      count={householdInvitesCount}
-                      testId="nav-household-badge"
-                    />
+              <Fragment key={link.href}>
+                <NavDivider href={link.href} />
+                <Link
+                  href={link.href}
+                  data-testid={`nav-${link.label.toLowerCase()}`}
+                  className={clsx(
+                    "rounded-full px-3 py-1",
+                    active
+                      ? "bg-primary-100 text-primary-600 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
+                      : "text-gray-600 hover:bg-surface-muted dark:text-slate-400",
                   )}
-                  {link.href === "/chatrooms" && totalBadgeCount > 0 && (
-                    <span
-                      data-testid="nav-chat-badge"
-                      className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white"
-                    >
-                      {totalBadgeCount > 9 ? "9+" : totalBadgeCount}
-                    </span>
-                  )}
-                </span>
-              </Link>
+                  aria-current={active ? "page" : undefined}
+                >
+                  <span className="relative inline-flex items-center gap-2">
+                    <span>{link.label}</span>
+                    {link.href === "/household" && (
+                      <NavBadge
+                        count={householdInvitesCount}
+                        testId="nav-household-badge"
+                      />
+                    )}
+                    {link.href === "/chatrooms" && totalBadgeCount > 0 && (
+                      <span
+                        data-testid="nav-chat-badge"
+                        className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white"
+                      >
+                        {totalBadgeCount > 9 ? "9+" : totalBadgeCount}
+                      </span>
+                    )}
+                  </span>
+                </Link>
+              </Fragment>
             );
           })}
         </div>
@@ -186,29 +199,31 @@ export function AppNav() {
           {links.map((link) => {
             const active = pathname.startsWith(link.href);
             return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={clsx(
-                  "flex-1 rounded-full px-2 py-1 text-center",
-                  active
-                    ? "bg-primary-100 text-primary-600 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
-                    : "text-gray-600 hover:bg-surface-muted dark:text-slate-400",
-                )}
-                aria-current={active ? "page" : undefined}
-              >
-                <span className="relative inline-flex items-center gap-2">
-                  <span>{link.label}</span>
-                  {link.href === "/household" && (
-                    <NavBadge count={householdInvitesCount} />
+              <Fragment key={link.href}>
+                <NavDivider href={link.href} />
+                <Link
+                  href={link.href}
+                  className={clsx(
+                    "flex-1 rounded-full px-2 py-1 text-center",
+                    active
+                      ? "bg-primary-100 text-primary-600 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
+                      : "text-gray-600 hover:bg-surface-muted dark:text-slate-400",
                   )}
-                  {link.href === "/chatrooms" && pendingInvitesCount > 0 && (
-                    <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
-                      {pendingInvitesCount > 9 ? "9+" : pendingInvitesCount}
-                    </span>
-                  )}
-                </span>
-              </Link>
+                  aria-current={active ? "page" : undefined}
+                >
+                  <span className="relative inline-flex items-center gap-2">
+                    <span>{link.label}</span>
+                    {link.href === "/household" && (
+                      <NavBadge count={householdInvitesCount} />
+                    )}
+                    {link.href === "/chatrooms" && pendingInvitesCount > 0 && (
+                      <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                        {pendingInvitesCount > 9 ? "9+" : pendingInvitesCount}
+                      </span>
+                    )}
+                  </span>
+                </Link>
+              </Fragment>
             );
           })}
         </div>
