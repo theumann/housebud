@@ -217,6 +217,14 @@ Everything (Postgres, backend, frontend) goes on Railway.
 - `prisma` is a devDependency: confirm the CLI is available at deploy time.
 - Nothing is in production yet, so migrations could be squashed into a single `init` before the first deploy. Not worth it unless the list grows; it forces a reset of every dev/e2e database.
 
+### Before the app sends any real email
+
+The app sends no email today, so seed and test addresses never need to exist. Before adding email sending (invite links, password resets, notifications), fix the seed data so no mail can reach real inboxes:
+
+- `backend/scripts/seed-dev.ts` — `me1`…`me5` use `@bunkbuddy.dev`, a real TLD on a domain we don't own. Switch them to a reserved domain (`@example.com` or `.test`), and update `frontend/tests/e2e/auth-with-ui.spec.ts`, which logs in as `me1@bunkbuddy.dev`.
+- The same script's Faker users get `faker.internet.email()` addresses on real providers (gmail.com, yahoo.com…). Pass a reserved `provider` (e.g. `example.com`).
+- Dev and e2e databases must never point at a real mail transport; use a sandbox/catcher in development.
+
 ---
 
 ## What to avoid

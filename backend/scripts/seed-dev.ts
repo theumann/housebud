@@ -70,6 +70,30 @@ async function ensurePersonalUsers(password: string) {
       targetState: "randomState",
       targetZip: "78000",
     },
+    {
+      email: "me4@bunkbuddy.dev",
+      firstName: "Me",
+      lastName: "Four",
+      username: "me4",
+      displayName: "Me4",
+      school: "UCSF",
+      collegeYear: "Senior",
+      targetCity: "San Francisco",
+      targetState: "CA",
+      targetZip: "94117",
+    },
+    {
+      email: "me5@bunkbuddy.dev",
+      firstName: "Me",
+      lastName: "Five",
+      username: "me5",
+      displayName: "Me5",
+      school: "USF",
+      collegeYear: "Sophomore",
+      targetCity: "San Francisco",
+      targetState: "CA",
+      targetZip: "94122",
+    },
   ];
 
   for (const u of users) {
