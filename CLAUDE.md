@@ -44,7 +44,7 @@ Planned build order:
 3.  **Frontend** — in slices:
     1. Household basics (done) — `/household` in the `(household)` route group: create, join by code, join code + member list; `useHouseholds` hook; "Household" is the first nav link.
     2. Invite inbox (done) — `HouseholdInvitesContext` polls `/households/invites/mine` every 30s; invitations with accept/decline at the top of `/household`; badge on the Household nav link.
-    3. "Form household" button for the room owner + "This group formed _X_" banner in chat rooms.
+    3. "Form household" in chat rooms (done) — button for the owner of an active room with ≥2 participants and no household yet; "This group formed _X_" banner with a link to `/household` for every member.
     4. State-based landing: household → `/household`, otherwise `/matches`.
     5. Owner management — rename, module toggles, email invites, remove member, transfer ownership.
 
