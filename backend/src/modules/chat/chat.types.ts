@@ -1,7 +1,9 @@
 import { z } from "zod";
 
+export const ROOM_NAME_MAX = 40;
+
 export const CreateChatRoomSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(ROOM_NAME_MAX).optional(),
   participantIds: z.array(z.string().uuid()).min(1), // at least one other user
 });
 
@@ -14,7 +16,7 @@ export const InviteToChatSchema = z.object({
 export type InviteToChatInput = z.infer<typeof InviteToChatSchema>;
 
 export const UpdateChatRoomSchema = z.object({
-  name: z.string().min(1).max(100),
+  name: z.string().min(1).max(ROOM_NAME_MAX),
 });
 
 export type UpdateChatRoomInput = z.infer<typeof UpdateChatRoomSchema>;

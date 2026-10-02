@@ -114,6 +114,80 @@ describe.sequential("Chat", () => {
     expect(recent.body.map((m: any) => m.text)).toEqual(["newer"]);
   });
 
+  it("room names are limited to 40 characters on create and rename", async () => {
+    const owner = await signupUser(ctx, { displayName: "owner" });
+    const invitee = await signupUser(ctx, { displayName: "invitee" });
+
+    const tooLong = await request(ctx.app)
+      .post("/chatrooms")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ participantIds: [invitee.userId], name: "x".repeat(41) });
+    expect(tooLong.status).not.toBe(201);
+    expect(await ctx.prisma.chatRoom.count()).toBe(0);
+
+    const { roomId } = await createRoom(
+      ctx,
+      owner.token,
+      [invitee.userId],
+      "x".repeat(40),
+    );
+
+    const renameTooLong = await request(ctx.app)
+      .patch(`/chatrooms/${roomId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ name: "y".repeat(41) });
+    expect(renameTooLong.status).not.toBe(200);
+
+    const room = await ctx.prisma.chatRoom.findUnique({
+      where: { id: roomId },
+    });
+    expect(room?.name).toBe("x".repeat(40));
+  });
+
+  it("room details list participants with their status", async () => {
+    const owner = await signupUser(ctx, { displayName: "owner" });
+    const accepted = await signupUser(ctx, { displayName: "accepted" });
+    const pending = await signupUser(ctx, { displayName: "pending" });
+    const declined = await signupUser(ctx, { displayName: "declined" });
+    const { roomId } = await createRoom(ctx, owner.token, [
+      accepted.userId,
+      pending.userId,
+      declined.userId,
+    ]);
+    await respondToInvite(ctx.app, accepted.token, roomId, "accept");
+    await respondToInvite(ctx.app, declined.token, roomId, "decline");
+
+    const res = await request(ctx.app)
+      .get(`/chatrooms/${roomId}`)
+      .set("Authorization", `Bearer ${owner.token}`);
+    expect(res.status).toBe(200);
+
+    const statusOf = (userId: string) =>
+      res.body.participants.find((p: any) => p.userId === userId)?.status;
+    expect(statusOf(owner.userId)).toBe("accepted");
+    expect(statusOf(accepted.userId)).toBe("accepted");
+    expect(statusOf(pending.userId)).toBe("pending");
+    expect(statusOf(declined.userId)).toBe("declined");
+    expect(res.body.participants).toHaveLength(4);
+  });
+
+  it("re-inviting someone who declined leaves them declined", async () => {
+    const owner = await signupUser(ctx, { displayName: "owner" });
+    const invitee = await signupUser(ctx, { displayName: "invitee" });
+    const { roomId } = await createRoom(ctx, owner.token, [invitee.userId]);
+    await respondToInvite(ctx.app, invitee.token, roomId, "decline");
+
+    await request(ctx.app)
+      .post(`/chatrooms/${roomId}/invite`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ participantIds: [invitee.userId] });
+
+    const participant = await ctx.prisma.chatRoomParticipant.findFirst({
+      where: { chatRoomId: roomId, userId: invitee.userId },
+    });
+    expect(participant?.status).toBe("declined");
+  });
+
   describe("forming a household from a room", () => {
     const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 
