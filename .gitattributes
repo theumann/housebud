@@ -1,13 +1,4 @@
-# Normalize line endings
-* text=auto
-
-# Explicitly enforce LF for code files
-*.ts text eol=lf
-*.tsx text eol=lf
-*.js text eol=lf
-*.jsx text eol=lf
-*.json text eol=lf
-*.md text eol=lf
-*.css text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
+# LF everywhere (matches .editorconfig). Binary files are still detected by
+# text=auto and left untouched. Listing types individually missed .prisma,
+# .sql and .mjs, which then got CRLF on Windows checkouts.
+* text=auto eol=lf
