@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { useShortlist } from "@/context/ShortlistContext";
-import { useOwnedRoom } from "@/hooks/useOwnedRoom";
+import { useMyRooms } from "@/hooks/useMyRooms";
+import { RoomActionButton } from "@/components/RoomActionButton";
+import { roomNameError } from "@/lib/rooms";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -87,25 +89,29 @@ type MatchItem = {
 type MatchesResponse = {
   items: MatchItem[];
   page: number;
+  pageSize: number;
   total: number;
 };
 
 export default function MatchesPage() {
   const { user, token, loading } = useAuth();
   const { shortlist, add, remove, isShortlisted } = useShortlist();
-  const { ownedRoom } = useOwnedRoom();
+  const myRooms = useMyRooms();
   const router = useRouter();
 
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [invitingUserId, setInvitingUserId] = useState<string | null>(null);
 
-  const pageSize = matches.length || 10; // fallback if empty
+  // The page size comes from the backend; counting the items on the current
+  // page miscounts pages whenever the last page is shorter.
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const isFirstPage = page <= 1;
-  const isLastPage = total > 0 && page * pageSize >= total;
+  const isLastPage = page >= totalPages;
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -125,6 +131,7 @@ export default function MatchesPage() {
         });
         setMatches(res.items);
         setTotal(res.total);
+        setPageSize(res.pageSize);
       } catch (err: any) {
         setError(err.message || "Failed to load matches");
       } finally {
@@ -160,6 +167,11 @@ export default function MatchesPage() {
     }
 
     const trimmedName = name.trim();
+    const nameError = roomNameError(trimmedName);
+    if (nameError) {
+      alert(nameError);
+      return;
+    }
     const body: any = {
       participantIds: [userId],
     };
@@ -179,29 +191,16 @@ export default function MatchesPage() {
     }
   };
 
+  // Success shows on the button itself ("Invited"), once the room's
+  // participants are reloaded; only failures need a message.
   const handleInviteToOwnedRoom = async (userId: string) => {
-    if (!token || !ownedRoom) return;
-
-    const user = matches.find((m) => m.userId === userId);
-    const displayName = user
-      ? getUserDisplayName(matchItemToUserLike(user))
-      : "this user";
-
     setInvitingUserId(userId);
     try {
-      await apiFetch<{ message: string }>(`/chatrooms/${ownedRoom.id}/invite`, {
-        method: "POST",
-        token,
-        body: { participantIds: [userId] },
-      });
-
+      await myRooms.invite([userId]);
+    } catch (err) {
       alert(
-        `Invite sent to ${displayName} for room "${
-          ownedRoom.name || `Room #${ownedRoom.id.slice(0, 8)}`
-        }".`,
+        err instanceof Error ? err.message : "Failed to invite user to room",
       );
-    } catch (err: any) {
-      alert(err.message || "Failed to invite user to room");
     } finally {
       setInvitingUserId(null);
     }
@@ -375,26 +374,16 @@ export default function MatchesPage() {
                       size="sm"
                       onClick={() => handleStartChatWithUser(m.userId)}
                     >
-                      Start chat
+                      New chat
                     </Button>
                   </div>
 
-                  {ownedRoom && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full border border-blue-500 text-blue-700 hover:bg-blue-50 mt-1"
-                      disabled={invitingUserId === m.userId}
-                      onClick={() => handleInviteToOwnedRoom(m.userId)}
-                    >
-                      {invitingUserId === m.userId
-                        ? "Inviting..."
-                        : `Invite to "${
-                            ownedRoom.name ||
-                            `Room #${ownedRoom.id.slice(0, 8)}`
-                          }"`}
-                    </Button>
-                  )}
+                  <RoomActionButton
+                    userId={m.userId}
+                    myRooms={myRooms}
+                    inviting={invitingUserId === m.userId}
+                    onInvite={handleInviteToOwnedRoom}
+                  />
                 </CardFooter>
               </Card>
             );
@@ -405,12 +394,12 @@ export default function MatchesPage() {
       <div className="mt-6 flex items-center justify-between text-xs text-gray-600">
         <div className="flex items-center gap-3">
           {hasMatches && (
-            <span>
+            <span data-testid="matches-page-label">
               Page <strong>{page}</strong>
               {total > 0 && (
                 <>
                   {" "}
-                  of <strong>{Math.max(1, Math.ceil(total / pageSize))}</strong>
+                  of <strong>{totalPages}</strong>
                 </>
               )}
               {total > 0 && <> · total {total}</>}

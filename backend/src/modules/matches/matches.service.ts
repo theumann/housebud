@@ -62,7 +62,12 @@ export async function getMatchesForUser(
   userId: string,
   page: number = 1,
   limit: number = 20,
-): Promise<{ items: MatchCandidate[]; page: number; total: number }> {
+): Promise<{
+  items: MatchCandidate[];
+  page: number;
+  pageSize: number;
+  total: number;
+}> {
   if (page < 1) page = 1;
   if (limit < 1) limit = 1;
   if (limit > 50) limit = 50;
@@ -127,7 +132,7 @@ export async function getMatchesForUser(
   })) as CandidateUser[];
 
   if (candidates.length === 0) {
-    return { items: [], page, total: 0 };
+    return { items: [], page, pageSize: limit, total: 0 };
   }
 
   const candidateIds = candidates.map((u) => u.id);
@@ -260,6 +265,7 @@ export async function getMatchesForUser(
   return {
     items: pagedItems,
     page,
+    pageSize: limit,
     total,
   };
 }

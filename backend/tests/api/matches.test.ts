@@ -337,4 +337,44 @@ describe.sequential("Matches", () => {
       expect(nearItem.score).toBeNull();
     });
   });
+
+  describe("GET /matches pagination", () => {
+    // Regression: the frontend used to derive the page size from the number
+    // of items on the current page, which miscounted pages on a short last page.
+    it("returns the page size, so a short last page doesn't change the page count", async () => {
+      const me = await signupUser(ctx, { targetZip: "94117" });
+      for (let i = 0; i < 5; i++) {
+        await signupUser(ctx, { targetZip: "94110" });
+      }
+
+      const pages = [];
+      for (const page of [1, 2, 3]) {
+        const res = await request(ctx.app)
+          .get(`/matches?page=${page}&limit=2`)
+          .set("Authorization", `Bearer ${me.token}`);
+        expect(res.status).toBe(200);
+        pages.push(res.body);
+      }
+
+      expect(pages.map((p) => p.items.length)).toEqual([2, 2, 1]);
+      for (const p of pages) {
+        expect(p.pageSize).toBe(2);
+        expect(p.total).toBe(5);
+      }
+
+      const beyond = await request(ctx.app)
+        .get("/matches?page=4&limit=2")
+        .set("Authorization", `Bearer ${me.token}`);
+      expect(beyond.body.items).toEqual([]);
+      expect(beyond.body.pageSize).toBe(2);
+    });
+
+    it("defaults to a page size of 20", async () => {
+      const me = await signupUser(ctx, { targetZip: "94117" });
+      const res = await request(ctx.app)
+        .get("/matches")
+        .set("Authorization", `Bearer ${me.token}`);
+      expect(res.body.pageSize).toBe(20);
+    });
+  });
 });

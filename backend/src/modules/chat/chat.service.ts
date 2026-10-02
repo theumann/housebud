@@ -69,6 +69,9 @@ type ChatRoomDetail = {
   myStatus: string;
   participantsCount: number;
   household: { id: string; name: string } | null;
+  // Everyone ever added to the room, so the UI can tell who is already
+  // invited, in the room, or declined/left/removed.
+  participants: { userId: string; role: string; status: string }[];
 };
 
 async function getAcceptedRoomCount(
@@ -400,6 +403,11 @@ export async function getChatRoomDetailsForUser(
     myStatus: myParticipant.status,
     participantsCount,
     household: room.household,
+    participants: room.participants.map((p: ChatParticipant) => ({
+      userId: p.userId,
+      role: p.role,
+      status: p.status,
+    })),
   };
 }
 

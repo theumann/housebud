@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useShortlist } from "@/context/ShortlistContext";
 import { apiFetch } from "@/lib/api";
-import { useOwnedRoom } from "@/hooks/useOwnedRoom";
+import { useMyRooms, inviteStatusLabel } from "@/hooks/useMyRooms";
+import { RoomActionButton } from "@/components/RoomActionButton";
+import { roomDisplayName, roomNameError } from "@/lib/rooms";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -49,13 +51,15 @@ function EmptyShortlistState() {
 export default function ShortlistPage() {
   const { user, token, loading } = useAuth();
   const { shortlist, remove, clear } = useShortlist();
-  const { ownedRoom } = useOwnedRoom();
+  const myRooms = useMyRooms();
+  const { ownedRoom, participantStatus, invite } = myRooms;
   const router = useRouter();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [inviting, setInviting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   // Redirect unauthenticated users
   useEffect(() => {
@@ -100,6 +104,11 @@ export default function ShortlistPage() {
     }
 
     const trimmed = name.trim();
+    const nameError = roomNameError(trimmed);
+    if (nameError) {
+      setError(nameError);
+      return;
+    }
 
     setCreating(true);
     setError(null);
@@ -126,30 +135,35 @@ export default function ShortlistPage() {
   };
 
   const handleInviteSelectedToOwnedRoom = async () => {
-    if (!token || !ownedRoom) return;
+    if (!ownedRoom) return;
     if (selectedIds.length === 0) {
       setError("Select at least one roommate to invite.");
       return;
     }
 
+    // People already invited, in the room, or who declined/left are skipped
+    // by the backend anyway; only send the ones that can actually be invited.
+    const invitable = selectedIds.filter((id) => !participantStatus(id));
+    if (invitable.length === 0) {
+      setError("Everyone selected is already part of your room.");
+      return;
+    }
+
     setInviting(true);
     setError(null);
+    setNotice(null);
     try {
-      await apiFetch<{ message: string }>(`/chatrooms/${ownedRoom.id}/invite`, {
-        method: "POST",
-        token,
-        body: {
-          participantIds: selectedIds,
-        },
-      });
-
-      alert(
-        `Invites sent to ${selectedIds.length} roommate(s) for room "${
-          ownedRoom.name || `Room #${ownedRoom.id.slice(0, 8)}`
-        }".`,
+      await invite(invitable);
+      setSelectedIds([]);
+      setNotice(
+        `Invited ${invitable.length} roommate${invitable.length === 1 ? "" : "s"} to ${roomDisplayName(ownedRoom)}.`,
       );
-    } catch (err: any) {
-      setError(err.message || "Failed to invite selected roommates");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to invite selected roommates",
+      );
     } finally {
       setInviting(false);
     }
@@ -187,6 +201,15 @@ export default function ShortlistPage() {
       {error && (
         <div className="mb-4 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
+        </div>
+      )}
+
+      {notice && (
+        <div
+          data-testid="shortlist-invite-notice"
+          className="mb-4 rounded border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-800"
+        >
+          {notice}
         </div>
       )}
 
@@ -261,12 +284,26 @@ export default function ShortlistPage() {
                       >
                         Remove
                       </Button>
+                      {ownedRoom &&
+                        inviteStatusLabel(participantStatus(u.userId)) && (
+                          <span
+                            data-testid={`shortlist-room-status-${u.userId}`}
+                            className="text-gray-500"
+                          >
+                            {inviteStatusLabel(participantStatus(u.userId))}
+                          </span>
+                        )}
                       {selected && (
                         <span className="text-green-700 font-medium">
                           Selected
                         </span>
                       )}
                     </div>
+                    <RoomActionButton
+                      userId={u.userId}
+                      myRooms={myRooms}
+                      inviting={false}
+                    />
                   </CardFooter>
                 </Card>
               );
@@ -298,7 +335,7 @@ export default function ShortlistPage() {
                       onClick={handleStartChat}
                       disabled={creating}
                     >
-                      {creating ? "Creating…" : "Start chat"}
+                      {creating ? "Creating…" : "New chat"}
                     </Button>
 
                     {ownedRoom && (
@@ -307,11 +344,14 @@ export default function ShortlistPage() {
                         size="sm"
                         onClick={handleInviteSelectedToOwnedRoom}
                         disabled={inviting}
-                        className="border-blue-500 text-blue-700 hover:bg-blue-50"
+                        title={`Invite to ${roomDisplayName(ownedRoom)}`}
+                        className="min-w-0 max-w-xs border-blue-500 text-blue-700 hover:bg-blue-50"
                       >
-                        {inviting
-                          ? "Inviting…"
-                          : `Invite to "${ownedRoom.name || `Room #${ownedRoom.id.slice(0, 8)}`}"`}
+                        <span className="truncate">
+                          {inviting
+                            ? "Inviting…"
+                            : `Invite to ${roomDisplayName(ownedRoom)}`}
+                        </span>
                       </Button>
                     )}
                   </div>
@@ -332,9 +372,7 @@ export default function ShortlistPage() {
               onClick={handleStartChat}
               disabled={creating || selectedIds.length === 0}
             >
-              {creating
-                ? "Creating chat room…"
-                : "Start new chat with selected"}
+              {creating ? "Creating chat room…" : "New chat with selected"}
             </Button>
 
             {ownedRoom && (
@@ -344,13 +382,14 @@ export default function ShortlistPage() {
                 size="sm"
                 onClick={handleInviteSelectedToOwnedRoom}
                 disabled={inviting || selectedIds.length === 0}
-                className="border-blue-500 text-blue-700 hover:bg-blue-50"
+                title={`Invite selected to ${roomDisplayName(ownedRoom)}`}
+                className="min-w-0 border-blue-500 text-blue-700 hover:bg-blue-50"
               >
-                {inviting
-                  ? "Inviting to your room…"
-                  : `Invite selected to "${
-                      ownedRoom.name || `Room #${ownedRoom.id.slice(0, 8)}`
-                    }"`}
+                <span className="truncate">
+                  {inviting
+                    ? "Inviting to your room…"
+                    : `Invite selected to ${roomDisplayName(ownedRoom)}`}
+                </span>
               </Button>
             )}
           </div>

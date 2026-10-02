@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { setLastSeen } from "@/lib/unread";
+import { roomNameError } from "@/lib/rooms";
 import {
   getUserDisplayName,
   chatMessageSenderToUserLike,
@@ -151,6 +152,11 @@ export default function ChatRoomPage() {
     const trimmed = name.trim();
     if (!trimmed) {
       alert("Room name cannot be empty.");
+      return;
+    }
+    const nameError = roomNameError(trimmed);
+    if (nameError) {
+      alert(nameError);
       return;
     }
 
