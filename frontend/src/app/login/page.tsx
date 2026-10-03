@@ -12,9 +12,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // "/" picks the landing page (household or matches).
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/matches");
+      router.replace("/");
     }
   }, [loading, user, router]);
 
@@ -24,7 +25,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await login(identifier, password);
-      router.replace("/matches");
+      router.replace("/");
     } catch (err: any) {
       setError(err.message || "Login failed");
     } finally {
