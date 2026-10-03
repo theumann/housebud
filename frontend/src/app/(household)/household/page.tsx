@@ -4,7 +4,8 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
-import { useHouseholds, type Household } from "@/hooks/useHouseholds";
+import { useHouseholds } from "@/hooks/useHouseholds";
+import { HouseholdView } from "@/components/household/HouseholdView";
 import { useHouseholdInvites } from "@/context/HouseholdInvitesContext";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
@@ -93,35 +94,6 @@ function SingleFieldForm({
   );
 }
 
-function JoinCode({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="rounded-md border border-border-subtle bg-surface px-4 py-3">
-      <p className="text-xs text-gray-600">
-        Share this code with roommates so they can join.
-      </p>
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <span
-          data-testid="household-join-code"
-          className="font-mono text-xl font-semibold tracking-[0.3em]"
-        >
-          {code}
-        </span>
-        <Button variant="secondary" size="sm" onClick={handleCopy}>
-          {copied ? "Copied" : "Copy"}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 function InviteInbox({
   onAccepted,
 }: {
@@ -206,61 +178,6 @@ function InviteInbox({
         ))}
       </ul>
     </section>
-  );
-}
-
-function HouseholdView({ household }: { household: Household }) {
-  return (
-    <Card data-testid="household-view">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <h2 data-testid="household-name" className="text-xl font-semibold">
-            {household.name}
-          </h2>
-          <span className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-600 dark:bg-primary-600/20 dark:text-primary-100">
-            {household.myRole === "owner" ? "Owner" : "Member"}
-          </span>
-        </div>
-      </CardHeader>
-      <CardBody className="flex flex-col gap-4">
-        <JoinCode code={household.joinCode} />
-
-        <section>
-          <h3 className="mb-2 text-sm font-semibold">
-            Members ({household.members.length})
-          </h3>
-          <ul data-testid="household-members" className="flex flex-col gap-2">
-            {household.members.map((m) => {
-              const name = getUserDisplayName(m.user);
-              return (
-                <li
-                  key={m.id}
-                  data-testid={`household-member-${m.userId}`}
-                  className="flex items-center gap-3"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-sm font-semibold">
-                    {m.user.profile?.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={m.user.profile.avatarUrl}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      (name[0]?.toUpperCase() ?? "?")
-                    )}
-                  </div>
-                  <span className="text-sm">{name}</span>
-                  {m.role === "owner" && (
-                    <span className="text-xs text-gray-500">Owner</span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      </CardBody>
-    </Card>
   );
 }
 
@@ -361,7 +278,14 @@ export default function HouseholdPage() {
         </div>
       )}
 
-      {selected && <HouseholdView household={selected} />}
+      {selected && (
+        // keyed so switching households resets per-household state (e.g. pending invites)
+        <HouseholdView
+          key={selected.id}
+          household={selected}
+          onChanged={reload}
+        />
+      )}
     </PageContainer>
   );
 }
