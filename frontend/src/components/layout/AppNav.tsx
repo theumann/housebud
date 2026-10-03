@@ -66,7 +66,7 @@ export function AppNav() {
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         {/* Brand */}
         <div className="flex items-center gap-2">
-          <Link href="/matches" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <span
               data-testid="nav-logo"
               className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white"
