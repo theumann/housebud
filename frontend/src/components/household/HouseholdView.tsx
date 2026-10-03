@@ -278,8 +278,8 @@ function OwnerTools({
           </div>
         </label>
         <p className="text-xs text-gray-500">
-          If they already have an account with this email, they will see the
-          invite under Household.
+          They&apos;ll see the invite under Household once they&apos;re signed
+          up with this email (within 14 days). No email is sent yet.
         </p>
         <ErrorNote error={invite.error} />
       </form>
