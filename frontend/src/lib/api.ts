@@ -5,6 +5,18 @@ export function getApiBaseUrl() {
   return API_BASE_URL;
 }
 
+// Thrown for non-2xx responses, so callers can react to the status (e.g. only
+// treat 401 as "not logged in"). The message is unchanged from before.
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.name = "ApiError";
+  }
+}
+
 // Helper for JSON requests with optional auth token
 export async function apiFetch<T>(
   path: string,
@@ -38,7 +50,7 @@ export async function apiFetch<T>(
     } catch {
       // ignore
     }
-    throw new Error(message);
+    throw new ApiError(res.status, message);
   }
 
   return res.json() as Promise<T>;

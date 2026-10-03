@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
 
 type UserProfile = {
   id: string;
@@ -56,11 +56,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // fetch user profile in background
       apiFetch<UserProfile>("/profile/me", { token: storedToken })
         .then((u) => setUser(u))
-        .catch(() => {
-          // token invalid; clear it
-          localStorage.removeItem("bb_token");
-          setToken(null);
-          setUser(null);
+        .catch((err) => {
+          // Only a 401 means the token is invalid. Any other failure, including
+          // a request cancelled because the user navigated away, must keep the
+          // token: clearing it logged people out of the page they went to.
+          if (err instanceof ApiError && err.status === 401) {
+            localStorage.removeItem("bb_token");
+            setToken(null);
+            setUser(null);
+          }
         })
         .finally(() => setLoading(false));
     } else {
