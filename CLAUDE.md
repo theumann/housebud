@@ -46,7 +46,7 @@ Planned build order:
     2. Invite inbox (done) — `HouseholdInvitesContext` polls `/households/invites/mine` every 30s; invitations with accept/decline at the top of `/household`; badge on the Household nav link.
     3. "Form household" in chat rooms (done) — button for the owner of an active room with ≥2 participants and no household yet; "This group formed _X_" banner with a link to `/household` for every member.
     4. State-based landing (done) — `/` (`src/app/page.tsx`) decides: household member → `/household`, otherwise `/matches`. Login and the nav logo go to `/`; signup goes straight to `/matches` (a new user has no household).
-    5. Owner management — rename, module toggles, email invites, remove member, transfer ownership.
+    5. Owner management (done) — on `/household` (`components/household/HouseholdView.tsx`, `useHouseholdAdmin`): rename, new join code, email invites + pending list with revoke, remove member, make owner; "Leave household" for members (an owner must hand over ownership first). Module toggles are deliberately not in the UI yet — add each one with its module.
 
 Decided:
 
@@ -54,6 +54,8 @@ Decided:
 
 Open questions:
 
+- Planned nav restructure (not scheduled): two top-level menu items, "Find Roommates" (Matches, Shortlist, Compatibility, Chat) and "Household" (household pages and its modules), replacing today's flat list split by a `|` divider.
+- Can people who declined or left a chat room be re-invited? Today the backend silently skips them and the UI shows "Declined"/"Left the room" (disabled); `chat.test.ts` pins the current rule.
 - Later: households with an open spot appear in matching as "looking for a roommate" (fits the listings phase). Not now, but don't design it out.
 
 ## Project Layout

@@ -48,6 +48,18 @@ export async function apiPost(
   return res.json();
 }
 
+export async function apiGet(
+  request: APIRequestContext,
+  token: string,
+  path: string,
+) {
+  const res = await request.get(`${API}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(res.ok()).toBe(true);
+  return res.json();
+}
+
 export async function loginAs(page: Page, token: string) {
   await page.goto("/login");
   await page.evaluate((t) => localStorage.setItem("bb_token", t), token);
