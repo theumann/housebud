@@ -141,6 +141,7 @@ const data = await apiFetch<SomeType>("/endpoint", {
 
 - Always pass the token from `useAuth()`: `const { token } = useAuth()`
 - Never use raw `fetch` — always use `apiFetch`
+- Non-2xx responses throw `ApiError` (with `status`). Branch on the status, not the message — e.g. `AuthContext` clears the token only on a 401; any other failure (including a request cancelled by navigation) keeps the user logged in
 - API base URL comes from `NEXT_PUBLIC_API_BASE_URL` (defaults to `http://localhost:4000`)
 
 ### Components & pages
@@ -192,6 +193,7 @@ npx playwright test --ui
 - Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests
 - Tests that need a logged-out state use: `test.use({ storageState: { cookies: [], origins: [] } })`
 - Use `data-testid` attributes for selectors; add them when writing new components that need E2E coverage
+- Import `test` and `expect` from `./utils/test`, not `@playwright/test`: it attaches a "diagnostics" timeline (failed API calls, console errors, navigations, token state) to every failing test
 - Tests that create persistent state (households, invites) sign up fresh users through the API and put their token in `localStorage` (`bb_token`) instead of using `me1`, so they don't change what other tests in the same run see — see `tests/e2e/household.spec.ts`
 
 ---

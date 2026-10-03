@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./utils/test";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test("User can login with email", async ({ page }) => {

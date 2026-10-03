@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
 import { apiPost, loginAs, signupFreshUser } from "./utils/users";
 

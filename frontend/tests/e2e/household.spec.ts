@@ -1,4 +1,5 @@
-import { test, expect, type APIRequestContext } from "@playwright/test";
+import type { APIRequestContext } from "@playwright/test";
+import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
 import { apiPost, loginAs, signupFreshUser } from "./utils/users";
 

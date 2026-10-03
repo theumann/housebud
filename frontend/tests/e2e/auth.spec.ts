@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
 
 test("logged-in user can open matches page", async ({ page }) => {

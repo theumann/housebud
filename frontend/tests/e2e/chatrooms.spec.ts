@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
 
 test("open an existing chat room if available", async ({ page }) => {
