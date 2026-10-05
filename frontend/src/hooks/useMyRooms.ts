@@ -111,9 +111,18 @@ const STATUS_LABEL: Record<string, string> = {
   removed: "Removed",
 };
 
-// Label for a disabled invite button when the user can't be invited to the
-// owned room; null means they can. Accepted members get a "Chat in …" link
-// instead (see sharedRoom), so they have no label here.
+// Statuses the owner can invite again: the backend lets any member re-invite
+// someone who declined or left, and the owner bring back someone removed.
+const REINVITABLE = new Set(["declined", "left", "removed"]);
+
+// Whether the owner can (re-)invite this user to the owned room.
+export function canInvite(status: ParticipantStatus): boolean {
+  return !status || REINVITABLE.has(status);
+}
+
+// Short status text for a user's relation to the owned room ("Invited",
+// "Declined", ...); null when they've never been added or are in the room
+// (accepted members get a "Chat in …" button instead).
 export function inviteStatusLabel(status: ParticipantStatus): string | null {
   if (!status || status === "accepted") return null;
   return STATUS_LABEL[status] ?? status;

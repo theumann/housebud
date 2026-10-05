@@ -171,21 +171,72 @@ describe.sequential("Chat", () => {
     expect(res.body.participants).toHaveLength(4);
   });
 
-  it("re-inviting someone who declined leaves them declined", async () => {
-    const owner = await signupUser(ctx, { displayName: "owner" });
-    const invitee = await signupUser(ctx, { displayName: "invitee" });
-    const { roomId } = await createRoom(ctx, owner.token, [invitee.userId]);
-    await respondToInvite(ctx.app, invitee.token, roomId, "decline");
+  describe("re-inviting former participants", () => {
+    // Three people so the room stays active when one of them leaves.
+    async function roomOfThree() {
+      const owner = await signupUser(ctx, { displayName: "owner" });
+      const member = await signupUser(ctx, { displayName: "member" });
+      const target = await signupUser(ctx, { displayName: "target" });
+      const { roomId } = await createRoom(ctx, owner.token, [
+        member.userId,
+        target.userId,
+      ]);
+      await respondToInvite(ctx.app, member.token, roomId, "accept");
+      return { owner, member, target, roomId };
+    }
 
-    await request(ctx.app)
-      .post(`/chatrooms/${roomId}/invite`)
-      .set("Authorization", `Bearer ${owner.token}`)
-      .send({ participantIds: [invitee.userId] });
+    const invite = (token: string, roomId: string, userId: string) =>
+      request(ctx.app)
+        .post(`/chatrooms/${roomId}/invite`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ participantIds: [userId] });
 
-    const participant = await ctx.prisma.chatRoomParticipant.findFirst({
-      where: { chatRoomId: roomId, userId: invitee.userId },
+    const statusOf = async (roomId: string, userId: string) =>
+      (
+        await ctx.prisma.chatRoomParticipant.findFirst({
+          where: { chatRoomId: roomId, userId },
+        })
+      )?.status;
+
+    it("someone who declined can be invited again, and accept", async () => {
+      const { member, target, roomId } = await roomOfThree();
+      await respondToInvite(ctx.app, target.token, roomId, "decline");
+
+      const res = await invite(member.token, roomId, target.userId);
+      expect(res.status).toBe(200);
+      expect(await statusOf(roomId, target.userId)).toBe("pending");
+
+      await respondToInvite(ctx.app, target.token, roomId, "accept");
+      expect(await statusOf(roomId, target.userId)).toBe("accepted");
     });
-    expect(participant?.status).toBe("declined");
+
+    it("someone who left can be invited again", async () => {
+      const { member, target, roomId } = await roomOfThree();
+      await respondToInvite(ctx.app, target.token, roomId, "accept");
+      await request(ctx.app)
+        .post(`/chatrooms/${roomId}/leave`)
+        .set("Authorization", `Bearer ${target.token}`)
+        .expect(200);
+
+      await invite(member.token, roomId, target.userId);
+      expect(await statusOf(roomId, target.userId)).toBe("pending");
+    });
+
+    it("only the owner can bring back someone who was removed", async () => {
+      const { owner, member, target, roomId } = await roomOfThree();
+      await respondToInvite(ctx.app, target.token, roomId, "accept");
+      await request(ctx.app)
+        .post(`/chatrooms/${roomId}/kick`)
+        .set("Authorization", `Bearer ${owner.token}`)
+        .send({ userId: target.userId })
+        .expect(200);
+
+      await invite(member.token, roomId, target.userId);
+      expect(await statusOf(roomId, target.userId)).toBe("removed");
+
+      await invite(owner.token, roomId, target.userId);
+      expect(await statusOf(roomId, target.userId)).toBe("pending");
+    });
   });
 
   describe("forming a household from a room", () => {
