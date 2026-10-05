@@ -51,11 +51,11 @@ Planned build order:
 Decided:
 
 - **The household gets its own chat**, separate from the matching room. The matching chat shows full history to every accepted participant, so carrying it over would expose pre-household conversations to members added later and keep non-joiners in the household's conversation. The matching room stays as-is for its participants, linked via `sourceChatRoomId`. Household chat is not built yet.
+- **Re-inviting to a chat room:** people who declined or left can be invited again by any accepted member; someone the owner removed can only be brought back by the owner. Re-invites reset them to pending as a plain member, and the 3-room limit applies. No protection against repeated re-invites yet — that will come with block/reject.
 
 Open questions:
 
 - Planned nav restructure (not scheduled): two top-level menu items, "Find Roommates" (Matches, Shortlist, Compatibility, Chat) and "Household" (household pages and its modules), replacing today's flat list split by a `|` divider.
-- Can people who declined or left a chat room be re-invited? Today the backend silently skips them and the UI shows "Declined"/"Left the room" (disabled); `chat.test.ts` pins the current rule.
 - Later: households with an open spot appear in matching as "looking for a roommate" (fits the listings phase). Not now, but don't design it out.
 
 ## Project Layout

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useShortlist } from "@/context/ShortlistContext";
 import { apiFetch } from "@/lib/api";
-import { useMyRooms, inviteStatusLabel } from "@/hooks/useMyRooms";
+import { useMyRooms, inviteStatusLabel, canInvite } from "@/hooks/useMyRooms";
 import { RoomActionButton } from "@/components/RoomActionButton";
 import { roomDisplayName, roomNameError } from "@/lib/rooms";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -141,11 +141,13 @@ export default function ShortlistPage() {
       return;
     }
 
-    // People already invited, in the room, or who declined/left are skipped
-    // by the backend anyway; only send the ones that can actually be invited.
-    const invitable = selectedIds.filter((id) => !participantStatus(id));
+    // People already invited or in the room are skipped by the backend anyway;
+    // only send the ones that can actually be (re-)invited.
+    const invitable = selectedIds.filter((id) =>
+      canInvite(participantStatus(id)),
+    );
     if (invitable.length === 0) {
-      setError("Everyone selected is already part of your room.");
+      setError("Everyone selected is already invited to or in your room.");
       return;
     }
 

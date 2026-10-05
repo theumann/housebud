@@ -91,4 +91,30 @@ test.describe("inviting a match to your room", () => {
     await expect(page).toHaveURL(new RegExp(`/chatrooms/${roomId}$`));
     await expect(page.getByTestId("chatroom-page")).toBeVisible();
   });
+
+  test("the owner can invite someone again after they declined", async ({
+    page,
+    request,
+  }) => {
+    const owner = await signupFreshUser(request, "reinviter");
+    const member = await signupFreshUser(request, "stayer");
+    const decliner = await signupFreshUser(request, "decliner");
+    const { roomId } = await apiPost(request, owner.token, "/chatrooms", {
+      participantIds: [member.id, decliner.id],
+      name: "Second Chance",
+    });
+    await apiPost(request, member.token, `/chatrooms/${roomId}/accept`);
+    await apiPost(request, decliner.token, `/chatrooms/${roomId}/decline`);
+
+    await loginAs(page, owner.token);
+    await gotoAuthed(page, "/matches", { waitForTestId: "matches-page" });
+
+    const button = page.getByTestId(`invite-to-room-button-${decliner.id}`);
+    await expect(button).toHaveText("Declined · Invite again");
+    await expect(button).toBeEnabled();
+
+    await button.click();
+    await expect(button).toHaveText("Invited");
+    await expect(button).toBeDisabled();
+  });
 });

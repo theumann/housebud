@@ -275,15 +275,29 @@ export async function inviteToChatRoom(
     (id) => !existingUserIds.has(id),
   );
 
-  if (newParticipantIds.length === 0) {
+  // People who declined or left can be invited again by any member; someone
+  // the owner removed can only be brought back by the owner. Pending and
+  // accepted participants are skipped as before.
+  const reinvitedIds = room.participants
+    .filter(
+      (p: ChatParticipant) =>
+        input.participantIds.includes(p.userId) &&
+        (p.status === "declined" ||
+          p.status === "left" ||
+          (p.status === "removed" && requester.role === "owner")),
+    )
+    .map((p: ChatParticipant) => p.userId);
+
+  const invitedIds = [...newParticipantIds, ...reinvitedIds];
+  if (invitedIds.length === 0) {
     return;
   }
 
-  // Enforce room limit for new invitees
+  // Enforce room limit for everyone being invited
   const participantsAcceptedCounts = await prisma.chatRoomParticipant.groupBy({
     by: ["userId"],
     where: {
-      userId: { in: newParticipantIds },
+      userId: { in: invitedIds },
       status: "accepted",
     },
     _count: {
@@ -296,7 +310,7 @@ export async function inviteToChatRoom(
     countsByUser[row.userId] = row._count.userId;
   }
 
-  for (const participantId of newParticipantIds) {
+  for (const participantId of invitedIds) {
     if ((countsByUser[participantId] || 0) >= 3) {
       const err: any = new Error(
         `User ${participantId} is already in the maximum number of rooms (3)`,
@@ -306,14 +320,21 @@ export async function inviteToChatRoom(
     }
   }
 
-  await prisma.chatRoomParticipant.createMany({
-    data: newParticipantIds.map((pid) => ({
-      chatRoomId: roomId,
-      userId: pid,
-      role: "member",
-      status: "pending",
-    })),
-  });
+  await prisma.$transaction([
+    prisma.chatRoomParticipant.createMany({
+      data: newParticipantIds.map((pid) => ({
+        chatRoomId: roomId,
+        userId: pid,
+        role: "member",
+        status: "pending",
+      })),
+    }),
+    // A former owner who left comes back as a plain member.
+    prisma.chatRoomParticipant.updateMany({
+      where: { chatRoomId: roomId, userId: { in: reinvitedIds } },
+      data: { status: "pending", role: "member" },
+    }),
+  ]);
 }
 
 export async function respondToInvite(

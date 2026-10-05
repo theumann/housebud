@@ -2,7 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { inviteStatusLabel, type useMyRooms } from "@/hooks/useMyRooms";
+import {
+  canInvite,
+  inviteStatusLabel,
+  type useMyRooms,
+} from "@/hooks/useMyRooms";
 import { roomDisplayName } from "@/lib/rooms";
 
 type MyRooms = ReturnType<typeof useMyRooms>;
@@ -42,10 +46,16 @@ export function RoomActionButton({
 
   if (!ownedRoom || !onInvite) return null;
 
-  const statusLabel = inviteStatusLabel(participantStatus(userId));
+  const status = participantStatus(userId);
+  const invitable = canInvite(status);
+  const statusLabel = inviteStatusLabel(status);
   const label = inviting
     ? "Inviting..."
-    : (statusLabel ?? `Invite to ${roomDisplayName(ownedRoom)}`);
+    : !invitable
+      ? (statusLabel ?? "")
+      : statusLabel
+        ? `${statusLabel} · Invite again`
+        : `Invite to ${roomDisplayName(ownedRoom)}`;
 
   return (
     <Button
@@ -54,7 +64,7 @@ export function RoomActionButton({
       size="sm"
       title={label}
       className="mt-1 w-full min-w-0 border border-blue-500 text-blue-700 hover:bg-blue-50"
-      disabled={statusLabel !== null || inviting}
+      disabled={!invitable || inviting}
       onClick={() => onInvite(userId)}
     >
       <span className="truncate">{label}</span>
