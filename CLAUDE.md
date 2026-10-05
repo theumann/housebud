@@ -22,6 +22,8 @@ Bunkbuddy helps students find roommates and then run the household they form. Ma
 
 Matching and household management are **one app, not two**. Matching is how households get formed: people meet through matching, talk in a chat room, then form a household from that room and use the household side of the app.
 
+Known bugs and planned improvements are tracked in `known_bugs_and_improvements.md` (repo root). Check it before starting work in an area, and remove an entry in the same change that fixes it.
+
 ### Done so far
 
 - `backend/src/modules/household/` — create/list/get/rename, module toggles (`HouseholdSettings`: chores + shopping on by default, expenses + calendar off), join code, email invites (token, 14-day expiry), leave, remove member, transfer ownership. Guards: `requireActiveMember`, `requireOwner`, `requireEnabledModule` (for upcoming modules).
