@@ -20,12 +20,20 @@ export type HouseholdMember = {
   };
 };
 
+export type HouseholdSettings = {
+  choresEnabled: boolean;
+  shoppingEnabled: boolean;
+  expensesEnabled: boolean;
+  calendarEnabled: boolean;
+};
+
 export type Household = {
   id: string;
   name: string;
   joinCode: string;
   myRole: "owner" | "member";
   members: HouseholdMember[];
+  settings: HouseholdSettings;
 };
 
 export function useHouseholds() {

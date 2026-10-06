@@ -37,6 +37,8 @@ model User {
   householdMemberships HouseholdMember[]
   createdHouseholds    Household[]       @relation("HouseholdCreator")
   sentHouseholdInvites HouseholdInvite[] @relation("HouseholdInviter")
+  addedShoppingItems   ShoppingItem[]    @relation("ShoppingItemAdder")
+  checkedShoppingItems ShoppingItem[]    @relation("ShoppingItemChecker")
 
   @@index([username])
 }
@@ -54,9 +56,10 @@ model Household {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  members  HouseholdMember[]
-  invites  HouseholdInvite[]
-  settings HouseholdSettings?
+  members       HouseholdMember[]
+  invites       HouseholdInvite[]
+  settings      HouseholdSettings?
+  shoppingItems ShoppingItem[]
 
   @@index([joinCode])
 }
@@ -108,6 +111,24 @@ model HouseholdSettings {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ShoppingItem {
+  id              String    @id @default(uuid())
+  householdId     String
+  name            String
+  quantity        String?
+  addedByUserId   String?
+  checkedAt       DateTime?
+  checkedByUserId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  addedByUser   User?     @relation("ShoppingItemAdder", fields: [addedByUserId], references: [id], onDelete: SetNull)
+  checkedByUser User?     @relation("ShoppingItemChecker", fields: [checkedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([householdId])
 }
 
 model UserProfile {

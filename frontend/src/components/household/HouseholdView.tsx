@@ -190,6 +190,58 @@ function MemberRow({
   );
 }
 
+// Add each module here together with the module itself.
+const MODULE_TOGGLES = [
+  { key: "shoppingEnabled", label: "Shopping list", testId: "shopping" },
+] as const;
+type ModuleKey = (typeof MODULE_TOGGLES)[number]["key"];
+
+function ModuleSettings({
+  household,
+  admin,
+}: {
+  household: Household;
+  admin: Admin;
+}) {
+  const { busy, error, run } = useAction();
+  // Shows the new value while the change saves; the reloaded settings take
+  // over afterwards (or the old value comes back if it failed).
+  const [pending, setPending] = useState<{
+    key: ModuleKey;
+    enabled: boolean;
+  } | null>(null);
+
+  const toggle = async (key: ModuleKey, enabled: boolean) => {
+    setPending({ key, enabled });
+    await run(key, () => admin.updateSettings({ [key]: enabled }));
+    setPending(null);
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm">Features</span>
+      {MODULE_TOGGLES.map((m) => (
+        <label key={m.key} className="flex items-center gap-2 text-sm">
+          <input
+            data-testid={`module-toggle-${m.testId}`}
+            type="checkbox"
+            checked={
+              pending?.key === m.key
+                ? pending.enabled
+                : household.settings[m.key]
+            }
+            disabled={busy !== null}
+            onChange={(e) => toggle(m.key, e.target.checked)}
+            className="h-4 w-4 cursor-pointer"
+          />
+          {m.label}
+        </label>
+      ))}
+      <ErrorNote error={error} />
+    </div>
+  );
+}
+
 function OwnerTools({
   household,
   admin,
@@ -255,6 +307,8 @@ function OwnerTools({
         </label>
         <ErrorNote error={rename.error} />
       </form>
+
+      <ModuleSettings household={household} admin={admin} />
 
       <form onSubmit={handleInvite} className="flex flex-col gap-2">
         <label className="text-sm">

@@ -1,6 +1,5 @@
 "use client";
 
-import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
@@ -10,6 +9,7 @@ import { useChatroomsFeed } from "@/context/ChatroomsFeedContext";
 import { getUserDisplayName } from "@/lib/displayName";
 import { useTheme } from "@/hooks/useTheme";
 import { useHouseholdInvites } from "@/context/HouseholdInvitesContext";
+import { useOptionalCurrentHousehold } from "@/context/CurrentHouseholdContext";
 
 function NavBadge({ count, testId }: { count: number; testId?: string }) {
   if (count <= 0) return null;
@@ -23,21 +23,52 @@ function NavBadge({ count, testId }: { count: number; testId?: string }) {
   );
 }
 
-const links = [
-  { href: "/matches", label: "Matches" },
-  { href: "/shortlist", label: "Shortlist" },
-  { href: "/compatibility", label: "Compatibility" },
-  { href: "/chatrooms", label: "Chat" },
-  { href: "/household", label: "Household" },
+type NavLink = {
+  href: string;
+  label: string;
+  testId: string;
+  exact?: boolean;
+  badge?: number;
+};
+
+const matchingPaths = [
+  "/matches",
+  "/shortlist",
+  "/compatibility",
+  "/chatrooms",
 ];
 
-// Household is a separate area from the matching links, shown after a divider.
-function NavDivider({ href }: { href: string }) {
-  if (href !== "/household") return null;
+function isActive(pathname: string, link: NavLink) {
+  return link.exact ? pathname === link.href : pathname.startsWith(link.href);
+}
+
+function NavPill({
+  link,
+  active,
+  className,
+}: {
+  link: NavLink;
+  active: boolean;
+  className?: string;
+}) {
   return (
-    <span aria-hidden="true" className="self-center text-gray-400">
-      |
-    </span>
+    <Link
+      href={link.href}
+      data-testid={link.testId}
+      className={clsx(
+        "rounded-full px-3 py-1",
+        active
+          ? "bg-primary-100 text-primary-600 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
+          : "text-gray-600 hover:bg-surface-muted dark:text-slate-400",
+        className,
+      )}
+      aria-current={active ? "page" : undefined}
+    >
+      <span className="relative inline-flex items-center gap-2">
+        <span>{link.label}</span>
+        <NavBadge count={link.badge ?? 0} testId={`${link.testId}-badge`} />
+      </span>
+    </Link>
   );
 }
 
@@ -48,6 +79,7 @@ export function AppNav() {
   const { pendingInvitesCount, unreadRoomsCount } = useChatroomsFeed();
   const totalBadgeCount = pendingInvitesCount + unreadRoomsCount;
   const householdInvitesCount = useHouseholdInvites().invites.length;
+  const currentHousehold = useOptionalCurrentHousehold()?.household;
   const { isDark, toggle } = useTheme();
 
   const handleLogout = async () => {
@@ -60,6 +92,71 @@ export function AppNav() {
       router.push("/login");
     }
   };
+
+  const inMatching = matchingPaths.some((p) => pathname.startsWith(p));
+  const inHousehold = pathname.startsWith("/household");
+
+  const sections: (NavLink & { active: boolean })[] = [
+    {
+      href: "/matches",
+      label: "Find Roommates",
+      testId: "nav-find-roommates",
+      // Inside the section the Chat link carries the same count.
+      badge: inMatching ? 0 : totalBadgeCount,
+      active: inMatching,
+    },
+    {
+      href: "/household",
+      label: "Household",
+      testId: "nav-household",
+      badge: householdInvitesCount,
+      active: inHousehold,
+    },
+  ];
+
+  const matchingLinks: NavLink[] = [
+    { href: "/matches", label: "Matches", testId: "nav-matches" },
+    { href: "/shortlist", label: "Shortlist", testId: "nav-shortlist" },
+    {
+      href: "/compatibility",
+      label: "Compatibility",
+      testId: "nav-compatibility",
+    },
+    {
+      href: "/chatrooms",
+      label: "Chat",
+      testId: "nav-chat",
+      badge: totalBadgeCount,
+    },
+  ];
+
+  // Household pages depend on which household is open and which modules it
+  // has turned on.
+  const householdLinks: NavLink[] = currentHousehold
+    ? [
+        {
+          href: `/household/${currentHousehold.id}`,
+          label: "Overview",
+          testId: "nav-household-overview",
+          exact: true,
+        },
+        ...(currentHousehold.settings.shoppingEnabled
+          ? [
+              {
+                href: `/household/${currentHousehold.id}/shopping`,
+                label: "Shopping",
+                testId: "nav-household-shopping",
+              },
+            ]
+          : []),
+      ]
+    : [];
+
+  const subLinks = inMatching
+    ? matchingLinks
+    : inHousehold
+      ? householdLinks
+      : [];
 
   return (
     <nav className="sticky top-0 z-20 mb-4 border-b border-border-subtle bg-gradient-to-r from-nav-from/90 to-nav-to/90 backdrop-blur">
@@ -75,52 +172,22 @@ export function AppNav() {
             </span>
             <span
               data-testid="nav-title"
-              className="text-sm font-semibold tracking-tight"
+              className="hidden text-sm font-semibold tracking-tight sm:inline"
             >
               Bunkbuddy
             </span>
           </Link>
         </div>
 
-        {/* Links */}
-        <div className="hidden gap-2 text-xs sm:flex">
-          {links.map((link) => {
-            const active = pathname.startsWith(link.href);
-            return (
-              <Fragment key={link.href}>
-                <NavDivider href={link.href} />
-                <Link
-                  href={link.href}
-                  data-testid={`nav-${link.label.toLowerCase()}`}
-                  className={clsx(
-                    "rounded-full px-3 py-1",
-                    active
-                      ? "bg-primary-100 text-primary-600 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
-                      : "text-gray-600 hover:bg-surface-muted dark:text-slate-400",
-                  )}
-                  aria-current={active ? "page" : undefined}
-                >
-                  <span className="relative inline-flex items-center gap-2">
-                    <span>{link.label}</span>
-                    {link.href === "/household" && (
-                      <NavBadge
-                        count={householdInvitesCount}
-                        testId="nav-household-badge"
-                      />
-                    )}
-                    {link.href === "/chatrooms" && totalBadgeCount > 0 && (
-                      <span
-                        data-testid="nav-chat-badge"
-                        className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white"
-                      >
-                        {totalBadgeCount > 9 ? "9+" : totalBadgeCount}
-                      </span>
-                    )}
-                  </span>
-                </Link>
-              </Fragment>
-            );
-          })}
+        {/* Sections */}
+        <div className="flex gap-1 text-xs sm:gap-2">
+          {sections.map((section) => (
+            <NavPill
+              key={section.href}
+              link={section}
+              active={section.active}
+            />
+          ))}
         </div>
 
         {/* Right side */}
@@ -193,41 +260,24 @@ export function AppNav() {
         </div>
       </div>
 
-      {/* Mobile secondary nav */}
-      <div className="flex border-t border-border-subtle bg-gradient-to-r from-theme-from to-theme-to px-2 py-2 text-[11px] sm:hidden">
-        <div className="flex w-full items-center justify-between gap-1">
-          {links.map((link) => {
-            const active = pathname.startsWith(link.href);
-            return (
-              <Fragment key={link.href}>
-                <NavDivider href={link.href} />
-                <Link
-                  href={link.href}
-                  className={clsx(
-                    "flex-1 rounded-full px-2 py-1 text-center",
-                    active
-                      ? "bg-primary-100 text-primary-600 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
-                      : "text-gray-600 hover:bg-surface-muted dark:text-slate-400",
-                  )}
-                  aria-current={active ? "page" : undefined}
-                >
-                  <span className="relative inline-flex items-center gap-2">
-                    <span>{link.label}</span>
-                    {link.href === "/household" && (
-                      <NavBadge count={householdInvitesCount} />
-                    )}
-                    {link.href === "/chatrooms" && pendingInvitesCount > 0 && (
-                      <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
-                        {pendingInvitesCount > 9 ? "9+" : pendingInvitesCount}
-                      </span>
-                    )}
-                  </span>
-                </Link>
-              </Fragment>
-            );
-          })}
+      {/* Pages of the current section */}
+      {subLinks.length > 0 && (
+        <div
+          data-testid="nav-section-links"
+          className="border-t border-border-subtle bg-gradient-to-r from-theme-from to-theme-to"
+        >
+          <div className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 py-2 text-[11px] sm:gap-2 sm:text-xs">
+            {subLinks.map((link) => (
+              <NavPill
+                key={link.href}
+                link={link}
+                active={isActive(pathname, link)}
+                className="whitespace-nowrap"
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 }
