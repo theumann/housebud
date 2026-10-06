@@ -50,6 +50,19 @@ Planned build order:
     4. State-based landing (done) — `/` (`src/app/page.tsx`) decides: household member → `/household`, otherwise `/matches`. Login and the nav logo go to `/`; signup goes straight to `/matches` (a new user has no household).
     5. Owner management (done) — on `/household` (`components/household/HouseholdView.tsx`, `useHouseholdAdmin`): rename, new join code, email invites + pending list with revoke, remove member, make owner; "Leave household" for members (an owner must hand over ownership first). Module toggles are deliberately not in the UI yet — add each one with its module.
 
+The chat room → household bridge is complete (backend and all 5 frontend slices).
+
+### Next: household modules
+
+Build the household modules in this order, each on its own branch:
+
+1.  **Shopping list** — first, as the template: the simplest module (add, check off, remove items), and it sets the pattern every later module reuses — its toggle in the owner settings (`HouseholdSettings.shoppingEnabled`), routes guarded by `requireEnabledModule`, a page under Household, and polling for updates.
+2.  **Chores** — the core household feature; adds real logic (who does what, rotation).
+3.  **Household chat** — separate from the matching chat (see Decided below); should reuse much of the existing chat code.
+4.  **Expenses** and **calendar** — later. Expense splitting has the most rules and gets its own design discussion first.
+
+Do the planned two-menu navigation (see Open questions) together with the first module, when the household side starts having several pages.
+
 Decided:
 
 - **The household gets its own chat**, separate from the matching room. The matching chat shows full history to every accepted participant, so carrying it over would expose pre-household conversations to members added later and keep non-joiners in the household's conversation. The matching room stays as-is for its participants, linked via `sourceChatRoomId`. Household chat is not built yet.
