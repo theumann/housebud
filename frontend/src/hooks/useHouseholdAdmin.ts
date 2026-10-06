@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
-import type { Household } from "@/hooks/useHouseholds";
+import type { Household, HouseholdSettings } from "@/hooks/useHouseholds";
 
 export type SentInvite = {
   id: string;
@@ -53,6 +53,10 @@ export function useHouseholdAdmin(
     sentInvites: isOwner ? sentInvites : [],
     rename: async (name: string) => {
       await call(base, "PATCH", { name });
+      await onChanged();
+    },
+    updateSettings: async (settings: Partial<HouseholdSettings>) => {
+      await call(`${base}/settings`, "PATCH", settings);
       await onChanged();
     },
     regenerateJoinCode: async () => {

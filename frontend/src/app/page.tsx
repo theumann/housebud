@@ -9,8 +9,12 @@ import { apiFetch } from "@/lib/api";
 // Members of a household land on it; everyone else lands on Matches.
 async function landingPath(token: string) {
   try {
-    const households = await apiFetch<unknown[]>("/households", { token });
-    return households.length > 0 ? "/household" : "/matches";
+    const households = await apiFetch<{ id: string }[]>("/households", {
+      token,
+    });
+    return households.length > 0
+      ? `/household/${households[0].id}`
+      : "/matches";
   } catch {
     return "/matches";
   }

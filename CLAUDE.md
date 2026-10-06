@@ -47,8 +47,8 @@ Planned build order:
     1. Household basics (done) — `/household` in the `(household)` route group: create, join by code, join code + member list; `useHouseholds` hook; "Household" is the first nav link.
     2. Invite inbox (done) — `HouseholdInvitesContext` polls `/households/invites/mine` every 30s; invitations with accept/decline at the top of `/household`; badge on the Household nav link.
     3. "Form household" in chat rooms (done) — button for the owner of an active room with ≥2 participants and no household yet; "This group formed _X_" banner with a link to `/household` for every member.
-    4. State-based landing (done) — `/` (`src/app/page.tsx`) decides: household member → `/household`, otherwise `/matches`. Login and the nav logo go to `/`; signup goes straight to `/matches` (a new user has no household).
-    5. Owner management (done) — on `/household` (`components/household/HouseholdView.tsx`, `useHouseholdAdmin`): rename, new join code, email invites + pending list with revoke, remove member, make owner; "Leave household" for members (an owner must hand over ownership first). Module toggles are deliberately not in the UI yet — add each one with its module.
+    4. State-based landing (done) — `/` (`src/app/page.tsx`) decides: household member → `/household/[id]` (their first household), otherwise `/matches`. Login and the nav logo go to `/`; signup goes straight to `/matches` (a new user has no household).
+    5. Owner management (done) — on `/household` (`components/household/HouseholdView.tsx`, `useHouseholdAdmin`): rename, new join code, email invites + pending list with revoke, remove member, make owner; "Leave household" for members (an owner must hand over ownership first). Module toggles appear under "Features" — add each one with its module.
 
 The chat room → household bridge is complete (backend and all 5 frontend slices).
 
@@ -56,12 +56,16 @@ The chat room → household bridge is complete (backend and all 5 frontend slice
 
 Build the household modules in this order, each on its own branch:
 
-1.  **Shopping list** — first, as the template: the simplest module (add, check off, remove items), and it sets the pattern every later module reuses — its toggle in the owner settings (`HouseholdSettings.shoppingEnabled`), routes guarded by `requireEnabledModule`, a page under Household, and polling for updates.
+1.  **Shopping list** (done) — the template every later module copies:
+    - Backend: its own module (`backend/src/modules/shopping/`) mounted at `/households/:householdId/<module>` (`Router({ mergeParams: true })`); every service call starts with `requireActiveMember` + `requireEnabledModule`, so non-members and a turned-off module both get 404. Items are looked up by id **and** `householdId`.
+    - Frontend: each household lives at `/household/[householdId]`; its layout loads the household and provides `CurrentHouseholdContext` (pages read it with `useCurrentHousehold()`), so a module page is `/household/[householdId]/<module>`. `/household` only redirects to the first household or shows invites + create/join.
+    - The module's link appears in the Household nav row only while its setting is on; the page shows `ModuleOff` when it's off (also on a 404 from polling). The owner's toggle is one entry in `MODULE_TOGGLES` (`HouseholdView.tsx`).
+    - Polling hook (`useShoppingList`) with optimistic check/remove; a request counter makes sure a slow poll can't overwrite a newer change.
 2.  **Chores** — the core household feature; adds real logic (who does what, rotation).
 3.  **Household chat** — separate from the matching chat (see Decided below); should reuse much of the existing chat code.
 4.  **Expenses** and **calendar** — later. Expense splitting has the most rules and gets its own design discussion first.
 
-Do the planned two-menu navigation (see Open questions) together with the first module, when the household side starts having several pages.
+Navigation has two sections, "Find Roommates" (Matches, Shortlist, Compatibility, Chat) and "Household" (Overview + enabled modules of the open household), each with its pages in a second row (`AppNav.tsx`).
 
 Decided:
 
@@ -70,7 +74,6 @@ Decided:
 
 Open questions:
 
-- Planned nav restructure (not scheduled): two top-level menu items, "Find Roommates" (Matches, Shortlist, Compatibility, Chat) and "Household" (household pages and its modules), replacing today's flat list split by a `|` divider.
 - Later: households with an open spot appear in matching as "looking for a roommate" (fits the listings phase). Not now, but don't design it out.
 
 ## Project Layout
@@ -171,7 +174,7 @@ const data = await apiFetch<SomeType>("/endpoint", {
 
 ### State & data fetching
 
-- Global state via React Context: `AuthContext`, `ShortlistContext`, `ChatroomsFeedContext`, `HouseholdInvitesContext`
+- Global state via React Context: `AuthContext`, `ShortlistContext`, `ChatroomsFeedContext`, `HouseholdInvitesContext`; `CurrentHouseholdContext` is scoped to `/household/[householdId]`
 - Data fetching lives in custom hooks in `src/hooks/` — hooks manage loading/error state and return them to the component
 - Chat uses HTTP polling (no WebSockets yet) — hooks accept a `pollMs` param and clean up intervals on unmount
 

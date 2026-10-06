@@ -121,7 +121,7 @@ npx prettier --write "."
 - Household management features:
   - Shared budget and expenses tracking
   - Chore rotation
-  - Shopping lists
+  - Shopping lists (built)
   - Household calendar
 - Housing listings and discovery
 

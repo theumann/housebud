@@ -15,6 +15,11 @@ test("nav links route to core pages", async ({ page }) => {
 
   await page.getByTestId("nav-household").click();
   await expect(page.getByTestId("household-page")).toBeVisible();
+  // The matching pages' links only show inside "Find Roommates".
+  await expect(page.getByTestId("nav-shortlist")).toHaveCount(0);
+
+  await page.getByTestId("nav-find-roommates").click();
+  await expect(page.getByTestId("matches-page")).toBeVisible();
 
   await page.getByTestId("nav-profile").click();
   await expect(page.getByTestId("profile-edit-page")).toBeVisible();
