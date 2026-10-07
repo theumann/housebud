@@ -39,6 +39,9 @@ model User {
   sentHouseholdInvites HouseholdInvite[] @relation("HouseholdInviter")
   addedShoppingItems   ShoppingItem[]    @relation("ShoppingItemAdder")
   checkedShoppingItems ShoppingItem[]    @relation("ShoppingItemChecker")
+  createdChores        Chore[]           @relation("ChoreCreator")
+  startedChores        Chore[]           @relation("ChoreStarter")
+  choreCompletions     ChoreCompletion[]
 
   @@index([username])
 }
@@ -60,6 +63,7 @@ model Household {
   invites       HouseholdInvite[]
   settings      HouseholdSettings?
   shoppingItems ShoppingItem[]
+  chores        Chore[]
 
   @@index([joinCode])
 }
@@ -129,6 +133,54 @@ model ShoppingItem {
   checkedByUser User?     @relation("ShoppingItemChecker", fields: [checkedByUserId], references: [id], onDelete: SetNull)
 
   @@index([householdId])
+}
+
+model Chore {
+  id              String    @id @default(uuid())
+  householdId     String
+  name            String
+  // Both null: a one-off chore, archived once it's done.
+  repeatEvery     Int?
+  repeatUnit      String? // 'day' | 'week' | 'month' | 'quarter'
+  dueDate         DateTime  @db.Date
+  // Day of the month monthly/quarterly chores fall on (a chore on the 31st
+  // is due on the 30th or 28th in shorter months, then back on the 31st).
+  anchorDay       Int
+  // User ids taking turns, in order; rotationIndex is whose turn it is.
+  // Members who have left are skipped when the turn is worked out.
+  rotation        String[]
+  rotationIndex   Int       @default(0)
+  archivedAt      DateTime?
+  // "Someone is on it"; cleared when the chore is done.
+  startedAt       DateTime?
+  startedByUserId String?
+  createdByUserId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  household     Household         @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdByUser User?             @relation("ChoreCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  startedByUser User?             @relation("ChoreStarter", fields: [startedByUserId], references: [id], onDelete: SetNull)
+  completions   ChoreCompletion[]
+
+  @@index([householdId])
+}
+
+model ChoreCompletion {
+  id                    String   @id @default(uuid())
+  choreId               String
+  doneByUserId          String?
+  // The occurrence that was done, and the day it was done (the user's local date).
+  dueDate               DateTime @db.Date
+  completedOn           DateTime @db.Date
+  // Whose turn it was, so an undo can put the turn back.
+  previousRotationIndex Int
+  createdAt             DateTime @default(now())
+
+  chore      Chore @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  doneByUser User? @relation(fields: [doneByUserId], references: [id], onDelete: SetNull)
+
+  @@index([choreId])
 }
 
 model UserProfile {

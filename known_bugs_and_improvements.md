@@ -51,7 +51,7 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ### Household
 
-- **Module toggles** (chores, expenses, calendar): add each to `MODULE_TOGGLES` in the owner settings together with its module — they control nothing visible until then. Shopping has its toggle.
+- **Module toggles** (expenses, calendar): add each to `MODULE_TOGGLES` in the owner settings together with its module — they control nothing visible until then. Chores and shopping have theirs.
 
 ### Dev data
 

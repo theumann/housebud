@@ -17,6 +17,8 @@ export async function resetDb(prisma: PrismaClient) {
 
   await prisma.shortlist.deleteMany();
 
+  await prisma.choreCompletion.deleteMany();
+  await prisma.chore.deleteMany();
   await prisma.shoppingItem.deleteMany();
   await prisma.householdInvite.deleteMany();
   await prisma.householdMember.deleteMany();

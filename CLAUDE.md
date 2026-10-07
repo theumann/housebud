@@ -59,9 +59,15 @@ Build the household modules in this order, each on its own branch:
 1.  **Shopping list** (done) — the template every later module copies:
     - Backend: its own module (`backend/src/modules/shopping/`) mounted at `/households/:householdId/<module>` (`Router({ mergeParams: true })`); every service call starts with `requireActiveMember` + `requireEnabledModule`, so non-members and a turned-off module both get 404. Items are looked up by id **and** `householdId`.
     - Frontend: each household lives at `/household/[householdId]`; its layout loads the household and provides `CurrentHouseholdContext` (pages read it with `useCurrentHousehold()`), so a module page is `/household/[householdId]/<module>`. `/household` only redirects to the first household or shows invites + create/join.
-    - The module's link appears in the Household nav row only while its setting is on; the page shows `ModuleOff` when it's off (also on a 404 from polling). The owner's toggle is one entry in `MODULE_TOGGLES` (`HouseholdView.tsx`).
+    - The module's link appears in the Household nav row only while its setting is on (add it to `householdModules` in `AppNav.tsx`); the page shows `ModuleOff` when it's off (also on a 404 from polling). The owner's toggle is one entry in `MODULE_TOGGLES` (`HouseholdView.tsx`).
     - Polling hook (`useShoppingList`) with optimistic check/remove; a request counter makes sure a slow poll can't overwrite a newer change.
-2.  **Chores** — the core household feature; adds real logic (who does what, rotation).
+2.  **Chores** (done) — `backend/src/modules/chores/`, page `/household/[householdId]/chores`. Rules:
+    - A chore repeats every N day/week/month/quarter (`repeatEvery` + `repeatUnit`; API `repeat: { every, unit }`) or is one-off (`null`, archived once done). Months and quarters move by calendar month onto `anchorDay` (the due date's day of the month), so the 31st falls back to the 28th/30th in short months and returns to the 31st after. Dates are calendar days (`@db.Date`, "YYYY-MM-DD" in the API); the client sends `completedOn` as its local date so "today" is the user's today.
+    - Done late keeps the schedule: next due = due + one step, skipping occurrences that were missed entirely (`nextDueDate`).
+    - Optional rotation (`Chore.rotation`, user ids in order, `rotationIndex` = whose turn). The turn passes on from the assignee even if someone else did it; members who left are skipped. The API returns the rotation in turn order, and saving a rotation makes its first member up next.
+    - Any member can create, edit, delete and complete chores. Completions are kept (`ChoreCompletion`, "Recently done"); a second "done" on the same occurrence gets 409.
+    - **Undo**: a chore's latest completion can be undone by any member; it restores the due date, the turn (`ChoreCompletion.previousRotationIndex`) and a one-off chore. Earlier completions can't be undone (409).
+    - **Started**: any member can start a chore ("Sam started · 2:15 pm"); only the starter can stop it, and done/undo clear it. It doesn't change whose turn it is. A start by someone who has since left can be taken over.
 3.  **Household chat** — separate from the matching chat (see Decided below); should reuse much of the existing chat code.
 4.  **Expenses** and **calendar** — later. Expense splitting has the most rules and gets its own design discussion first.
 
