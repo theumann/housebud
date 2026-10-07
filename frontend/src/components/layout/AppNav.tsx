@@ -31,6 +31,12 @@ type NavLink = {
   badge?: number;
 };
 
+// Household module pages, shown while the module is turned on.
+const householdModules = [
+  { path: "chores", label: "Chores", setting: "choresEnabled" },
+  { path: "shopping", label: "Shopping", setting: "shoppingEnabled" },
+] as const;
+
 const matchingPaths = [
   "/matches",
   "/shortlist",
@@ -140,15 +146,13 @@ export function AppNav() {
           testId: "nav-household-overview",
           exact: true,
         },
-        ...(currentHousehold.settings.shoppingEnabled
-          ? [
-              {
-                href: `/household/${currentHousehold.id}/shopping`,
-                label: "Shopping",
-                testId: "nav-household-shopping",
-              },
-            ]
-          : []),
+        ...householdModules
+          .filter((m) => currentHousehold.settings[m.setting])
+          .map((m) => ({
+            href: `/household/${currentHousehold.id}/${m.path}`,
+            label: m.label,
+            testId: `nav-household-${m.path}`,
+          })),
       ]
     : [];
 

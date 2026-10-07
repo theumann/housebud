@@ -7,6 +7,7 @@ import matchesRoutes from "./modules/matches/matches.routes";
 import chatRoutes from "./modules/chat/chat.routes";
 import householdRoutes from "./modules/household/household.routes";
 import shoppingRoutes from "./modules/shopping/shopping.routes";
+import choresRoutes from "./modules/chores/chores.routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { env } from "./config/env";
 
@@ -31,6 +32,7 @@ export function createApp(prisma: PrismaClient) {
   app.use("/auth", authRoutes);
   app.use("/profile", profileRoutes);
   app.use("/households/:householdId/shopping", shoppingRoutes);
+  app.use("/households/:householdId/chores", choresRoutes);
   app.use("/households", householdRoutes);
 
   if (env.FEATURE_MATCHING) {

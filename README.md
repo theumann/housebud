@@ -120,7 +120,7 @@ npx prettier --write "."
 - Real-time chat (WebSockets replacing HTTP polling)
 - Household management features:
   - Shared budget and expenses tracking
-  - Chore rotation
+  - Chore rotation (built)
   - Shopping lists (built)
   - Household calendar
 - Housing listings and discovery

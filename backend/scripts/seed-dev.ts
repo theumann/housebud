@@ -476,6 +476,234 @@ async function seedChatroomsAndMessages(userIds: string[], plan: SeedPlan) {
   console.log(`Seeded ${createdRoomIds.length} chatrooms.`);
 }
 
+const PERSONAL_USERNAMES = ["me1", "me2", "me3", "me4", "me5"] as const;
+type PersonalUsername = (typeof PERSONAL_USERNAMES)[number];
+const SEEDED_HOUSEHOLD_NAME = "Seeded Test household";
+
+async function personalUserIds() {
+  const users = await prisma.user.findMany({
+    where: { username: { in: [...PERSONAL_USERNAMES] } },
+    select: { id: true, username: true },
+  });
+  return Object.fromEntries(users.map((u) => [u.username, u.id])) as Record<
+    PersonalUsername,
+    string
+  >;
+}
+
+async function createRoomWithMessages(
+  ownerId: string,
+  memberIds: string[],
+  name: string | null,
+) {
+  const room = await prisma.chatRoom.create({
+    data: {
+      name,
+      createdByUserId: ownerId,
+      isActive: true,
+      participants: {
+        create: [
+          { userId: ownerId, role: "owner", status: "accepted" },
+          ...memberIds.map((userId) => ({
+            userId,
+            role: "member",
+            status: "accepted" as const,
+          })),
+        ],
+      },
+    },
+    select: { id: true },
+  });
+
+  const senders = [ownerId, ...memberIds];
+  await prisma.chatMessage.createMany({
+    data: Array.from({ length: faker.number.int({ min: 5, max: 20 }) }, () => ({
+      chatRoomId: room.id,
+      senderUserId: sample(senders),
+      text: faker.lorem.sentence({ min: 4, max: 14 }),
+      createdAt: faker.date.recent({ days: 7 }),
+    })),
+  });
+}
+
+// Fixed situations on the "me" users, for manual testing (and me1's room for
+// the chatrooms e2e spec). Returns the Faker users involved, which are kept
+// out of the random rooms so the 3-room and one-owned-room limits hold.
+async function seedPersonalRooms(
+  me: Record<PersonalUsername, string>,
+  fakerIds: string[],
+) {
+  const me3Rooms = await prisma.chatRoomParticipant.count({
+    where: { userId: me.me3, status: "accepted" },
+  });
+  if (me3Rooms > 0) {
+    console.log("Personal rooms already seeded; skipping.");
+    return [];
+  }
+
+  const [f1, f2, f3, f4, f5] = sampleMany(fakerIds, 5);
+
+  // me3 is at the 3-room limit: owns one room, member of two.
+  await createRoomWithMessages(me.me3, [f1, f2], "me3's room");
+  await createRoomWithMessages(f3, [me.me3], null);
+  await createRoomWithMessages(f4, [me.me3, f1], null);
+
+  // me1 (the e2e user) is a member of exactly one room.
+  await createRoomWithMessages(f5, [me.me1], null);
+
+  console.log("Seeded personal rooms: me3 in 3, me1 in 1.");
+  return [f1, f2, f3, f4, f5];
+}
+
+// A calendar day relative to the day the seed runs (local time), stored as
+// UTC midnight like the app's chore dates.
+function seedDay(offsetDays: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+}
+
+function choreData(input: {
+  name: string;
+  repeat: { every: number; unit: "day" | "week" | "month" | "quarter" } | null;
+  dueInDays: number;
+  rotation: string[];
+  createdByUserId: string;
+}) {
+  const dueDate = seedDay(input.dueInDays);
+  return {
+    name: input.name,
+    repeatEvery: input.repeat?.every ?? null,
+    repeatUnit: input.repeat?.unit ?? null,
+    dueDate,
+    anchorDay: dueDate.getUTCDate(),
+    rotation: input.rotation,
+    createdByUserId: input.createdByUserId,
+  };
+}
+
+// me4 (owner) and me5 already share a household, with chores in every state
+// (overdue, today, started, upcoming, monthly, one-off), some history, and a
+// shopping list. Dates are relative to the seed day. The e2e smoke test
+// (household-seed.spec.ts) checks these exact names.
+async function seedTestHousehold(me: Record<PersonalUsername, string>) {
+  const existing = await prisma.household.findFirst({
+    where: {
+      name: SEEDED_HOUSEHOLD_NAME,
+      members: { some: { userId: me.me4 } },
+    },
+  });
+  if (existing) {
+    console.log(`"${SEEDED_HOUSEHOLD_NAME}" already exists; skipping.`);
+    return;
+  }
+
+  await prisma.household.create({
+    data: {
+      name: SEEDED_HOUSEHOLD_NAME,
+      // Same alphabet as real join codes (no 0/O, 1/I).
+      joinCode: faker.string.fromCharacters(
+        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
+        6,
+      ),
+      createdByUserId: me.me4,
+      settings: { create: {} },
+      members: {
+        create: [
+          { userId: me.me4, role: "owner", status: "active" },
+          { userId: me.me5, role: "member", status: "active" },
+        ],
+      },
+      chores: {
+        create: [
+          {
+            ...choreData({
+              name: "Take out trash",
+              repeat: { every: 1, unit: "week" },
+              dueInDays: -2,
+              rotation: [me.me5, me.me4],
+              createdByUserId: me.me4,
+            }),
+            completions: {
+              create: {
+                doneByUserId: me.me4,
+                dueDate: seedDay(-9),
+                completedOn: seedDay(-9),
+                previousRotationIndex: 1,
+              },
+            },
+          },
+          {
+            ...choreData({
+              name: "Clean bathroom",
+              repeat: { every: 1, unit: "week" },
+              dueInDays: 0,
+              rotation: [me.me4, me.me5],
+              createdByUserId: me.me4,
+            }),
+            startedAt: new Date(Date.now() - 60 * 60 * 1000),
+            startedByUserId: me.me5,
+          },
+          {
+            ...choreData({
+              name: "Vacuum living room",
+              repeat: { every: 2, unit: "week" },
+              dueInDays: 3,
+              rotation: [me.me5, me.me4],
+              createdByUserId: me.me5,
+            }),
+            completions: {
+              create: {
+                doneByUserId: me.me5,
+                dueDate: seedDay(-11),
+                completedOn: seedDay(-10),
+                previousRotationIndex: 1,
+              },
+            },
+          },
+          choreData({
+            name: "Pay internet bill",
+            repeat: { every: 1, unit: "month" },
+            dueInDays: 10,
+            rotation: [me.me4],
+            createdByUserId: me.me4,
+          }),
+          choreData({
+            name: "Fix the shelf",
+            repeat: null,
+            dueInDays: 5,
+            rotation: [],
+            createdByUserId: me.me5,
+          }),
+        ],
+      },
+      shoppingItems: {
+        create: [
+          { name: "Milk", quantity: "2 L", addedByUserId: me.me4 },
+          { name: "Eggs", quantity: "x12", addedByUserId: me.me5 },
+          { name: "Dish soap", addedByUserId: me.me5 },
+          {
+            name: "Coffee",
+            addedByUserId: me.me5,
+            checkedAt: new Date(),
+            checkedByUserId: me.me4,
+          },
+          {
+            name: "Toilet paper",
+            quantity: "x8",
+            addedByUserId: me.me4,
+            checkedAt: new Date(),
+            checkedByUserId: me.me5,
+          },
+        ],
+      },
+    },
+  });
+  console.log(
+    `Seeded "${SEEDED_HOUSEHOLD_NAME}" (me4 owner, me5 member) with chores and a shopping list.`,
+  );
+}
+
 async function main() {
   await ensurePersonalUsers("Password123!");
 
@@ -498,7 +726,17 @@ async function main() {
   // For now, apply to all users because you said you don’t care about preserving/curating them.
   await seedCompatibilityAnswersForUsers(allUserIds, activeQuestions);
 
-  await seedChatroomsAndMessages(allUserIds, PLAN_100);
+  // The "me" users only get the fixed rooms below, never random ones.
+  const me = await personalUserIds();
+  const personalIds = new Set<string>(Object.values(me));
+  const fakerIds = allUserIds.filter((id) => !personalIds.has(id));
+  const usedInPersonalRooms = new Set(await seedPersonalRooms(me, fakerIds));
+
+  await seedChatroomsAndMessages(
+    fakerIds.filter((id) => !usedInPersonalRooms.has(id)),
+    PLAN_100,
+  );
+  await seedTestHousehold(me);
 
   console.log("✅ Seed complete.");
 }
