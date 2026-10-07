@@ -51,4 +51,4 @@ backend/dist
 dist
 
 /knownBugs.md
-/.claude/settings.local.json
+/.claude/

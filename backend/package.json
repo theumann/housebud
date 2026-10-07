@@ -24,8 +24,8 @@
     "test:types": "tsc -p tsconfig.vitest.json --noEmit"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Thierry Heumann",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^6.19.0",

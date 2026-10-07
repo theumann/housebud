@@ -53,7 +53,7 @@ async function ensurePersonalUsers(password: string) {
 
   const users = [
     {
-      email: "me1@bunkbuddy.dev",
+      email: "me1@housebud.app",
       firstName: "Me",
       lastName: "One",
       username: "me1",
@@ -65,7 +65,7 @@ async function ensurePersonalUsers(password: string) {
       targetZip: "94110",
     },
     {
-      email: "me2@bunkbuddy.dev",
+      email: "me2@housebud.app",
       firstName: "Me",
       lastName: "Two",
       username: "me2",
@@ -77,7 +77,7 @@ async function ensurePersonalUsers(password: string) {
       targetZip: "94114",
     },
     {
-      email: "me3@bunkbuddy.dev",
+      email: "me3@housebud.app",
       firstName: "Me",
       lastName: "Three",
       username: "me3",
@@ -89,7 +89,7 @@ async function ensurePersonalUsers(password: string) {
       targetZip: "78000",
     },
     {
-      email: "me4@bunkbuddy.dev",
+      email: "me4@housebud.app",
       firstName: "Me",
       lastName: "Four",
       username: "me4",
@@ -101,7 +101,7 @@ async function ensurePersonalUsers(password: string) {
       targetZip: "94117",
     },
     {
-      email: "me5@bunkbuddy.dev",
+      email: "me5@housebud.app",
       firstName: "Me",
       lastName: "Five",
       username: "me5",

@@ -11,8 +11,8 @@
     "url": "git+https://github.com/theumann/bunkbuddy.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Thierry Heumann",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/theumann/bunkbuddy/issues"
