@@ -55,7 +55,12 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ### Dev data
 
-- **"me" users after a reset:** `seed-dev.ts` creates `me1`…`me5` before the ~100 Faker users and gives them no compatibility answers, so they sort to the last Matches pages, and the random chat rooms can put them in 3 rooms (which hides them from Matches entirely). Create them after the Faker users, give them some answers, and/or keep them out of seeded rooms.
+- **"me" users after a reset:** `seed-dev.ts` creates `me1`…`me5` before the ~100 Faker users and gives them no compatibility answers, so they sort to the last Matches pages. Create them after the Faker users and/or give them some answers. (They're no longer put in random chat rooms; see the fixed scenarios in `seed-dev.ts`.)
+- **Separate seed scripts for Playwright and manual testing.** `seed:e2e` and `seed:users` both run `seed-dev.ts`, so every manual-testing scenario added there is also e2e data, and e2e constraints (me1 in exactly one room, me1/me2 without a household) limit what manual testing can set up.
+
+### Deployment
+
+- **Migration upgrade test before the first deploy.** Every test run starts from an empty database (all migrations, then seed with current code), so nothing checks that a migration works on data written under the previous schema (a new required column without a default, a rename, a type change). Add a CI job: check out `main`, migrate and seed, switch to the branch, `prisma migrate deploy`, then run the smoke checks (e.g. `household-seed.spec.ts`).
 
 ### Code health
 

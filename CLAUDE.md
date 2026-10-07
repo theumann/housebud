@@ -215,6 +215,7 @@ npx playwright test --ui
 
 - E2E data lives in the `e2e` schema of the dev database (`backend/.env.e2e`), not in `bunkbuddy_test`
 - Global setup resets that schema (`prisma migrate reset --force --skip-seed`), runs `seed:e2e`, and pre-authenticates as `me1` / `Password123!` — every run starts clean, and data from the last run stays around for debugging until the next one
+- `seed:e2e` runs the same `seed-dev.ts` as `seed:users`, including its fixed scenarios: `me3` is in 3 chat rooms (the limit), `me1` in exactly one (`chatrooms.spec.ts` opens it), `me4` + `me5` share "Seeded Test household" (with chores in every state, chore history and a shopping list, dates relative to the seed day — checked read-only by `household-seed.spec.ts`), and the other "me" users are in no room. `me1` and `me2` must stay without a household — `auth-with-ui.spec.ts` expects them to land on Matches
 - Tests run with `workers: 1`: the Next dev server compiles pages on first request and parallel workers make tests time out. Revisit (or switch to `next build` + `next start`) when the suite gets slow
 - Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests
 - Tests that need a logged-out state use: `test.use({ storageState: { cookies: [], origins: [] } })`
