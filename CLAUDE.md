@@ -251,9 +251,22 @@ Everything (Postgres, backend, frontend) goes on Railway.
 
 The app sends no email today, so seed and test addresses never need to exist. Before adding email sending (invite links, password resets, notifications), fix the seed data so no mail can reach real inboxes:
 
-- `backend/scripts/seed-dev.ts` — `me1`…`me5` use `@bunkbuddy.dev`, a real TLD on a domain we don't own. Switch them to a reserved domain (`@example.com` or `.test`), and update `frontend/tests/e2e/auth-with-ui.spec.ts`, which logs in as `me1@bunkbuddy.dev`.
+- `backend/scripts/seed-dev.ts` — `me1`…`me5` use `@housebud.app`, the app's own domain, so their mail can only ever reach us (done). `frontend/tests/e2e/auth-with-ui.spec.ts` logs in as `me1@housebud.app`.
 - The same script's Faker users get `faker.internet.email()` addresses on real providers (gmail.com, yahoo.com…). Pass a reserved `provider` (e.g. `example.com`).
 - Dev and e2e databases must never point at a real mail transport; use a sandbox/catcher in development.
+
+### Before going live
+
+Terms and a privacy policy are deliberately not written yet: the policy has to describe what the app actually does with data at launch (email provider, hosting region, expenses, analytics), and some of what it must promise doesn't exist yet. Build them on their own branch close to launch, and check off:
+
+- **Terms and Privacy pages**, linked in the footer and at signup with an explicit "I agree" (record when and which version was accepted).
+- **Minimum age**: decide it (students can be 17; COPPA under 13, GDPR consent age 13–16 by country) and check it at signup — we already collect `birthDate`.
+- **Account deletion and data export** — required by GDPR and CCPA/CPRA, and the app has neither. The policy can't promise them until they exist.
+- **Data inventory** for the policy: profile (birth date, school, city), compatibility answers, chat messages, household data (chores, shopping, later expenses), and who sees what. Some answers are sensitive (smoking, alcohol, allergies — arguably health data under GDPR): decide how they're shown and stored.
+- **Avatars**: `avatarUrl` is a free-text URL loaded from third-party servers, which exposes viewers' IP addresses. Host uploads ourselves or say so in the policy.
+- **Cookies and analytics**: none today (the auth token is in `localStorage`). State it, and revisit if analytics are added.
+- **Contact address** for privacy requests (e.g. `privacy@housebud.app`).
+- **Legal review** of both texts (or start from a reputable generator and adapt), for the jurisdictions we target.
 
 ---
 

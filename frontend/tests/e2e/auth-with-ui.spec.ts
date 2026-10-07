@@ -4,7 +4,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test("User can login with email", async ({ page }) => {
   await page.goto("/login");
 
-  await page.getByTestId("login-identifier").fill("me1@bunkbuddy.dev");
+  await page.getByTestId("login-identifier").fill("me1@housebud.app");
   await page.getByTestId("login-password").fill("Password123!");
   await page.getByTestId("login-submit").click();
 

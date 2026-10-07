@@ -1,128 +1,135 @@
-# Bunkbuddy
+# Housebud
 
-Bunkbuddy is a web application that helps future college roommates find each other, compare lifestyle compatibility, and connect through "meet & greet" chat rooms before committing to a shared household.
+**Find roommates, then run the household together.**
 
-## Tech Stack
+Housebud helps students find compatible roommates and then manage the shared household they form: chores, a shared shopping list, and more to come. Matching and household management are one app: people meet through matching, talk it over in a chat room, and form a household from that room.
 
-- **Frontend**: Next.js (App Router) - TypeScript - Tailwind CSS
-- **Backend**: Node.js + TypeScript - Express
-- **Database**: PostgreSQL (Docker) - Prisma ORM
-- **Auth**: JWT (stateless)
+> **Status: in development.** Not deployed yet; the public app will live at [housebud.app](https://housebud.app).
+>
+> The code still uses the project's working name, **Bunkbuddy** (database, container and package names below). Renaming it is on the list.
 
-## Repository Structure
+## Features
 
-This repository contains both frontend and backend in a single monorepo-style layout.
+### Finding roommates
+
+- **Profiles** with school, year and target city
+- **Compatibility questionnaire** on everyday habits (cleaning, guests and parties, smoking, pets, music, sharing food and bills…), with a compatibility score for every match
+- **Matches**, ranked by compatibility, and a **shortlist** of people you're interested in
+- **"Meet & greet" chat rooms**: invite matches into a small group chat (up to 3 rooms per person) before deciding to live together
+
+### Running the household
+
+- **Form a household** straight from a chat room. Everyone else in the room gets an invite and decides for themselves. You can also create a household from scratch and invite people with a join code or by their email address (the invite shows up when they log in; no email is sent yet).
+- **Chores**: repeating chores (every N days, weeks, months or quarters) or one-off ones, with an optional rotation that passes the turn to the next person. Late chores stay on schedule. Mark one as started so roommates know you're on it, and undo a "done" clicked by mistake.
+- **Shopping list** shared by the whole household: add items with quantities and check them off.
+- **Owner controls**: rename, manage members and invites, hand over ownership, and turn features on or off.
+
+### Coming next
+
+Household chat, shared expenses, and a household calendar. Later: listings for shared houses and apartments, where households with a free room can look for a roommate.
+
+## Tech stack
+
+| Part     | Stack                                                        |
+| -------- | ------------------------------------------------------------ |
+| Frontend | Next.js (App Router), React, TypeScript, Tailwind CSS        |
+| Backend  | Node.js, Express, TypeScript, Zod                            |
+| Database | PostgreSQL, Prisma ORM                                       |
+| Auth     | JWT (bcrypt-hashed passwords)                                |
+| Tests    | Vitest + Supertest (API), Playwright (end-to-end)            |
+| Hosting  | [Railway](https://railway.app) (planned: database, API, web) |
+
+Chat and live updates use HTTP polling for now.
+
+## Repository layout
 
 ```text
-bunkbuddy/
-    backend/
-        # Express + Prisma API
-    frontend/
-        # Next.js frontend
-        README.md  # You are here
+backend/    Express + Prisma API (port 4000)
+  prisma/     schema and migrations
+  scripts/    seed scripts (questions, demo users and data)
+  src/modules/  one folder per feature: auth, profile, compatibility,
+                matches, chat, household, chores, shopping
+  tests/      Vitest API tests
+frontend/   Next.js app (port 3000)
+  src/app/    routes: (matching) and (household) route groups
+  tests/e2e/  Playwright tests
 ```
 
-## Local Development
+`CLAUDE.md` holds the project's conventions and design decisions in detail, and `known_bugs_and_improvements.md` tracks open issues.
 
-### Database (PostgreSQL via Docker)
+## Running it locally
 
-PostgreSQL runs locally in Docker.
+Requirements: Node.js 20+, npm, and Docker (for PostgreSQL).
 
-If the container already exists:
-
-```bash
-docker start bunkbuddy-postgres
-```
-
-Otherwise:
+### 1. Database
 
 ```bash
 docker run --name bunkbuddy-postgres -e POSTGRES_USER=bunkbuddy -e POSTGRES_PASSWORD=bunkbuddy -e POSTGRES_DB=bunkbuddy -p 5433:5432 -d postgres:16
 ```
 
-### Backend
+Next time, `docker start bunkbuddy-postgres` is enough.
 
-`cd backend`
-
-`npm install`
-
-`npx prisma migrate dev`
-
-`npm run dev`
-
-Backend runs at:`http://localhost:4000`
-
-**Optional: seed demo data:**
-
-```
-npm run seed:all
-```
-
-### Frontend
-
-```
-cd frontend
-```
-
-```
-npm install
-```
-
-```
-npm run dev
-```
-
-Frontend runs at:`http://localhost:3000`
-
-### Environment Variables
-
-Backend uses a `.env` file (not committed to Git):
-
-```env
-DATABASE_URL=JWT_SECRET=PORT=4000
-```
-
-See backend/.env.example for reference.
-
-### Code Formatting (Prettier)
-
-From the repo root:
+### 2. Backend
 
 ```bash
-npx prettier --write "."
+cd backend
+npm install
+cp .env.example .env      # then set JWT_SECRET to a long random string
+npx prisma migrate dev    # creates the tables
+npm run seed:all:dev      # optional: resets the database and adds demo data
+npm run dev               # http://localhost:4000
 ```
 
-### Test Automation
+The demo data adds the compatibility questions, about 100 fake users with chats, and five accounts to log in with: `me1` to `me5`, password `Password123!`. `me4` and `me5` share a household with chores and a shopping list already in it.
 
-**Unit and integration tests** (vitest from bunkbuddy/backend): `npm test`
+### 3. Frontend
 
-**End-to-end** (Playwright from bunkbuddy/frontend): `npx playwright test`
+```bash
+cd frontend
+npm install
+npm run dev               # http://localhost:3000
+```
 
-- e2e tests with the Playwright UI: `npx playwright test --ui`
-- Global-setup runs migrations + seed:e2e (including compatibility questions)
-- auth-with-ui.spec.ts uses `test.use({ storageState: { cookies: [], origins: [] } })` to avoid authed state
+The frontend talks to `http://localhost:4000` by default; set `NEXT_PUBLIC_API_BASE_URL` in `frontend/.env.local` to change it.
 
-### Project Status (Short-term)
+## Tests
 
-- Backend MVP complete (auth, profiles, compatibility, matching, chat)
-- Frontend MVP functional
-- Next steps:
-  - UX polish
-  - Public Profile pages
-  - Filtering and sorting Matches and Shortlist
-  - Notifications and notification preferences
-  - Deeper automated tests (Build on existing vitest and playwright tests)
-  - Deployment to Production
+### API tests (Vitest)
 
-## Long term high level roadmap
+They run against a separate `bunkbuddy_test` database, one schema per test worker, wiped before each test.
 
-- Improved security (shorter token lifetimes, optional token revocation)
-- Real-time chat (WebSockets replacing HTTP polling)
-- Household management features:
-  - Shared budget and expenses tracking
-  - Chore rotation (built)
-  - Shopping lists (built)
-  - Household calendar
-- Housing listings and discovery
+```bash
+docker exec bunkbuddy-postgres createdb -U bunkbuddy bunkbuddy_test   # once
+```
 
-This is a high level roadmap - detailed tasks live outside this repo.
+Create `backend/.env.test`:
+
+```env
+DATABASE_URL=postgresql://bunkbuddy:bunkbuddy@localhost:5433/bunkbuddy_test
+JWT_SECRET=any-test-secret
+PORT=4001
+NODE_ENV="test"
+```
+
+Then, from `backend/`: `npm test`.
+
+### End-to-end tests (Playwright)
+
+They use an `e2e` schema in the dev database, reset and re-seeded at the start of every run. Create `backend/.env.e2e`:
+
+```env
+DATABASE_URL="postgresql://bunkbuddy:bunkbuddy@localhost:5433/bunkbuddy?schema=e2e"
+JWT_SECRET=any-e2e-secret
+PORT=4002
+NODE_ENV="test"
+```
+
+Then, from `frontend/`: `npx playwright test` (or `npx playwright test --ui`). Playwright starts its own backend (port 4002) and frontend (port 3000), so stop your frontend dev server first.
+
+## Code formatting
+
+Prettier, with its default settings, from the repo root: `npx prettier --write <files>`.
+
+## License
+
+[MIT](LICENSE) © Thierry Heumann
