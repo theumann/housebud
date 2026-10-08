@@ -101,22 +101,20 @@ export default function CompatibilityPage() {
         });
 
         // load my answers
-        const myAnswersResp = await apiFetch<any>("/compatibility/answers/me", {
-          token,
-        });
-
-        const myAnswers: AnswerDto[] = Array.isArray(myAnswersResp)
-          ? myAnswersResp
-          : Array.isArray(myAnswersResp?.answers)
-            ? myAnswersResp.answers
-            : [];
+        const { answers: myAnswers } = await apiFetch<{
+          answers: AnswerDto[];
+        }>("/compatibility/answers/me", { token });
 
         myAnswers.forEach((a) => {
           initial[a.questionId] = a.value;
         });
         setAnswers(initial);
-      } catch (err: any) {
-        setError(err.message || "Failed to load compatibility questions");
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load compatibility questions",
+        );
       } finally {
         setLoadingQuestions(false);
       }
@@ -162,8 +160,8 @@ export default function CompatibilityPage() {
         body: payload,
       });
       setSuccess("Your compatibility preferences have been saved.");
-    } catch (err: any) {
-      setError(err.message || "Failed to save answers");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save answers");
     } finally {
       setSaving(false);
     }
@@ -304,7 +302,7 @@ export default function CompatibilityPage() {
                     {isOpen && (
                       <div className="px-4 pb-4">
                         <div className="space-y-4">
-                          {qs.map((q, idx) => {
+                          {qs.map((q) => {
                             const value = answers[q.id] ?? "";
                             const options = q.options || [];
                             return (

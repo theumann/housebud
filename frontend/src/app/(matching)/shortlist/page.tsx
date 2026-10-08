@@ -113,7 +113,7 @@ export default function ShortlistPage() {
     setCreating(true);
     setError(null);
     try {
-      const body: any = {
+      const body: { participantIds: string[]; name?: string } = {
         participantIds: selectedIds,
       };
       if (trimmed.length > 0) {
@@ -127,8 +127,10 @@ export default function ShortlistPage() {
       });
 
       router.push(`/chatrooms/${res.roomId}`);
-    } catch (err: any) {
-      setError(err.message || "Failed to create chat room");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to create chat room",
+      );
     } finally {
       setCreating(false);
     }

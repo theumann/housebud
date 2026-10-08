@@ -1,4 +1,4 @@
-import { chromium, type FullConfig } from "@playwright/test";
+import { chromium } from "@playwright/test";
 import { execSync } from "node:child_process";
 import { mkdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
@@ -46,7 +46,7 @@ async function loginAndSaveStorage() {
   await browser.close();
 }
 
-export default async function globalSetup(_config: FullConfig) {
+export default async function globalSetup() {
   console.log("Global setup: starting migrations, seed, and auth storage.");
 
   // 1) Reset the e2e schema (drop, re-apply all migrations) so every run starts

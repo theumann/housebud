@@ -23,7 +23,7 @@ export async function apiFetch<T>(
   options: {
     method?: string;
     token?: string | null;
-    body?: any;
+    body?: unknown;
   } = {},
 ): Promise<T> {
   const { method = "GET", token, body } = options;

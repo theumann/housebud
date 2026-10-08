@@ -132,8 +132,8 @@ export default function MatchesPage() {
         setMatches(res.items);
         setTotal(res.total);
         setPageSize(res.pageSize);
-      } catch (err: any) {
-        setError(err.message || "Failed to load matches");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load matches");
       } finally {
         setFetching(false);
       }
@@ -172,7 +172,7 @@ export default function MatchesPage() {
       alert(nameError);
       return;
     }
-    const body: any = {
+    const body: { participantIds: string[]; name?: string } = {
       participantIds: [userId],
     };
     if (trimmedName.length > 0) {
@@ -186,8 +186,8 @@ export default function MatchesPage() {
         body,
       });
       router.push(`/chatrooms/${res.roomId}`);
-    } catch (err: any) {
-      alert(err.message || "Failed to create chat room");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to create chat room");
     }
   };
 

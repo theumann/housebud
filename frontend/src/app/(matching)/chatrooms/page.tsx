@@ -10,24 +10,6 @@ import { Button } from "@/components/ui/Button";
 import { getLastSeen } from "@/lib/unread";
 import { useChatroomsFeed } from "@/context/ChatroomsFeedContext";
 
-type RoomSummary = {
-  id: string;
-  name: string | null;
-  isActive: boolean;
-  createdAt: string;
-  createdByUserId: string | null;
-  role: string;
-  status: string;
-  participantsCount: number;
-  latestMessageAt: string | null;
-  latestMessageText: string | null;
-};
-
-type ChatroomsResponse = {
-  rooms: RoomSummary[];
-  invites: RoomSummary[];
-};
-
 export default function ChatroomsPage() {
   const { user, token, loading } = useAuth();
   const router = useRouter();
@@ -54,8 +36,8 @@ export default function ChatroomsPage() {
         token,
       });
       await refresh();
-    } catch (err: any) {
-      alert(err.message || `Failed to ${action} invite`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : `Failed to ${action} invite`);
     } finally {
       setActionLoadingId(null);
     }
@@ -70,8 +52,8 @@ export default function ChatroomsPage() {
         token,
       });
       await refresh();
-    } catch (err: any) {
-      alert(err.message || "Failed to leave room");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to leave room");
     } finally {
       setActionLoadingId(null);
     }
@@ -89,14 +71,6 @@ export default function ChatroomsPage() {
 
   const hasInvites = invites.length > 0;
   const hasRooms = rooms.length > 0;
-  const unreadRoomsCount = rooms.reduce((acc, room) => {
-    const lastSeenMs = getLastSeen(room.id);
-    const latestMs = room.latestMessageAt
-      ? Date.parse(room.latestMessageAt)
-      : 0;
-    return latestMs > lastSeenMs ? acc + 1 : acc;
-  }, 0);
-
   return (
     <PageContainer data-testid="chatrooms-page">
       <header className="mb-4 flex items-center justify-between">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/Button";
@@ -88,24 +88,12 @@ function NavPill({
 
 export function AppNav() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, logout } = useAuth() as any; // adjust if your AuthContext typing is stricter
+  const { user, logout } = useAuth();
   const { pendingInvitesCount, unreadRoomsCount } = useChatroomsFeed();
   const totalBadgeCount = pendingInvitesCount + unreadRoomsCount;
   const householdInvitesCount = useHouseholdInvites().invites.length;
   const currentHousehold = useOptionalCurrentHousehold()?.household;
   const { isDark, toggle } = useTheme();
-
-  const handleLogout = async () => {
-    // If you already have a logout() in AuthContext, this will call it.
-    // If not, you can replace this with whatever you're doing now.
-    if (logout) {
-      await logout();
-    } else {
-      // Fallback: clear token & go to login (only if needed)
-      router.push("/login");
-    }
-  };
 
   const inMatching = matchingPaths.some((p) => pathname.startsWith(p));
   const inHousehold = pathname.startsWith("/household");
@@ -265,7 +253,7 @@ export function AppNav() {
             variant="ghost"
             size="sm"
             className="text-gray-700 dark:text-slate-300 hover:bg-surface-muted"
-            onClick={handleLogout}
+            onClick={logout}
           >
             Logout
           </Button>

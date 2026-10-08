@@ -40,6 +40,9 @@ export function ShortlistProvider({ children }: { children: React.ReactNode }) {
       if (!raw) return;
       const data = JSON.parse(raw) as ShortlistedUser[];
       if (Array.isArray(data)) {
+        // Read after mount, like the auth token: localStorage isn't available
+        // on the server render.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setShortlist(data);
       }
     } catch {
