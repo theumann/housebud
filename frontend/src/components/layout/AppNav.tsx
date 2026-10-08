@@ -37,6 +37,14 @@ const householdModules = [
   { path: "shopping", label: "Shopping", setting: "shoppingEnabled" },
 ] as const;
 
+// Planned household modules, shown disabled until they're built.
+const upcomingHouseholdModules = [
+  { path: "chat", label: "Chat" },
+  { path: "expenses", label: "Expenses" },
+  { path: "calendar", label: "Calendar" },
+  { path: "rules", label: "House rules" },
+] as const;
+
 const matchingPaths = [
   "/matches",
   "/shortlist",
@@ -279,6 +287,22 @@ export function AppNav() {
                 className="whitespace-nowrap"
               />
             ))}
+            {inHousehold &&
+              currentHousehold &&
+              upcomingHouseholdModules.map((m) => (
+                <span
+                  key={m.path}
+                  data-testid={`nav-household-${m.path}-soon`}
+                  title="Coming soon"
+                  aria-disabled="true"
+                  className="inline-flex cursor-help items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-gray-400 dark:text-slate-600"
+                >
+                  <span>{m.label}</span>
+                  <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-gray-500 dark:text-slate-400">
+                    soon
+                  </span>
+                </span>
+              ))}
           </div>
         </div>
       )}
