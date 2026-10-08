@@ -25,7 +25,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="bg-gradient-to-br from-theme-from to-theme-to min-h-screen text-foreground">
+      <body className="bg-linear-to-br from-theme-from to-theme-to min-h-screen text-foreground">
         {/* React's tree lives in its own container, not directly in <body>:
             browser extensions (password managers) inject nodes into <body>,
             which made React insert the nav in the wrong place after login. */}

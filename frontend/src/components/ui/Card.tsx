@@ -10,7 +10,7 @@ export function Card({ children, className, ...props }: CardProps) {
     <article
       {...props}
       className={clsx(
-        "flex flex-col rounded-card border border-border-subtle bg-gradient-to-br from-theme-from to-theme-to shadow-soft",
+        "flex flex-col rounded-card border border-border-subtle bg-linear-to-br from-theme-from to-theme-to shadow-soft",
         className,
       )}
     >
