@@ -159,7 +159,7 @@ export function AppNav() {
       : [];
 
   return (
-    <nav className="sticky top-0 z-20 mb-4 border-b border-border-subtle bg-gradient-to-r from-nav-from/90 to-nav-to/90 backdrop-blur">
+    <nav className="sticky top-0 z-20 mb-4 border-b border-border-subtle bg-linear-to-r from-nav-from/90 to-nav-to/90 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         {/* Brand */}
         <div className="flex items-center gap-2">
@@ -264,7 +264,7 @@ export function AppNav() {
       {subLinks.length > 0 && (
         <div
           data-testid="nav-section-links"
-          className="border-t border-border-subtle bg-gradient-to-r from-theme-from to-theme-to"
+          className="border-t border-border-subtle bg-linear-to-r from-theme-from to-theme-to"
         >
           <div className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 py-2 text-[11px] sm:gap-2 sm:text-xs">
             {subLinks.map((link) => (
