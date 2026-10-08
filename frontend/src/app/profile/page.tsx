@@ -61,10 +61,9 @@ export default function ProfilePage() {
       setError(null);
 
       try {
-        // backend might return either the profile directly or { profile: {...} }
-        const resp = await apiFetch<any>("/profile/me", { token });
-
-        const p = resp?.profile ?? resp ?? null;
+        const { profile: p } = await apiFetch<{
+          profile: { [K in keyof ProfilePayload]: string | null } | null;
+        }>("/profile/me", { token });
 
         if (p) {
           const next: ProfilePayload = {
@@ -84,8 +83,8 @@ export default function ProfilePage() {
         } else if (user?.profile) {
           // Fallback: use what we already have in AuthContext
           const next: ProfilePayload = {
-            firstName: p.firstName || "",
-            lastName: p.lastName || "",
+            firstName: user.profile.firstName || "",
+            lastName: user.profile.lastName || "",
             displayName: user.profile.displayName || "",
             school: user.profile.school || "",
             collegeYear: user.profile.collegeYear || "",
@@ -98,8 +97,8 @@ export default function ProfilePage() {
           setForm(next);
           setInitialForm(next);
         }
-      } catch (err: any) {
-        setError(err.message || "Failed to load profile");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load profile");
       } finally {
         setLoadingProfile(false);
       }
@@ -160,8 +159,8 @@ export default function ProfilePage() {
 
       setSuccess("Profile saved successfully.");
       setInitialForm(form); // reset dirty state baseline
-    } catch (err: any) {
-      setError(err.message || "Failed to save profile");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save profile");
     } finally {
       setSaving(false);
     }

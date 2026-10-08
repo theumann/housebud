@@ -78,8 +78,10 @@ export default function ChatRoomPage() {
         });
         setRoomInfo(info);
         setRoomError(null);
-      } catch (err: any) {
-        setRoomError(err.message || "Failed to load room details");
+      } catch (err) {
+        setRoomError(
+          err instanceof Error ? err.message : "Failed to load room details",
+        );
       }
     };
 
@@ -103,7 +105,6 @@ export default function ChatRoomPage() {
     if (!token || !roomId) return;
 
     let cancelled = false;
-    let intervalId: NodeJS.Timeout;
 
     const loadMessages = async () => {
       setLoadingMessages(true);
@@ -116,9 +117,11 @@ export default function ChatRoomPage() {
           setMessages(data);
           setMessagesError(null);
         }
-      } catch (err: any) {
+      } catch (err) {
         if (!cancelled) {
-          setMessagesError(err.message || "Failed to load messages");
+          setMessagesError(
+            err instanceof Error ? err.message : "Failed to load messages",
+          );
         }
       } finally {
         if (!cancelled) {
@@ -131,7 +134,7 @@ export default function ChatRoomPage() {
     loadMessages();
 
     // Poll every 3s
-    intervalId = setInterval(loadMessages, 3000);
+    const intervalId = setInterval(loadMessages, 3000);
 
     return () => {
       cancelled = true;
@@ -168,8 +171,8 @@ export default function ChatRoomPage() {
         body: { name: trimmed },
       });
       setRoomInfo((prev) => (prev ? { ...prev, name: trimmed } : prev));
-    } catch (err: any) {
-      alert(err.message || "Failed to rename room");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to rename room");
     } finally {
       setRenaming(false);
     }
@@ -225,8 +228,8 @@ export default function ChatRoomPage() {
       // Optimistic append
       setMessages((prev) => [...prev, msg]);
       setNewMessage("");
-    } catch (err: any) {
-      alert(err.message || "Failed to send message");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to send message");
     } finally {
       setSending(false);
       setLastSeen(roomId);

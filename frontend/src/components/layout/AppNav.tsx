@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/Button";
@@ -35,6 +35,14 @@ type NavLink = {
 const householdModules = [
   { path: "chores", label: "Chores", setting: "choresEnabled" },
   { path: "shopping", label: "Shopping", setting: "shoppingEnabled" },
+] as const;
+
+// Planned household modules, shown disabled until they're built.
+const upcomingHouseholdModules = [
+  { path: "chat", label: "Chat" },
+  { path: "expenses", label: "Expenses" },
+  { path: "calendar", label: "Calendar" },
+  { path: "rules", label: "House rules" },
 ] as const;
 
 const matchingPaths = [
@@ -80,24 +88,12 @@ function NavPill({
 
 export function AppNav() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, logout } = useAuth() as any; // adjust if your AuthContext typing is stricter
+  const { user, logout } = useAuth();
   const { pendingInvitesCount, unreadRoomsCount } = useChatroomsFeed();
   const totalBadgeCount = pendingInvitesCount + unreadRoomsCount;
   const householdInvitesCount = useHouseholdInvites().invites.length;
   const currentHousehold = useOptionalCurrentHousehold()?.household;
   const { isDark, toggle } = useTheme();
-
-  const handleLogout = async () => {
-    // If you already have a logout() in AuthContext, this will call it.
-    // If not, you can replace this with whatever you're doing now.
-    if (logout) {
-      await logout();
-    } else {
-      // Fallback: clear token & go to login (only if needed)
-      router.push("/login");
-    }
-  };
 
   const inMatching = matchingPaths.some((p) => pathname.startsWith(p));
   const inHousehold = pathname.startsWith("/household");
@@ -257,7 +253,7 @@ export function AppNav() {
             variant="ghost"
             size="sm"
             className="text-gray-700 dark:text-slate-300 hover:bg-surface-muted"
-            onClick={handleLogout}
+            onClick={logout}
           >
             Logout
           </Button>
@@ -279,6 +275,22 @@ export function AppNav() {
                 className="whitespace-nowrap"
               />
             ))}
+            {inHousehold &&
+              currentHousehold &&
+              upcomingHouseholdModules.map((m) => (
+                <span
+                  key={m.path}
+                  data-testid={`nav-household-${m.path}-soon`}
+                  title="Coming soon"
+                  aria-disabled="true"
+                  className="inline-flex cursor-help items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-gray-400 dark:text-slate-600"
+                >
+                  <span>{m.label}</span>
+                  <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-gray-500 dark:text-slate-400">
+                    soon
+                  </span>
+                </span>
+              ))}
           </div>
         </div>
       )}

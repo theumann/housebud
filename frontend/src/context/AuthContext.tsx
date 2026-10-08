@@ -6,7 +6,11 @@ import { apiFetch, ApiError } from "@/lib/api";
 type UserProfile = {
   id: string;
   email: string;
+  // Only the login/signup response includes it; /profile/me doesn't.
+  username?: string;
   profile: {
+    firstName: string;
+    lastName: string;
     displayName: string | null;
     school: string;
     collegeYear: string;
@@ -52,6 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedToken =
       typeof window !== "undefined" ? localStorage.getItem("bb_token") : null;
     if (storedToken) {
+      // localStorage only exists after mount; reading it during render would
+      // make the server and client renders disagree.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(storedToken);
       // fetch user profile in background
       apiFetch<UserProfile>("/profile/me", { token: storedToken })

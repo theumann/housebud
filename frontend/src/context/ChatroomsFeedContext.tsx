@@ -64,8 +64,10 @@ export function ChatroomsFeedProvider({
       const res = await apiFetch<ChatroomsResponse>("/chatrooms", { token });
       setRooms(res.rooms || []);
       setInvites(res.invites || []);
-    } catch (err: any) {
-      setError(err?.message || "Failed to load chat rooms");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to load chat rooms",
+      );
     } finally {
       setFetching(false);
     }

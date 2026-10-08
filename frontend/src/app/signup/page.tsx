@@ -35,8 +35,8 @@ export default function SignupPage() {
     try {
       await signup(form);
       router.replace("/matches");
-    } catch (err: any) {
-      setError(err.message || "Signup failed");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
       setSubmitting(false);
     }
