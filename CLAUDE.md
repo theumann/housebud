@@ -235,6 +235,16 @@ npx playwright test --ui
 
 Required backend vars: `DATABASE_URL`, `JWT_SECRET`, `PORT`
 
+### Testing on a phone
+
+The phone must be on the same Wi-Fi as the PC, and that network must be set to Private in Windows.
+
+1. Find the PC's Wi-Fi address with `ipconfig` (the "Wi-Fi" adapter). The "Network" address `next dev` prints is usually the WSL virtual adapter, which the phone can't reach.
+2. In `frontend/.env.local` (gitignored), set `NEXT_PUBLIC_API_BASE_URL=http://<that IP>:4000` — on the phone `localhost` is the phone itself. `next.config.ts` adds the same host to `allowedDevOrigins`; without it Next blocks the dev scripts and the page loads but doesn't respond.
+3. Restart the frontend (both files are only read at startup) and open `http://<that IP>:3000` on the phone.
+
+The address can change after a router or PC restart; update `.env.local` and restart. Set it back to `localhost` to turn this off.
+
 ---
 
 ## Deployment (Railway — not yet deployed)
