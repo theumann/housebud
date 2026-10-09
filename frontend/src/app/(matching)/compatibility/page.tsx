@@ -63,6 +63,7 @@ export default function CompatibilityPage() {
   useEffect(() => {
     if (categories.length === 0) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- opens every category once, when the questions first arrive
     setOpenCats((prev) => {
       // if already initialized, don't clobber user toggles
       if (Object.keys(prev).length > 0) return prev;

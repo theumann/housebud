@@ -62,6 +62,7 @@ export function useHouseholds() {
   }, [token]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads on mount; reload sets the loading state before fetching
     reload();
   }, [reload]);
 

@@ -76,6 +76,7 @@ export function ChatroomsFeedProvider({
   useEffect(() => {
     // Reset state when logging out
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clears the feed on logout
       setRooms([]);
       setInvites([]);
       setFetching(false);

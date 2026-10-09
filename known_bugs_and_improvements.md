@@ -69,6 +69,7 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ### Code health
 
+- **`react-hooks/set-state-in-effect` is disabled on 4 lines** (`useHouseholds`, `useMyRooms`, `ChatroomsFeedContext`, the compatibility page). Each is a load-on-mount effect whose loader sets loading/error state before its first `await`, which the rule (enforced from `eslint-config-next` 16.4) flags as a cascading render. Not a bug. Fix: move these to a fetching pattern the rule accepts (e.g. derive "loading" from the request instead of setting it in the effect), then drop the disable comments.
 - **Dead code:** `authUserToUserLike` in `frontend/src/lib/displayName.ts` is unused.
 - **Conflicting classes on shared components.** `Button`, `Input` and friends join their own classes with the caller's using `clsx`, so when both set the same property the winner depends on CSS order, not on which came last. Example: the Shortlist buttons use the `secondary` variant (`border-border-subtle`) and add `border-primary-500`. Fix: merge with `tailwind-merge` in the shared components.
 - **`backend/scripts/seed-dev.ts`** uses `Array.prototype.at()`, which `tsconfig.scripts.json`'s target doesn't allow (`tsc -p tsconfig.scripts.json` reports 2 errors; `tsx` runs it fine).
