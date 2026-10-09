@@ -66,6 +66,7 @@ export function useMyRooms() {
   }, [token]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads on mount; load sets the loading state before fetching
     load();
   }, [load]);
 
