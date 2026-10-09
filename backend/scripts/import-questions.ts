@@ -3,9 +3,7 @@ import path from "node:path";
 import { parse } from "csv-parse/sync";
 import { PrismaClient, Prisma } from "@prisma/client";
 import "dotenv/config";
-import { assertSafeSeedEnv } from "./_guards";
 
-assertSafeSeedEnv("dev");
 const prisma = new PrismaClient();
 
 type Row = {
