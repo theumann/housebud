@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "rootDir": ".",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "types": ["node", "vitest/globals"]
