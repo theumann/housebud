@@ -16,6 +16,7 @@ import {
   matchItemToUserLike,
   shortlistedUserToUserLike,
 } from "@/lib/displayName";
+import { Avatar } from "@/components/ui/Avatar";
 
 function MatchCardSkeleton() {
   return (
@@ -41,7 +42,7 @@ function EmptyMatchesState() {
   return (
     <div className="rounded-card border border-border-subtle bg-surface shadow-soft p-6">
       <h2 className="text-base font-semibold">No matches yet</h2>
-      <p className="mt-1 text-sm text-gray-600">
+      <p className="mt-1 text-sm text-muted">
         We’re not finding anyone in your target ZIP area right now. Try widening
         your target ZIP, or answer more compatibility questions to improve match
         sorting.
@@ -50,19 +51,19 @@ function EmptyMatchesState() {
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <a
           href="/profile"
-          className="inline-flex items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-500"
+          className="inline-flex items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
         >
           Update target ZIP
         </a>
         <a
           href="/compatibility"
-          className="inline-flex items-center justify-center rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-gray-900 hover:bg-surface-muted"
+          className="inline-flex items-center justify-center rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-muted"
         >
           Answer compatibility questions
         </a>
       </div>
 
-      <p className="mt-4 text-xs text-gray-500">
+      <p className="mt-4 text-xs text-subtle">
         Note: Some matches may also be in your shortlist (and hidden here).
       </p>
     </div>
@@ -219,7 +220,7 @@ export default function MatchesPage() {
       <header className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Your Matches</h1>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted">
             Potential roommates near your target location, sorted by
             compatibility.
           </p>
@@ -228,7 +229,7 @@ export default function MatchesPage() {
           <a
             href="/compatibility"
             data-testid="improve-compatibility-link"
-            className="text-blue-600 underline"
+            className="text-primary-700 underline dark:text-primary-500"
           >
             Improve compatibility
           </a>
@@ -267,29 +268,20 @@ export default function MatchesPage() {
                     data-testid={`match-card-header-${m.userId}`}
                     className="flex items-center gap-3"
                   >
-                    <div className="h-10 w-10 overflow-hidden rounded-full bg-surface-muted flex items-center justify-center text-sm font-semibold">
-                      {m.avatarUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={m.avatarUrl}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        (getUserDisplayName(
-                          matchItemToUserLike(m),
-                        )?.[0]?.toUpperCase() ?? "?")
-                      )}
-                    </div>
+                    <Avatar
+                      userId={m.userId}
+                      name={getUserDisplayName(matchItemToUserLike(m))}
+                      avatarUrl={m.avatarUrl}
+                    />
                     <div>
                       <h2 className="text-base font-semibold">
                         {getUserDisplayName(matchItemToUserLike(m))}
                       </h2>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-muted">
                         {m.age !== null ? `${m.age} · ` : ""}
                         {m.school} · {m.collegeYear}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-subtle">
                         {m.targetCity}, {m.targetState} {m.targetZip}
                       </p>
                     </div>
@@ -299,7 +291,7 @@ export default function MatchesPage() {
                 <CardBody className="flex flex-col">
                   <div className="flex-1">
                     {m.bio && (
-                      <p className="text-sm text-gray-700 line-clamp-3 mb-3">
+                      <p className="text-sm text-foreground-soft line-clamp-3 mb-3">
                         {m.bio}
                       </p>
                     )}
@@ -307,15 +299,15 @@ export default function MatchesPage() {
 
                   <div className="flex items-center justify-between text-xs">
                     <div>
-                      <p className="text-gray-500">Match score</p>
+                      <p className="text-subtle">Match score</p>
                       {m.score !== null ? (
                         <p className="font-semibold">{m.score} / 100</p>
                       ) : (
-                        <p className="text-gray-400">Not enough data yet</p>
+                        <p className="text-faint">Not enough data yet</p>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-gray-500">Compat coverage</p>
+                      <p className="text-subtle">Compat coverage</p>
                       <p className="text-xs">
                         {compatPercent}%{" "}
                         {!m.hasMinCompatData && (
@@ -391,7 +383,7 @@ export default function MatchesPage() {
         </div>
       )}
 
-      <div className="mt-6 flex items-center justify-between text-xs text-gray-600">
+      <div className="mt-6 flex items-center justify-between text-xs text-muted">
         <div className="flex items-center gap-3">
           {hasMatches && (
             <span data-testid="matches-page-label">

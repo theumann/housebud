@@ -7,6 +7,8 @@ import { useHouseholdAdmin } from "@/hooks/useHouseholdAdmin";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getUserDisplayName } from "@/lib/displayName";
+import { Input } from "@/components/ui/Input";
+import { Avatar } from "@/components/ui/Avatar";
 
 type Admin = ReturnType<typeof useHouseholdAdmin>;
 
@@ -71,7 +73,7 @@ function JoinCode({
 
   return (
     <div className="rounded-md border border-border-subtle bg-surface px-4 py-3">
-      <p className="text-xs text-gray-600">
+      <p className="text-xs text-muted">
         Share this code with roommates so they can join.
       </p>
       <div className="mt-2 flex items-center justify-between gap-3">
@@ -142,24 +144,18 @@ function MemberRow({
       className="flex flex-col gap-1"
     >
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-sm font-semibold">
-          {member.user.profile?.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={member.user.profile.avatarUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            (name[0]?.toUpperCase() ?? "?")
-          )}
-        </div>
+        <Avatar
+          userId={member.userId}
+          name={name}
+          avatarUrl={member.user.profile?.avatarUrl}
+          size="sm"
+        />
         <span className="min-w-0 truncate text-sm">
           {name}
-          {isMe && <span className="text-gray-500"> (you)</span>}
+          {isMe && <span className="text-subtle"> (you)</span>}
         </span>
         {member.role === "owner" && (
-          <span className="text-xs text-gray-500">Owner</span>
+          <span className="text-xs text-subtle">Owner</span>
         )}
         {canManage && (
           <div className="ml-auto flex gap-2">
@@ -284,13 +280,13 @@ function OwnerTools({
         <label className="text-sm">
           <span className="mb-1 block">Household name</span>
           <div className="flex gap-2">
-            <input
+            <Input
               data-testid="rename-household-input"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={80}
-              className="w-full rounded border px-3 py-2"
+              className="w-full"
             />
             <Button
               data-testid="rename-household-submit"
@@ -315,13 +311,13 @@ function OwnerTools({
         <label className="text-sm">
           <span className="mb-1 block">Invite by email</span>
           <div className="flex gap-2">
-            <input
+            <Input
               data-testid="invite-email-input"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="roommate@example.com"
-              className="w-full rounded border px-3 py-2"
+              className="w-full"
             />
             <Button
               data-testid="invite-email-submit"
@@ -332,7 +328,7 @@ function OwnerTools({
             </Button>
           </div>
         </label>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-subtle">
           They&apos;ll see the invite under Household once they&apos;re signed
           up with this email (within 14 days). No email is sent yet.
         </p>
@@ -390,7 +386,7 @@ function LeaveHousehold({
   // handed over first, so the household is never left without an owner.
   if (household.myRole === "owner") {
     return (
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-subtle">
         {household.members.length > 1
           ? "To leave this household, make another member the owner first."
           : "You're the only member of this household."}
@@ -440,7 +436,7 @@ export function HouseholdView({
           </h2>
           <span
             data-testid="household-my-role"
-            className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-600 dark:bg-primary-600/20 dark:text-primary-100"
+            className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-600/20 dark:text-primary-100"
           >
             {isOwner ? "Owner" : "Member"}
           </span>

@@ -76,7 +76,7 @@ export default function ChatroomsPage() {
       <header className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Chat rooms</h1>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted">
             Meet &amp; Greet rooms where you can talk with potential roommates.
           </p>
         </div>
@@ -100,7 +100,7 @@ export default function ChatroomsPage() {
       <section className="mb-6">
         <h2 className="mb-2 text-lg font-semibold">Pending invites</h2>
         {!hasInvites && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-subtle">
             No pending invites at the moment.
           </p>
         )}
@@ -115,26 +115,26 @@ export default function ChatroomsPage() {
                       <p className="text-sm font-semibold">
                         {room.name ? room.name : `Room #${room.id.slice(0, 8)}`}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-subtle">
                         You&apos;ve been invited to join this room.
                       </p>
                     </div>
-                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                    <span className="rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-medium text-primary-700 dark:bg-primary-600/20 dark:text-primary-100">
                       Invite
                     </span>
                   </div>
                 </CardHeader>
                 <CardBody>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-subtle">
                     Participants: {room.participantsCount}
                   </p>
                   {room.latestMessageAt ? (
-                    <p className="mt-2 text-xs text-gray-600">
+                    <p className="mt-2 text-xs text-muted">
                       <span className="font-medium">Latest:</span>{" "}
                       {room.latestMessageText
                         ? room.latestMessageText
                         : "Message"}
-                      <span className="text-gray-400">
+                      <span className="text-faint">
                         {" "}
                         ·{" "}
                         {new Date(room.latestMessageAt).toLocaleString(
@@ -149,9 +149,7 @@ export default function ChatroomsPage() {
                       </span>
                     </p>
                   ) : (
-                    <p className="mt-2 text-xs text-gray-400">
-                      No messages yet.
-                    </p>
+                    <p className="mt-2 text-xs text-faint">No messages yet.</p>
                   )}
                 </CardBody>
                 <CardFooter>
@@ -186,7 +184,7 @@ export default function ChatroomsPage() {
       <section>
         <h2 className="mb-2 text-lg font-semibold">Active rooms</h2>
         {!hasRooms && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-subtle">
             You&apos;re not in any active rooms yet.
           </p>
         )}
@@ -213,7 +211,7 @@ export default function ChatroomsPage() {
                             ? room.name
                             : `Room #${room.id.slice(0, 8)}`}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-subtle">
                           Role: {room.role} · Status: {room.status}
                         </p>
                       </div>
@@ -223,7 +221,7 @@ export default function ChatroomsPage() {
                             data-testid={`new-message-${room.id}`}
                             type="button"
                             onClick={() => router.push(`/chatrooms/${room.id}`)}
-                            className="rounded-full bg-primary-600 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-primary-500 cursor-pointer"
+                            className="rounded-full bg-primary-600 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-primary-700 cursor-pointer"
                             aria-label="Open chat"
                           >
                             New
@@ -243,10 +241,10 @@ export default function ChatroomsPage() {
                     </div>
                   </CardHeader>
                   <CardBody>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-subtle">
                       Participants: {room.participantsCount}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-faint">
                       Created:{" "}
                       {new Date(room.createdAt).toLocaleString(undefined, {
                         month: "short",
@@ -286,7 +284,7 @@ export default function ChatroomsPage() {
       </section>
 
       {fetching && (
-        <p className="mt-4 text-xs text-gray-500">Refreshing chat rooms…</p>
+        <p className="mt-4 text-xs text-subtle">Refreshing chat rooms…</p>
       )}
     </PageContainer>
   );

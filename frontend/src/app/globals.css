@@ -7,37 +7,79 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Secondary text, strongest to faintest (Tailwind's gray-700…400) */
+  --foreground-soft: var(--color-gray-700);
+  --muted: var(--color-gray-600);
+  --subtle: var(--color-gray-500);
+  --faint: var(--color-gray-400);
   --surface: #ffffff;
-  --surface-muted: oklch(0.96 0.02 350);
+  --surface-muted: oklch(0.96 0.02 171);
   --border-subtle: #e5e7eb;
-  /* Shared gradient palette used across page bg, nav, and cards */
-  --theme-from: oklch(0.97 0.03 230);
-  --theme-to: oklch(0.95 0.03 350);
-  --nav-from: oklch(0.93 0.06 230);
-  --nav-to: oklch(0.93 0.05 350);
+  /* Form controls need a border that's visible against the surface */
+  --border-strong: var(--color-gray-300);
+  /* Avatar colors: the logo's four panels, each with a readable letter color */
+  --avatar-amber: #fff0c9;
+  --avatar-amber-ink: #8a5a00;
+  --avatar-blue: #d9edf7;
+  --avatar-blue-ink: #1f6690;
+  --avatar-green: #ddeedb;
+  --avatar-green-ink: #1e6b55;
+  --avatar-coral: #ffe0d4;
+  --avatar-coral-ink: #b23a2b;
+  /* Shared gradient palette used across page bg, nav, and cards: mint to cream */
+  --theme-from: oklch(0.975 0.02 171);
+  --theme-to: oklch(0.975 0.025 85);
+  --nav-from: oklch(0.93 0.045 171);
+  --nav-to: oklch(0.94 0.05 85);
 }
 
 .dark {
-  --background: oklch(0.14 0.04 240);
-  --foreground: oklch(0.93 0.01 240);
-  --surface: oklch(0.19 0.04 240);
-  --surface-muted: oklch(0.23 0.04 290);
-  --border-subtle: oklch(0.3 0.02 240);
-  --theme-from: oklch(0.21 0.06 230);
-  --theme-to: oklch(0.2 0.06 350);
-  --nav-from: oklch(0.25 0.07 230);
-  --nav-to: oklch(0.23 0.07 350);
+  --background: oklch(0.14 0.04 250);
+  --foreground: oklch(0.93 0.01 250);
+  --foreground-soft: var(--color-slate-300);
+  --muted: var(--color-slate-400);
+  --subtle: var(--color-slate-400);
+  --faint: var(--color-slate-500);
+  --surface: oklch(0.19 0.04 250);
+  --surface-muted: oklch(0.23 0.03 200);
+  --border-subtle: oklch(0.3 0.02 250);
+  --border-strong: oklch(0.4 0.03 250);
+  --avatar-amber: #3a2f14;
+  --avatar-amber-ink: #f9b233;
+  --avatar-blue: #16324a;
+  --avatar-blue-ink: #7dbfe3;
+  --avatar-green: #173a30;
+  --avatar-green-ink: #6cc4a6;
+  --avatar-coral: #43201c;
+  --avatar-coral-ink: #f58a7e;
+  /* Navy (the logo's ink) to deep teal */
+  --theme-from: oklch(0.21 0.05 250);
+  --theme-to: oklch(0.2 0.045 190);
+  --nav-from: oklch(0.25 0.06 250);
+  --nav-to: oklch(0.24 0.055 190);
 }
 
 /* Inline tokens — reference the CSS variables so they respond to .dark */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-faint: var(--faint);
+  --font-sans: var(--font-app);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
   --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-avatar-amber: var(--avatar-amber);
+  --color-avatar-amber-ink: var(--avatar-amber-ink);
+  --color-avatar-blue: var(--avatar-blue);
+  --color-avatar-blue-ink: var(--avatar-blue-ink);
+  --color-avatar-green: var(--avatar-green);
+  --color-avatar-green-ink: var(--avatar-green-ink);
+  --color-avatar-coral: var(--avatar-coral);
+  --color-avatar-coral-ink: var(--avatar-coral-ink);
   --color-theme-from: var(--theme-from);
   --color-theme-to: var(--theme-to);
   --color-nav-from: var(--nav-from);
@@ -46,24 +88,32 @@
 
 /* Static tokens — compile-time values that don't need to change with theme */
 @theme {
-  /* Brand color — pastel blue */
-  --color-primary-50: oklch(0.97 0.03 230);
-  --color-primary-100: oklch(0.93 0.06 230);
-  --color-primary-500: oklch(0.68 0.11 230);
-  --color-primary-600: oklch(0.6 0.13 230);
+  /* Brand color — the logo's teal. 600 is the button color (5.2:1 with white
+     text); 700 is for text on light backgrounds, 500 for text on dark ones. */
+  --color-primary-50: oklch(0.97 0.02 171);
+  --color-primary-100: oklch(0.93 0.045 171);
+  --color-primary-500: oklch(0.59 0.1 171);
+  --color-primary-600: oklch(0.52 0.095 171);
+  --color-primary-700: oklch(0.45 0.085 171);
 
-  /* Pink accent */
-  --color-pink-50: oklch(0.97 0.02 350);
-  --color-pink-100: oklch(0.93 0.05 350);
-  --color-pink-500: oklch(0.72 0.1 350);
+  /* Logo colors (public/logo.svg) */
+  --color-brand: #2f8f75;
+  --color-brand-ink: #26394e;
 
   --color-accent: var(--color-primary-500);
   --radius-card: 0.75rem;
   --shadow-soft: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* In the base layer so utility classes on <body> (the page gradient) win */
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--color-primary-600);
+  }
 }

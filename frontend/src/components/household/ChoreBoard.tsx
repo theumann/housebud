@@ -16,6 +16,7 @@ import { ModuleOff } from "@/components/household/ModuleOff";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getUserDisplayName } from "@/lib/displayName";
+import { Input, Select } from "@/components/ui/Input";
 
 type NameOf = (userId: string | null) => string;
 
@@ -115,33 +116,32 @@ function ChoreForm({
     >
       <label className="text-sm">
         <span className="mb-1 block">Chore</span>
-        <input
+        <Input
           data-testid="chore-form-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Take out the trash"
           maxLength={80}
-          className="w-full rounded border px-3 py-2"
+          className="w-full"
         />
       </label>
 
       <div className="flex flex-wrap items-end gap-2">
         <label className="text-sm">
           <span className="mb-1 block">Repeats</span>
-          <select
+          <Select
             data-testid="chore-form-recurrence"
             value={recurring ? "every" : "once"}
             onChange={(e) => setRecurring(e.target.value === "every")}
-            className="rounded border px-3 py-2"
           >
             <option value="every">Every</option>
             <option value="once">Once</option>
-          </select>
+          </Select>
         </label>
         {recurring && (
           <>
-            <input
+            <Input
               data-testid="chore-form-every"
               type="number"
               aria-label="How many"
@@ -149,31 +149,29 @@ function ChoreForm({
               max={365}
               value={every}
               onChange={(e) => setEvery(e.target.value)}
-              className="w-20 rounded border px-3 py-2 text-sm"
+              className="w-20"
             />
-            <select
+            <Select
               data-testid="chore-form-unit"
               aria-label="Unit"
               value={unit}
               onChange={(e) => setUnit(e.target.value as RepeatUnit)}
-              className="rounded border px-3 py-2 text-sm"
             >
               {UNITS.map((u) => (
                 <option key={u} value={u}>
                   {everyNumber === 1 ? u : `${u}s`}
                 </option>
               ))}
-            </select>
+            </Select>
           </>
         )}
         <label className="text-sm">
           <span className="mb-1 block">{recurring ? "Next due" : "Due"}</span>
-          <input
+          <Input
             data-testid="chore-form-due"
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="rounded border px-3 py-2"
           />
         </label>
       </div>
@@ -181,7 +179,7 @@ function ChoreForm({
       <div className="text-sm">
         <span className="mb-1 block">Who takes turns (first is up next)</span>
         {rotation.length === 0 && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-subtle">
             Nobody: anyone can do it when it&apos;s due.
           </p>
         )}
@@ -192,7 +190,7 @@ function ChoreForm({
               data-testid={`chore-form-rotation-${userId}`}
               className="flex items-center gap-2"
             >
-              <span className="w-5 text-xs text-gray-500">{index + 1}.</span>
+              <span className="w-5 text-xs text-subtle">{index + 1}.</span>
               <span className="min-w-0 flex-1 truncate">{nameOf(userId)}</span>
               <Button
                 variant="ghost"
@@ -294,7 +292,7 @@ function ChoreRow({
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{chore.name}</p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-subtle">
           {scheduleLabel(chore.repeat)} ·{" "}
           <span
             data-testid={`chore-due-${chore.id}`}
@@ -311,7 +309,9 @@ function ChoreRow({
           <span
             data-testid={`chore-assignee-${chore.id}`}
             className={clsx(
-              myTurn ? "font-semibold text-primary-600" : "text-gray-600",
+              myTurn
+                ? "font-semibold text-primary-700 dark:text-primary-500"
+                : "text-muted",
             )}
           >
             {chore.assigneeUserId === null
@@ -321,7 +321,7 @@ function ChoreRow({
                 : `${nameOf(chore.assigneeUserId)}'s turn`}
           </span>
           {nextUp && (
-            <span className="text-gray-500"> · then {nameOf(nextUp)}</span>
+            <span className="text-subtle"> · then {nameOf(nextUp)}</span>
           )}
         </p>
         {chore.startedAt && (
@@ -464,7 +464,7 @@ export function ChoreBoard({ household }: { household: Household }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold">Chores</h2>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm text-muted">
                 Who does what in {household.name}, and whose turn is next.
               </p>
             </div>
@@ -507,9 +507,9 @@ export function ChoreBoard({ household }: { household: Household }) {
           )}
 
           {chores.loading && chores.chores.length === 0 ? (
-            <p className="text-sm text-gray-600">Loading...</p>
+            <p className="text-sm text-muted">Loading...</p>
           ) : visible.length === 0 ? (
-            <p data-testid="chores-empty" className="text-sm text-gray-500">
+            <p data-testid="chores-empty" className="text-sm text-subtle">
               {onlyMine ? "Nothing is your turn." : "No chores yet."}
             </p>
           ) : (
@@ -576,7 +576,7 @@ export function ChoreBoard({ household }: { household: Household }) {
                   <span className="min-w-0 truncate">
                     {nameOf(c.doneByUserId)} did {c.choreName}
                   </span>
-                  <span className="flex shrink-0 items-center gap-2 text-xs text-gray-500">
+                  <span className="flex shrink-0 items-center gap-2 text-xs text-subtle">
                     {formatDay(c.completedOn)}
                     {c.completedOn > c.dueDate && " · late"}
                     {c.undoable && (

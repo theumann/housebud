@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import { Figtree } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ShortlistProvider } from "@/context/ShortlistContext";
 import { ChatroomsFeedProvider } from "@/context/ChatroomsFeedContext";
 import { HouseholdInvitesProvider } from "@/context/HouseholdInvitesContext";
 
+const appFont = Figtree({ subsets: ["latin"], variable: "--font-app" });
+
 export const metadata: Metadata = {
-  title: "Bunkbuddy",
-  description: "Roommate matching for students",
+  title: "HouseBud",
+  description: "Find roommates, then run the household together",
 };
 
 export default function RootLayout({
@@ -16,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={appFont.variable} suppressHydrationWarning>
       <head>
         {/* Runs before paint to avoid flash of wrong theme */}
         <script

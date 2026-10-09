@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Link from "next/link";
+import { AuthLayout } from "@/components/layout/AuthLayout";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 export default function LoginPage() {
   const { login, loading, user } = useAuth();
@@ -34,54 +38,68 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-md border rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-4">Login</h1>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm mb-1">Email or Username</label>
-            <input
-              data-testid="login-identifier"
-              className="w-full border rounded px-3 py-2"
-              type="identifier"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="use you username or email"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Password</label>
-            <input
-              data-testid="login-password"
-              className="w-full border rounded px-3 py-2"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            data-testid="login-submit"
-            type="submit"
-            className="w-full bg-black text-white rounded py-2"
-            disabled={submitting}
+    <AuthLayout title="Log in" subtitle="Welcome back to HouseBud.">
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="login-identifier"
+            className="mb-1 block text-sm font-medium"
           >
-            {submitting ? "Logging in..." : "Login"}
-          </button>
-        </form>
-        <p className="mt-4 text-sm">
-          Don&apos;t have an account?{" "}
-          <a
-            href="/signup"
-            data-testid="signup-link"
-            className="text-blue-600 underline"
+            Email or username
+          </label>
+          <Input
+            className="w-full"
+            id="login-identifier"
+            data-testid="login-identifier"
+            type="text"
+            autoComplete="username"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="login-password"
+            className="mb-1 block text-sm font-medium"
           >
-            Sign up
-          </a>
-        </p>
-      </div>
-    </main>
+            Password
+          </label>
+          <Input
+            className="w-full"
+            id="login-password"
+            data-testid="login-password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        {error && (
+          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+            {error}
+          </p>
+        )}
+        <Button
+          data-testid="login-submit"
+          type="submit"
+          className="w-full"
+          disabled={submitting}
+        >
+          {submitting ? "Logging in..." : "Log in"}
+        </Button>
+      </form>
+      <p className="mt-6 text-center text-sm text-muted">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/signup"
+          data-testid="signup-link"
+          className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-500"
+        >
+          Sign up
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }

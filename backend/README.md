@@ -1,6 +1,6 @@
-# Backend - Bunkbuddy API
+# Backend - HouseBud API
 
-This folder contains the Express + Prisma backend powering Bunkbuddy.
+This folder contains the Express + Prisma backend powering HouseBud.
 
 The backend exposes a REST API consumed by the Next.js frontend.
 

@@ -9,6 +9,7 @@ import { InviteInbox } from "@/components/household/InviteInbox";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 function SingleFieldForm({
   testId,
@@ -55,21 +56,18 @@ function SingleFieldForm({
     <Card data-testid={testId}>
       <CardHeader>
         <h2 className="text-base font-semibold">{title}</h2>
-        <p className="mt-1 text-sm text-gray-600">{description}</p>
+        <p className="mt-1 text-sm text-muted">{description}</p>
       </CardHeader>
       <CardBody>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <label className="block text-sm">
             <span className="mb-1 block">{label}</span>
-            <input
+            <Input
               data-testid={`${testId}-input`}
               type="text"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className={clsx(
-                "w-full border rounded px-3 py-2",
-                inputClassName,
-              )}
+              className={clsx("w-full", inputClassName)}
               placeholder={placeholder}
               maxLength={80}
             />
@@ -130,7 +128,7 @@ export default function HouseholdPage() {
     <PageContainer data-testid="household-page">
       <header className="mb-4">
         <h1 className="text-2xl font-bold">Household</h1>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted">
           The people you live with, in one place.
         </p>
       </header>

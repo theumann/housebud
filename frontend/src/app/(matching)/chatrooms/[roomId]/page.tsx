@@ -14,6 +14,8 @@ import {
   getUserDisplayName,
   chatMessageSenderToUserLike,
 } from "@/lib/displayName";
+import { Textarea } from "@/components/ui/Input";
+import { Avatar } from "@/components/ui/Avatar";
 
 type ChatMessage = {
   id: string;
@@ -286,7 +288,7 @@ export default function ChatRoomPage() {
                 </Button>
               )}
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-subtle">
               Meet &amp; Greet chat with potential roommates.
               {roomInfo && (
                 <>
@@ -329,7 +331,7 @@ export default function ChatRoomPage() {
             </p>
             <Link
               href="/household"
-              className="text-sm font-medium text-primary-600 underline underline-offset-2"
+              className="text-sm font-medium text-primary-700 underline dark:text-primary-500 underline-offset-2"
             >
               Go to Household
             </Link>
@@ -337,7 +339,7 @@ export default function ChatRoomPage() {
         )}
 
         {/* Messages area */}
-        <div className="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-0 rounded-xl border border-border-subtle bg-surface flex flex-col overflow-hidden">
           <div
             data-testid="message-container"
             className="flex-1 overflow-y-auto px-3 py-3 space-y-2"
@@ -349,11 +351,11 @@ export default function ChatRoomPage() {
             )}
 
             {loadingMessages && messages.length === 0 && (
-              <p className="text-xs text-gray-500">Loading messages…</p>
+              <p className="text-xs text-subtle">Loading messages…</p>
             )}
 
             {!loadingMessages && messages.length === 0 && !messagesError && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-subtle">
                 No messages yet. Say hi and break the ice.
               </p>
             )}
@@ -388,19 +390,13 @@ export default function ChatRoomPage() {
                   <div className="max-w-[75%]">
                     {!isMine && isFirstFromSender && (
                       <div className="mb-0.5 flex items-center gap-2">
-                        <div className="h-5 w-5 overflow-hidden rounded-full bg-surface-muted flex items-center justify-center text-[10px] font-semibold text-gray-600">
-                          {senderAvatar ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={senderAvatar}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            (senderName[0]?.toUpperCase() ?? "?")
-                          )}
-                        </div>
-                        <p className="text-[11px] font-medium text-gray-600">
+                        <Avatar
+                          userId={msg.senderUserId}
+                          name={senderName}
+                          avatarUrl={senderAvatar}
+                          size="xs"
+                        />
+                        <p className="text-[11px] font-medium text-muted">
                           {senderName}
                         </p>
                       </div>
@@ -410,7 +406,7 @@ export default function ChatRoomPage() {
                         "rounded-2xl px-3 py-2 text-sm shadow-soft",
                         isMine
                           ? "bg-gray-600 text-white rounded-br-sm"
-                          : "bg-gray-100 text-gray-900 rounded-bl-sm",
+                          : "bg-surface-muted text-foreground rounded-bl-sm",
                       )}
                     >
                       <p className="whitespace-pre-wrap wrap-break-word">
@@ -432,14 +428,14 @@ export default function ChatRoomPage() {
           <form
             data-testid="send-message-form"
             onSubmit={handleSendMessage}
-            className="border-t border-gray-200 px-3 py-2 flex items-end gap-2"
+            className="border-t border-border-subtle px-3 py-2 flex items-end gap-2"
           >
-            <textarea
+            <Textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               rows={2}
               placeholder="Type a message…"
-              className="flex-1 resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 resize-none"
             />
             <Button
               data-testid="send-message-button"

@@ -18,7 +18,7 @@ export function ModuleOff({
           The {moduleName} is turned off for {household.name}.
         </p>
         {household.myRole === "owner" ? (
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-muted">
             You can turn it on in the{" "}
             <Link
               href={`/household/${household.id}`}
@@ -29,7 +29,7 @@ export function ModuleOff({
             .
           </p>
         ) : (
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-muted">
             The household owner can turn it on.
           </p>
         )}

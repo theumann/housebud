@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
@@ -40,17 +41,21 @@ export default function Home() {
     };
   }, [loading, token, router]);
 
-  if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
-      </main>
-    );
-  }
-
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <p>Redirecting...</p>
+    <main
+      role="status"
+      className="flex min-h-screen items-center justify-center"
+    >
+      <Image
+        src="/logo-mark.svg"
+        alt=""
+        width={72}
+        height={72}
+        unoptimized
+        priority
+        className="animate-pulse"
+      />
+      <span className="sr-only">Loading HouseBud…</span>
     </main>
   );
 }
