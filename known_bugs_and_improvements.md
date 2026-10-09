@@ -58,13 +58,18 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 - **"me" users after a reset:** `seed-dev.ts` creates `me1`…`me5` before the ~100 Faker users and gives them no compatibility answers, so they sort to the last Matches pages. Create them after the Faker users and/or give them some answers. (They're no longer put in random chat rooms; see the fixed scenarios in `seed-dev.ts`.)
 - **Separate seed scripts for Playwright and manual testing.** `seed:e2e` and `seed:users` both run `seed-dev.ts`, so every manual-testing scenario added there is also e2e data, and e2e constraints (me1 in exactly one room, me1/me2 without a household) limit what manual testing can set up.
 
+### Look and feel
+
+- **App name in the nav on phones.** Below `sm` the nav shows the logo icon only, because the row is full. To show "HouseBud" there too, free up room: move the theme toggle and Logout into an account menu, and/or shorten "Find Roommates" on small screens. (Stacking the name under the icon was considered and rejected: too small, and taller sticky nav.)
+- **Per-page browser tab titles** ("Chores · HouseBud"). Every page shows "HouseBud" today. The pages are client components and can't export `metadata`, so this needs a small server `layout.tsx` per section.
+
 ### Deployment
 
 - **Migration upgrade test before the first deploy.** Every test run starts from an empty database (all migrations, then seed with current code), so nothing checks that a migration works on data written under the previous schema (a new required column without a default, a rename, a type change). Add a CI job: check out `main`, migrate and seed, switch to the branch, `prisma migrate deploy`, then run the smoke checks (e.g. `household-seed.spec.ts`).
 
 ### Code health
 
-- **Existing lint errors** in the frontend (mostly `catch (err: any)` and `any` types), plus `react-hooks/set-state-in-effect` in a few contexts. New code is kept lint-clean.
-- **Dead code:** `frontend/src/components/AppShell.tsx` (unused, links still point at `/matches`) and `authUserToUserLike` in `frontend/src/lib/displayName.ts`.
+- **Dead code:** `authUserToUserLike` in `frontend/src/lib/displayName.ts` is unused.
+- **Conflicting classes on shared components.** `Button`, `Input` and friends join their own classes with the caller's using `clsx`, so when both set the same property the winner depends on CSS order, not on which came last. Example: the Shortlist buttons use the `secondary` variant (`border-border-subtle`) and add `border-primary-500`. Fix: merge with `tailwind-merge` in the shared components.
 - **`backend/scripts/seed-dev.ts`** uses `Array.prototype.at()`, which `tsconfig.scripts.json`'s target doesn't allow (`tsc -p tsconfig.scripts.json` reports 2 errors; `tsx` runs it fine).
 - **Prisma 7 upgrade** (latest stable 7.x, not the 8.0 release candidate). Mostly touches `createPrisma()`, `tests/setup.ts` (per-worker `datasources` override) and the generator block. Do it on its own branch with the test suite as the safety net.

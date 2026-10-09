@@ -1,6 +1,6 @@
-# Frontend - Bunkbuddy
+# Frontend - HouseBud
 
-Next.js (App Router) frontend for the Bunkbuddy application.
+Next.js (App Router) frontend for the HouseBud application.
 
 ## Tech
 

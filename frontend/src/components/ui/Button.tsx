@@ -24,12 +24,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantClasses =
       variant === "primary"
-        ? "bg-primary-600 text-white hover:bg-primary-500"
+        ? "border-transparent bg-primary-600 text-white hover:bg-primary-700"
         : variant === "secondary"
-          ? "border border-border-subtle bg-surface text-gray-900 dark:text-gray-100 hover:bg-surface-muted"
+          ? "border border-border-subtle bg-surface text-foreground hover:bg-surface-muted"
           : variant === "danger"
-            ? "bg-red-600 text-white hover:bg-red-700"
-            : "bg-transparent text-gray-700 hover:bg-surface-muted"; // ghost
+            ? "border-transparent bg-red-600 text-white hover:bg-red-700"
+            : "bg-transparent text-foreground-soft hover:bg-surface-muted"; // ghost
 
     return (
       <button

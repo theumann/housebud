@@ -15,12 +15,13 @@ import {
   getUserDisplayName,
   shortlistedUserToUserLike,
 } from "@/lib/displayName";
+import { Avatar } from "@/components/ui/Avatar";
 
 function EmptyShortlistState() {
   return (
     <div className="rounded-card border border-border-subtle bg-surface shadow-soft p-6">
       <h2 className="text-base font-semibold">Your shortlist is empty</h2>
-      <p className="mt-1 text-sm text-gray-600">
+      <p className="mt-1 text-sm text-muted">
         Add a few promising roommates from Matches, then start a Meet &amp;
         Greet chat.
       </p>
@@ -28,19 +29,19 @@ function EmptyShortlistState() {
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <a
           href="/matches"
-          className="inline-flex items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-500"
+          className="inline-flex items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
         >
           Browse matches
         </a>
         <a
           href="/compatibility"
-          className="inline-flex items-center justify-center rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-gray-900 hover:bg-surface-muted"
+          className="inline-flex items-center justify-center rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-muted"
         >
           Improve compatibility
         </a>
       </div>
 
-      <p className="mt-4 text-xs text-gray-500">
+      <p className="mt-4 text-xs text-subtle">
         Tip: Shortlist is private — other users aren’t notified until you invite
         them to chat.
       </p>
@@ -180,7 +181,7 @@ export default function ShortlistPage() {
       <header className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Shortlist</h1>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted">
             Keep track of promising roommates and start or extend chats from
             here.
           </p>
@@ -240,27 +241,20 @@ export default function ShortlistPage() {
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 overflow-hidden rounded-full bg-surface-muted flex items-center justify-center text-sm font-semibold">
-                            {u.avatarUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={u.avatarUrl}
-                                alt=""
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              (displayName[0]?.toUpperCase() ?? "?")
-                            )}
-                          </div>
+                          <Avatar
+                            userId={u.userId}
+                            name={displayName}
+                            avatarUrl={u.avatarUrl}
+                          />
                           <div>
                             <h2 className="text-base font-semibold">
                               {displayName}
                             </h2>
-                            <p className="text-xs text-gray-600">
+                            <p className="text-xs text-muted">
                               {u.age !== null ? `${u.age} · ` : ""}
                               {u.school} · {u.collegeYear}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-subtle">
                               {u.targetCity}, {u.targetState} {u.targetZip}
                             </p>
                           </div>
@@ -271,7 +265,7 @@ export default function ShortlistPage() {
 
                   <CardBody>
                     {u.bio && (
-                      <p className="mt-1 text-xs text-gray-700 line-clamp-3">
+                      <p className="mt-1 text-xs text-foreground-soft line-clamp-3">
                         {u.bio}
                       </p>
                     )}
@@ -292,7 +286,7 @@ export default function ShortlistPage() {
                         inviteStatusLabel(participantStatus(u.userId)) && (
                           <span
                             data-testid={`shortlist-room-status-${u.userId}`}
-                            className="text-gray-500"
+                            className="text-subtle"
                           >
                             {inviteStatusLabel(participantStatus(u.userId))}
                           </span>
@@ -320,12 +314,12 @@ export default function ShortlistPage() {
                   <div className="text-sm">
                     <span className="font-semibold">{selectedIds.length}</span>{" "}
                     selected
-                    <span className="text-gray-500"> · </span>
+                    <span className="text-subtle"> · </span>
                     <button
                       data-testid="clear-selection-button"
                       type="button"
                       onClick={() => setSelectedIds([])}
-                      className="text-xs text-gray-600 underline underline-offset-2 hover:text-gray-900"
+                      className="text-xs text-muted underline underline-offset-2 hover:text-foreground"
                     >
                       Clear selection
                     </button>
@@ -349,7 +343,7 @@ export default function ShortlistPage() {
                         onClick={handleInviteSelectedToOwnedRoom}
                         disabled={inviting}
                         title={`Invite to ${roomDisplayName(ownedRoom)}`}
-                        className="min-w-0 max-w-xs border-blue-500 text-blue-700 hover:bg-blue-50"
+                        className="min-w-0 max-w-xs border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-500 dark:hover:bg-primary-600/20"
                       >
                         <span className="truncate">
                           {inviting
@@ -387,7 +381,7 @@ export default function ShortlistPage() {
                 onClick={handleInviteSelectedToOwnedRoom}
                 disabled={inviting || selectedIds.length === 0}
                 title={`Invite selected to ${roomDisplayName(ownedRoom)}`}
-                className="min-w-0 border-blue-500 text-blue-700 hover:bg-blue-50"
+                className="min-w-0 border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-500 dark:hover:bg-primary-600/20"
               >
                 <span className="truncate">
                   {inviting

@@ -3,6 +3,77 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Link from "next/link";
+import clsx from "clsx";
+import { AuthLayout } from "@/components/layout/AuthLayout";
+import { Button } from "@/components/ui/Button";
+import { Input, Select } from "@/components/ui/Input";
+
+type SignupField = {
+  name: string;
+  label: string;
+  type?: string;
+  required?: boolean;
+  wide?: boolean;
+  autoComplete?: string;
+  placeholder?: string;
+};
+
+const FIELDS: SignupField[] = [
+  {
+    name: "email",
+    label: "Email",
+    wide: true,
+    type: "email",
+    required: true,
+    autoComplete: "email",
+  },
+  {
+    name: "password",
+    label: "Password",
+    wide: true,
+    type: "password",
+    required: true,
+    autoComplete: "new-password",
+  },
+  {
+    name: "firstName",
+    label: "First name",
+    required: true,
+    autoComplete: "given-name",
+  },
+  {
+    name: "lastName",
+    label: "Last name",
+    required: true,
+    autoComplete: "family-name",
+  },
+  {
+    name: "username",
+    label: "Username",
+    required: true,
+    autoComplete: "username",
+  },
+  {
+    name: "displayName",
+    label: "Display name",
+    placeholder: "How others see you",
+  },
+  {
+    name: "birthDate",
+    label: "Birth date",
+    type: "date",
+    required: true,
+    autoComplete: "bday",
+  },
+  { name: "collegeYear", label: "College year", required: true },
+  { name: "school", label: "School", wide: true, required: true },
+  { name: "targetCity", label: "Target city", wide: true, required: true },
+  { name: "targetState", label: "Target state", required: true },
+  { name: "targetZip", label: "Target ZIP", required: true },
+];
+
+const COLLEGE_YEARS = ["Freshman", "Sophomore", "Junior", "Senior"];
 
 export default function SignupPage() {
   const { signup } = useAuth();
@@ -24,7 +95,9 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
@@ -43,237 +116,93 @@ export default function SignupPage() {
   };
 
   return (
-    <main
+    <AuthLayout
       data-testid="signup-page"
-      className="min-h-screen flex items-center justify-center"
+      title="Create your account"
+      subtitle="Find roommates, then run the household together."
+      wide
     >
-      <div className="w-full max-w-lg border rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-4">Sign up</h1>
-        <form onSubmit={onSubmit} className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 flex flex-col-reverse">
-            <input
-              id="signup-email"
-              name="email"
-              type="email"
-              className="peer w-full border rounded px-3 py-2"
-              value={form.email}
-              onChange={onChange}
-              required
-            />
-            <label
-              htmlFor="signup-email"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+      <form
+        onSubmit={onSubmit}
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+      >
+        {FIELDS.map((field) => {
+          const id = `signup-${field.name}`;
+          const value = form[field.name as keyof typeof form];
+          return (
+            <div
+              key={field.name}
+              className={clsx(field.wide && "sm:col-span-2")}
             >
-              Email
-            </label>
-          </div>
-          <div className="col-span-2 flex flex-col-reverse">
-            <input
-              id="signup-password"
-              name="password"
-              type="password"
-              className="peer w-full border rounded px-3 py-2"
-              value={form.password}
-              onChange={onChange}
-              required
-            />
-            <label
-              htmlFor="signup-password"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              Password
-            </label>
-          </div>
-          <div className="flex flex-col-reverse">
-            <input
-              id="signup-first-name"
-              name="firstName"
-              className="peer w-full border rounded px-3 py-2"
-              value={form.firstName}
-              onChange={onChange}
-              required
-            />
-            <label
-              htmlFor="signup-first-name"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              First name
-            </label>
-          </div>
-          <div className="flex flex-col-reverse">
-            <input
-              id="signup-last-name"
-              name="lastName"
-              className="peer w-full border rounded px-3 py-2"
-              value={form.lastName}
-              onChange={onChange}
-              required
-            />
-            <label
-              htmlFor="signup-last-name"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              Last name
-            </label>
-          </div>
-          <div className="flex flex-col-reverse">
-            <input
-              id="signup-username"
-              name="username"
-              className="peer w-full border rounded px-3 py-2"
-              value={form.username}
-              onChange={onChange}
-              required
-            />
-            <label
-              htmlFor="signup-username"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              Username
-            </label>
-          </div>
-          <div className="flex flex-col-reverse">
-            <input
-              id="signup-display-name"
-              name="displayName"
-              className="peer w-full border rounded px-3 py-2"
-              value={form.displayName}
-              placeholder="How others see you."
-              onChange={onChange}
-            />
-            <label
-              htmlFor="signup-display-name"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              Display Name
-            </label>
-          </div>
-          <div className="flex flex-col-reverse">
-            <input
-              id="signup-birth-date"
-              name="birthDate"
-              type="date"
-              className={`peer w-full border rounded px-3 py-2 ${
-                form.birthDate ? "text-black" : "text-gray-400"
-              }`}
-              value={form.birthDate}
-              onChange={onChange}
-              required
-            />
-            <label
-              htmlFor="signup-birth-date"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              Birth date
-            </label>
-          </div>
-          <div className="flex flex-col-reverse">
-            <input
-              id="signup-school"
-              name="school"
-              className="peer w-full border rounded px-3 py-2"
-              value={form.school}
-              onChange={onChange}
-              required
-            />
-            <label
-              htmlFor="signup-school"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              School
-            </label>
-          </div>
-          <div className="flex flex-col-reverse">
-            <select
-              id="signup-college-year"
-              name="collegeYear"
-              className={`peer w-full border rounded px-3 py-2 bg-white ${
-                form.collegeYear ? "text-black" : "text-gray-400"
-              }`}
-              value={form.collegeYear}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, collegeYear: e.target.value }))
-              }
-              required
-            >
-              <option value="">Select year</option>
-              <option value="Freshman">Freshman</option>
-              <option value="Sophomore">Sophomore</option>
-              <option value="Junior">Junior</option>
-              <option value="Senior">Senior</option>
-            </select>
-            <label
-              htmlFor="signup-college-year"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              College year
-            </label>
-          </div>
-          <div className="flex flex-col-reverse">
-            <input
-              id="signup-target-city"
-              name="targetCity"
-              className="peer w-full border rounded px-3 py-2"
-              value={form.targetCity}
-              onChange={onChange}
-              required
-            />
-            <label
-              htmlFor="signup-target-city"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              Target city
-            </label>
-          </div>
-          <div className="flex flex-col-reverse">
-            <input
-              id="signup-target-state"
-              name="targetState"
-              className="peer w-full border rounded px-3 py-2"
-              value={form.targetState}
-              onChange={onChange}
-              required
-            />
-            <label
-              htmlFor="signup-target-state"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              Target state
-            </label>
-          </div>
-          <div className="col-span-2 flex flex-col-reverse">
-            <input
-              id="signup-target-zip"
-              name="targetZip"
-              className="peer w-full border rounded px-3 py-2"
-              value={form.targetZip}
-              onChange={onChange}
-              required
-            />
-            <label
-              htmlFor="signup-target-zip"
-              className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-            >
-              Target ZIP
-            </label>
-          </div>
-          {error && <p className="col-span-2 text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            className="col-span-2 bg-black text-white rounded py-2"
-            disabled={submitting}
+              <label htmlFor={id} className="mb-1 block text-sm font-medium">
+                {field.label}
+                {field.required && (
+                  <span className="text-red-600 dark:text-red-400">*</span>
+                )}
+              </label>
+              {field.name === "collegeYear" ? (
+                <Select
+                  id={id}
+                  name={field.name}
+                  value={value}
+                  onChange={onChange}
+                  required
+                  className={clsx("w-full", !value && "text-faint")}
+                >
+                  <option value="">Select year</option>
+                  {COLLEGE_YEARS.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </Select>
+              ) : (
+                <Input
+                  id={id}
+                  name={field.name}
+                  type={field.type ?? "text"}
+                  value={value}
+                  onChange={onChange}
+                  required={field.required}
+                  autoComplete={field.autoComplete}
+                  placeholder={field.placeholder}
+                  className={clsx(
+                    "w-full",
+                    field.type === "date" && !value && "text-faint",
+                  )}
+                />
+              )}
+            </div>
+          );
+        })}
+        {error && (
+          <p
+            role="alert"
+            className="text-sm text-red-600 sm:col-span-2 dark:text-red-400"
           >
-            {submitting ? "Signing up..." : "Sign up"}
-          </button>
-          <p className="col-span-2 text-xs text-red-600">*: required fields</p>
-        </form>
-        <p className="mt-4 text-sm">
-          Already have an account?{" "}
-          <a href="/login" className="text-blue-600 underline">
-            Login
-          </a>
+            {error}
+          </p>
+        )}
+        <Button
+          type="submit"
+          className="w-full sm:col-span-2"
+          disabled={submitting}
+        >
+          {submitting ? "Signing up..." : "Sign up"}
+        </Button>
+        <p className="text-xs text-muted sm:col-span-2">
+          <span className="text-red-600 dark:text-red-400">*</span> Required
         </p>
-      </div>
-    </main>
+      </form>
+      <p className="mt-6 text-center text-sm text-muted">
+        Already have an account?{" "}
+        <Link
+          href="/login"
+          className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-500"
+        >
+          Log in
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }

@@ -36,7 +36,7 @@ export function RoomActionButton({
         variant="ghost"
         size="sm"
         title={label}
-        className="mt-1 w-full min-w-0 border border-blue-500 text-blue-700 hover:bg-blue-50"
+        className="mt-1 w-full min-w-0 border border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-500 dark:hover:bg-primary-600/20"
         onClick={() => router.push(`/chatrooms/${shared.id}`)}
       >
         <span className="truncate">{label}</span>
@@ -63,7 +63,7 @@ export function RoomActionButton({
       variant="ghost"
       size="sm"
       title={label}
-      className="mt-1 w-full min-w-0 border border-blue-500 text-blue-700 hover:bg-blue-50"
+      className="mt-1 w-full min-w-0 border border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-500 dark:hover:bg-primary-600/20"
       disabled={!invitable || inviting}
       onClick={() => onInvite(userId)}
     >

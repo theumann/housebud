@@ -176,7 +176,7 @@ export default function CompatibilityPage() {
     <PageContainer data-testid="compatibility-page">
       <header className="mb-4">
         <h1 className="text-2xl font-bold">Compatibility profile</h1>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-muted">
           Answer a few questions so we can propose roommates whose lifestyle is
           closer to yours. For the MVP, these answers are used only for match
           scoring.
@@ -190,14 +190,14 @@ export default function CompatibilityPage() {
             <h2 className="text-sm font-semibold">Your coverage</h2>
           </CardHeader>
           <CardBody>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted">
               Answered questions:{" "}
               <span className="font-semibold">
                 {answeredCount} / {totalQuestions || "—"}
               </span>
             </p>
             <div className="mt-3">
-              <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center justify-between text-xs text-subtle">
                 <span>Profile completeness</span>
                 <span>{coverage}%</span>
               </div>
@@ -207,7 +207,7 @@ export default function CompatibilityPage() {
                   style={{ width: `${coverage}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-subtle">
                 Matching works best when you answer at least{" "}
                 <strong>20%</strong> of the questions. You can update your
                 answers at any time.
@@ -222,7 +222,7 @@ export default function CompatibilityPage() {
             <h2 className="text-sm font-semibold">How this is used</h2>
           </CardHeader>
           <CardBody>
-            <ul className="list-disc space-y-1 pl-5 text-xs text-gray-600">
+            <ul className="list-disc space-y-1 pl-5 text-xs text-muted">
               <li>
                 We don&apos;t show these answers to other users; they are used
                 behind the scenes for compatibility scoring.
@@ -255,13 +255,13 @@ export default function CompatibilityPage() {
         <CardHeader>
           <h2 className="text-sm font-semibold">Questions</h2>
           {loadingQuestions && (
-            <p className="mt-1 text-xs text-gray-500">Loading…</p>
+            <p className="mt-1 text-xs text-subtle">Loading…</p>
           )}
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardBody>
             {questions.length === 0 && !loadingQuestions && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-subtle">
                 No compatibility questions are configured yet.
               </p>
             )}
@@ -287,14 +287,14 @@ export default function CompatibilityPage() {
                       data-testid={`compat-category-${toTestId(cat)}`}
                     >
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">
+                        <p className="text-sm font-semibold text-foreground">
                           {cat}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-subtle">
                           {catAnswered} / {qs.length} answered
                         </p>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-subtle">
                         {isOpen ? "Hide" : "Show"}
                       </span>
                     </button>
@@ -311,12 +311,12 @@ export default function CompatibilityPage() {
                                 data-testid={`question-${q.id}`}
                                 className="border-b border-border-subtle pb-3 last:border-b-0"
                               >
-                                <p className="text-sm font-medium text-gray-800">
+                                <p className="text-sm font-medium text-foreground">
                                   {q.text}
                                 </p>
 
                                 {q.helperText && (
-                                  <p className="mt-1 text-xs text-gray-500">
+                                  <p className="mt-1 text-xs text-subtle">
                                     {q.helperText}
                                   </p>
                                 )}
@@ -327,7 +327,7 @@ export default function CompatibilityPage() {
                                       {options.map((opt) => (
                                         <label
                                           key={opt}
-                                          className="flex cursor-pointer items-center gap-2 text-xs text-gray-700"
+                                          className="flex cursor-pointer items-center gap-2 text-xs text-foreground-soft"
                                         >
                                           <input
                                             type="radio"
@@ -345,7 +345,7 @@ export default function CompatibilityPage() {
                                       ))}
 
                                       {/* UI-only remove/clear */}
-                                      <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-700">
+                                      <label className="flex cursor-pointer items-center gap-2 text-xs text-foreground-soft">
                                         <input
                                           type="radio"
                                           name={q.id}
@@ -357,7 +357,7 @@ export default function CompatibilityPage() {
                                           data-testid={`question-${q.id}-option-none`}
                                           className="h-3 w-3"
                                         />
-                                        <span className="italic text-gray-500">
+                                        <span className="italic text-subtle">
                                           Prefer not to answer
                                         </span>
                                       </label>
@@ -365,7 +365,7 @@ export default function CompatibilityPage() {
                                   )}
 
                                 {q.type === "free_text" && (
-                                  <p className="mt-1 text-xs text-gray-500">
+                                  <p className="mt-1 text-xs text-subtle">
                                     (Free text not enabled in MVP UI yet.)
                                   </p>
                                 )}
@@ -382,7 +382,7 @@ export default function CompatibilityPage() {
           </CardBody>
 
           <CardFooter className="flex items-center justify-between">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-subtle">
               You can adjust these answers at any time.
             </p>
             <Button

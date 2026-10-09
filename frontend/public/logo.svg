@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-labelledby="title desc">
+  <title id="title">HouseBud logo</title>
+  <desc id="desc">A teal house containing four colorful panels representing roommates, a calendar, a checklist, and a shopping cart, above the HouseBud wordmark.</desc>
+  <defs>
+    <linearGradient id="roof" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#39967D"/>
+      <stop offset="1" stop-color="#27866E"/>
+    </linearGradient>
+    <linearGradient id="bud" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3C9B7E"/>
+      <stop offset="1" stop-color="#28856D"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Transparent background; add a background rectangle in your app if desired. -->
+  <g id="house-icon" stroke-linecap="round" stroke-linejoin="round">
+    <!-- House outline -->
+    <path d="M300 360 L600 150 L900 360" fill="none" stroke="url(#roof)" stroke-width="54"/>
+    <path d="M350 340 V665 Q350 710 395 710 H805 Q850 710 850 665 V340" fill="none" stroke="url(#roof)" stroke-width="36"/>
+
+    <!-- Four functional panels -->
+    <rect x="385" y="355" width="190" height="150" rx="24" fill="#FFF0C9"/>
+    <rect x="595" y="355" width="220" height="150" rx="24" fill="#D9EDF7"/>
+    <rect x="385" y="520" width="190" height="150" rx="24" fill="#DDEEDB"/>
+    <rect x="595" y="520" width="220" height="150" rx="24" fill="#FFE0D4"/>
+
+    <!-- Roommates -->
+    <circle cx="447" cy="407" r="23" fill="#F9B233"/>
+    <path d="M410 478 Q412 437 447 437 Q482 437 484 478 Z" fill="#F9B233"/>
+    <circle cx="510" cy="414" r="21" fill="#58A991"/>
+    <path d="M477 478 Q480 444 510 444 Q540 444 543 478 Z" fill="#58A991"/>
+
+    <!-- Calendar -->
+    <rect x="646" y="390" width="118" height="85" rx="12" fill="#4D9BC7"/>
+    <path d="M646 412 H764" stroke="#D9EDF7" stroke-width="9"/>
+    <path d="M671 379 V402 M739 379 V402" stroke="#4D9BC7" stroke-width="12"/>
+    <g fill="#A5D4E8">
+      <rect x="663" y="425" width="18" height="15" rx="4"/>
+      <rect x="696" y="425" width="18" height="15" rx="4"/>
+      <rect x="729" y="425" width="18" height="15" rx="4"/>
+      <rect x="663" y="449" width="18" height="15" rx="4"/>
+      <rect x="696" y="449" width="18" height="15" rx="4"/>
+      <rect x="729" y="449" width="18" height="15" rx="4" fill="#2C83B3"/>
+    </g>
+
+    <!-- Checklist -->
+    <rect x="409" y="550" width="52" height="52" rx="12" fill="#36977B"/>
+    <path d="M422 576 L434 588 L450 565" fill="none" stroke="#FFFFFF" stroke-width="8"/>
+    <path d="M477 560 H541 M477 584 H541 M477 608 H528" stroke="#36977B" stroke-width="10"/>
+
+    <!-- Shopping cart -->
+    <path d="M626 552 H650 L668 615 Q671 624 682 624 H761 Q771 624 775 614 L793 571 H659" fill="#F06455" stroke="#F06455" stroke-width="10"/>
+    <circle cx="682" cy="644" r="11" fill="#F06455"/>
+    <circle cx="760" cy="644" r="11" fill="#F06455"/>
+  </g>
+
+  <!-- Wordmark is editable text; change font-family to match your brand font if needed. -->
+  <text x="600" y="865" text-anchor="middle" font-family="Nunito, 'Arial Rounded MT Bold', Arial, sans-serif" font-size="116" font-weight="800" letter-spacing="-4">
+    <tspan fill="#26394E">House</tspan><tspan fill="url(#bud)">Bud</tspan>
+  </text>
+</svg>

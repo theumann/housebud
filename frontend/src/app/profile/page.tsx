@@ -8,6 +8,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getUserDisplayName } from "../../lib/displayName";
+import { Input, Select, Textarea } from "@/components/ui/Input";
 
 type ProfilePayload = {
   firstName: string;
@@ -180,7 +181,7 @@ export default function ProfilePage() {
     <PageContainer data-testid="profile-edit-page">
       <header className="mb-4">
         <h1>{getUserDisplayName(user)}</h1>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-muted">
           This information is used for matching and how you appear to others in
           the app.
         </p>
@@ -190,7 +191,7 @@ export default function ProfilePage() {
         <CardHeader>
           <h2 className="text-sm font-semibold">Account & roommate profile</h2>
           {loadingProfile && (
-            <p className="mt-1 text-xs text-gray-500">Loading profile…</p>
+            <p className="mt-1 text-xs text-subtle">Loading profile…</p>
           )}
         </CardHeader>
 
@@ -213,25 +214,25 @@ export default function ProfilePage() {
                 {/* displayName */}
                 <div>
                   <label className="block text-sm mb-1">Display name</label>
-                  <input
+                  <Input
                     type="text"
                     value={form.displayName}
                     onChange={(e) =>
                       handleChange("displayName", e.target.value)
                     }
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full"
                     placeholder="How others see you"
                   />
                 </div>
 
                 {/* School */}
                 <div className="flex flex-col-reverse">
-                  <input
+                  <Input
                     id="profile-school"
                     type="text"
                     value={form.school}
                     onChange={(e) => handleChange("school", e.target.value)}
-                    className="peer w-full border rounded px-3 py-2"
+                    className="peer w-full"
                     placeholder="USF, SFSU, UCSF…"
                     required
                   />
@@ -245,13 +246,13 @@ export default function ProfilePage() {
 
                 {/* College year */}
                 <div className="flex flex-col-reverse">
-                  <select
+                  <Select
                     id="profile-college-year"
                     value={form.collegeYear}
                     onChange={(e) =>
                       handleChange("collegeYear", e.target.value)
                     }
-                    className="peer w-full border rounded px-3 py-2 bg-white"
+                    className="peer w-full"
                     required
                   >
                     <option value="">Select year</option>
@@ -259,7 +260,7 @@ export default function ProfilePage() {
                     <option value="Sophomore">Sophomore</option>
                     <option value="Junior">Junior</option>
                     <option value="Senior">Senior</option>
-                  </select>
+                  </Select>
                   <label
                     htmlFor="profile-college-year"
                     className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
@@ -271,11 +272,11 @@ export default function ProfilePage() {
                 {/* Bio */}
                 <div>
                   <label className="block text-sm mb-1">Short bio</label>
-                  <textarea
+                  <Textarea
                     value={form.bio}
                     onChange={(e) => handleChange("bio", e.target.value)}
                     rows={3}
-                    className="w-full resize-none border rounded px-3 py-2"
+                    className="w-full resize-none"
                     placeholder="Tell potential roommates a bit about yourself."
                   />
                 </div>
@@ -285,12 +286,12 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 {/* Target city */}
                 <div className="flex flex-col-reverse">
-                  <input
+                  <Input
                     id="profile-target-city"
                     type="text"
                     value={form.targetCity}
                     onChange={(e) => handleChange("targetCity", e.target.value)}
-                    className="peer w-full border rounded px-3 py-2"
+                    className="peer w-full"
                     placeholder="San Francisco"
                     required
                   />
@@ -305,14 +306,14 @@ export default function ProfilePage() {
                 {/* Target state */}
                 <div className="grid grid-cols-[1fr_auto] gap-2">
                   <div className="flex flex-col-reverse">
-                    <input
+                    <Input
                       id="profile-target-state"
                       type="text"
                       value={form.targetState}
                       onChange={(e) =>
                         handleChange("targetState", e.target.value)
                       }
-                      className="peer w-full border rounded px-3 py-2"
+                      className="peer w-full"
                       placeholder="CA"
                       required
                     />
@@ -326,14 +327,14 @@ export default function ProfilePage() {
 
                   {/* Zip */}
                   <div className="flex flex-col-reverse">
-                    <input
+                    <Input
                       id="profile-target-zip"
                       type="text"
                       value={form.targetZip}
                       onChange={(e) =>
                         handleChange("targetZip", e.target.value)
                       }
-                      className="peer w-full border rounded px-3 py-2"
+                      className="peer w-full"
                       placeholder="94117"
                       required
                     />
@@ -349,11 +350,11 @@ export default function ProfilePage() {
                 {/* Avatar URL + preview */}
                 <div>
                   <label className="block text-sm mb-1">Avatar URL</label>
-                  <input
+                  <Input
                     type="url"
                     value={form.avatarUrl}
                     onChange={(e) => handleChange("avatarUrl", e.target.value)}
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full"
                     placeholder="https://example.com/your-photo.jpg"
                   />
                   {avatarPreview && (
@@ -371,7 +372,7 @@ export default function ProfilePage() {
                           }}
                         />
                       </div>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-subtle">
                         This image will be shown on your cards and in chats.
                       </p>
                     </div>
@@ -382,7 +383,7 @@ export default function ProfilePage() {
           </CardBody>
 
           <CardFooter className="flex items-center justify-between">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-subtle">
               Your display name and school help others recognize you. Location
               is used to filter and sort matches.
             </p>

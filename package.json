@@ -1,23 +1,23 @@
 {
-  "name": "bunkbuddy",
+  "name": "housebud",
   "version": "1.0.0",
-  "description": "Bunkbuddy is a web application that helps future college roommates find each other, compare lifestyle compatibility, and connect through \"meet & greet\" chat rooms before committing to a shared household.",
+  "description": "HouseBud helps students find compatible roommates and then run the household they form: chores, a shared shopping list, and more.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/theumann/bunkbuddy.git"
+    "url": "git+https://github.com/theumann/housebud.git"
   },
   "keywords": [],
   "author": "Thierry Heumann",
   "license": "MIT",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/theumann/bunkbuddy/issues"
+    "url": "https://github.com/theumann/housebud/issues"
   },
-  "homepage": "https://github.com/theumann/bunkbuddy#readme",
+  "homepage": "https://github.com/theumann/housebud#readme",
   "devDependencies": {
     "prettier": "^3.8.1"
   }

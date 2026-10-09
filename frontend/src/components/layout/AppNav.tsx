@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/Logo";
 import { useChatroomsFeed } from "@/context/ChatroomsFeedContext";
 import { getUserDisplayName } from "@/lib/displayName";
 import { useTheme } from "@/hooks/useTheme";
@@ -72,8 +73,8 @@ function NavPill({
       className={clsx(
         "rounded-full px-3 py-1",
         active
-          ? "bg-primary-100 text-primary-600 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
-          : "text-gray-600 hover:bg-surface-muted dark:text-slate-400",
+          ? "bg-primary-100 text-primary-700 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
+          : "text-muted hover:bg-surface-muted",
         className,
       )}
       aria-current={active ? "page" : undefined}
@@ -159,23 +160,16 @@ export function AppNav() {
       : [];
 
   return (
-    <nav className="sticky top-0 z-20 mb-4 border-b border-border-subtle bg-linear-to-r from-nav-from/90 to-nav-to/90 backdrop-blur">
+    <nav className="sticky top-0 z-20 border-b border-border-subtle bg-linear-to-r from-nav-from/90 to-nav-to/90 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         {/* Brand */}
         <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
-            <span
-              data-testid="nav-logo"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white"
-            >
-              BB
-            </span>
-            <span
-              data-testid="nav-title"
-              className="hidden text-sm font-semibold tracking-tight sm:inline"
-            >
-              Bunkbuddy
-            </span>
+          <Link href="/" aria-label="HouseBud home">
+            <Logo
+              markTestId="nav-logo"
+              wordmarkTestId="nav-title"
+              wordmarkClassName="hidden sm:inline"
+            />
           </Link>
         </div>
 
@@ -196,7 +190,7 @@ export function AppNav() {
             <Link
               href="/profile"
               data-testid="nav-profile"
-              className="hidden text-gray-600 dark:text-slate-400 underline-offset-2 hover:underline sm:inline"
+              className="hidden text-muted underline-offset-2 hover:underline sm:inline"
             >
               {user
                 ? `Hi, ${getUserDisplayName({
@@ -213,7 +207,7 @@ export function AppNav() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-gray-700 dark:text-slate-300 hover:bg-surface-muted"
+            className="text-foreground-soft hover:bg-surface-muted"
             data-testid="toggle-theme"
             aria-label="Toggle theme"
             onClick={toggle}
@@ -252,7 +246,7 @@ export function AppNav() {
             data-testid="logout-button"
             variant="ghost"
             size="sm"
-            className="text-gray-700 dark:text-slate-300 hover:bg-surface-muted"
+            className="text-foreground-soft hover:bg-surface-muted"
             onClick={logout}
           >
             Logout
@@ -283,10 +277,10 @@ export function AppNav() {
                   data-testid={`nav-household-${m.path}-soon`}
                   title="Coming soon"
                   aria-disabled="true"
-                  className="inline-flex cursor-help items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-gray-400 dark:text-slate-600"
+                  className="inline-flex cursor-help items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-faint"
                 >
                   <span>{m.label}</span>
-                  <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-gray-500 dark:text-slate-400">
+                  <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-subtle">
                     soon
                   </span>
                 </span>

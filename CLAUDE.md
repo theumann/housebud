@@ -1,8 +1,8 @@
-# Bunkbuddy — Claude Code Instructions
+# HouseBud — Claude Code Instructions
 
 ## Project Description
 
-Bunkbuddy helps students find roommates and then run the household they form. Matching and household management are one app (see Current Direction below):
+HouseBud helps students find roommates and then run the household they form. Matching and household management are one app (see Current Direction below):
 
 - Matching workflow (built):
   - See other Users Cards -> Add other users to a Shortlist (optional) -> Invite and/or get invited to a chatroom.
@@ -175,7 +175,14 @@ const data = await apiFetch<SomeType>("/endpoint", {
 - All pages use `"use client"` — there are no Server Components currently
 - Components are PascalCase, hooks are camelCase with a `use` prefix
 - Styling is Tailwind only — no CSS modules or inline style objects
-- UI primitives live in `src/components/ui/` (Button, Card, etc.)
+- Colors come from the theme tokens in `src/app/globals.css`, which switch for dark mode — not raw Tailwind palette classes:
+  - Text: `text-foreground`, `text-foreground-soft`, `text-muted`, `text-subtle`, `text-faint` (strongest to faintest) instead of `text-gray-*`
+  - Brand: `primary-*` (the logo's teal) instead of `blue-*`. Buttons use `bg-primary-600`; teal text uses `text-primary-700 dark:text-primary-500`
+  - Surfaces and borders: `bg-surface`, `bg-surface-muted`, `border-border-subtle` (dividers, cards), `border-border-strong` (form controls)
+  - Red, green and amber stay as status colors (errors, success, warnings)
+- Form fields use `Input`, `Select` and `Textarea` from `src/components/ui/Input.tsx` (they set no width — pass `w-full` etc.); checkboxes and radios stay plain `<input>` and get the brand color from `globals.css`
+- Brand: `Logo` (`src/components/Logo.tsx`) is the icon (`public/logo-mark.svg`) plus the "HouseBud" wordmark in Nunito. The UI font is Figtree, loaded in `src/app/layout.tsx` as `--font-app`
+- UI primitives live in `src/components/ui/` (Button, Card, Input, Avatar, etc.). Show people with `Avatar` (photo, or their initial on a color fixed by user id)
 - Reusable UI components wrap HTML elements with `forwardRef` and extend the relevant HTML attribute interface
 
 ### State & data fetching

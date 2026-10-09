@@ -57,7 +57,7 @@ export function InviteInbox({
             <div>
               <p className="text-sm font-semibold">{invite.household.name}</p>
               {invite.invitedByUser && (
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-muted">
                   Invited by {getUserDisplayName(invite.invitedByUser)}
                 </p>
               )}

@@ -8,6 +8,7 @@ import { ModuleOff } from "@/components/household/ModuleOff";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getUserDisplayName } from "@/lib/displayName";
+import { Input } from "@/components/ui/Input";
 
 function ErrorNote({ error }: { error: string | null }) {
   if (!error) return null;
@@ -50,16 +51,16 @@ function ItemRow({
         <p
           className={clsx(
             "truncate text-sm",
-            checked && "text-gray-500 line-through",
+            checked && "text-subtle line-through",
           )}
         >
           <span data-testid="shopping-item-name">{item.name}</span>
           {item.quantity && (
-            <span className="text-gray-500"> · {item.quantity}</span>
+            <span className="text-subtle"> · {item.quantity}</span>
           )}
         </p>
         {who && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-subtle">
             {checked ? "Got it: " : "Added by "}
             {getUserDisplayName(who)}
           </p>
@@ -145,13 +146,13 @@ export function ShoppingList({ household }: { household: Household }) {
     <Card data-testid="shopping-list">
       <CardHeader>
         <h2 className="text-xl font-semibold">Shopping list</h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-muted">
           Shared with everyone in {household.name}.
         </p>
       </CardHeader>
       <CardBody className="flex flex-col gap-4">
         <form onSubmit={handleAdd} className="flex flex-col gap-2 sm:flex-row">
-          <input
+          <Input
             data-testid="shopping-add-name"
             type="text"
             value={name}
@@ -159,9 +160,9 @@ export function ShoppingList({ household }: { household: Household }) {
             placeholder="Add an item, e.g. Milk"
             aria-label="Item"
             maxLength={100}
-            className="w-full rounded border px-3 py-2 sm:flex-1"
+            className="w-full sm:flex-1"
           />
-          <input
+          <Input
             data-testid="shopping-add-quantity"
             type="text"
             value={quantity}
@@ -169,7 +170,7 @@ export function ShoppingList({ household }: { household: Household }) {
             placeholder="Qty (optional)"
             aria-label="Quantity"
             maxLength={30}
-            className="w-full rounded border px-3 py-2 sm:w-36"
+            className="w-full sm:w-36"
           />
           <Button
             data-testid="shopping-add-submit"
@@ -183,7 +184,7 @@ export function ShoppingList({ household }: { household: Household }) {
         <ErrorNote error={actionError ?? list.error} />
 
         {list.loading && list.items.length === 0 ? (
-          <p className="text-sm text-gray-600">Loading...</p>
+          <p className="text-sm text-muted">Loading...</p>
         ) : (
           <>
             <section>
@@ -191,7 +192,7 @@ export function ShoppingList({ household }: { household: Household }) {
               {open.length === 0 ? (
                 <p
                   data-testid="shopping-empty"
-                  className="py-2 text-sm text-gray-500"
+                  className="py-2 text-sm text-subtle"
                 >
                   Nothing on the list.
                 </p>
