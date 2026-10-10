@@ -6,7 +6,12 @@ export const SignupSchema = z.object({
   password: z.string().min(8),
   firstName: z.string(),
   lastName: z.string(),
-  displayName: z.string().min(3).max(32),
+  displayName: z
+    .string()
+    .trim()
+    .max(50)
+    .optional()
+    .transform((v) => (v === "" ? null : v)),
   birthDate: z.string(), // we'll parse to Date
   school: z.string(),
   collegeYear: z.string(),

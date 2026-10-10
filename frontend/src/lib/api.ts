@@ -6,7 +6,8 @@ export function getApiBaseUrl() {
 }
 
 // Thrown for non-2xx responses, so callers can react to the status (e.g. only
-// treat 401 as "not logged in"). The message is unchanged from before.
+// treat 401 as "not logged in"). The message is shown to users as is: the
+// backend's own error text, without the request path.
 export class ApiError extends Error {
   status: number;
 
@@ -43,10 +44,10 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
-    let message = `HTTP ${res.status} on ${path}`;
+    let message = `Something went wrong (HTTP ${res.status})`;
     try {
       const data = await res.json();
-      if (data.error) message = `${data.error} (${path})`;
+      if (data.error) message = data.error;
     } catch {
       // ignore
     }

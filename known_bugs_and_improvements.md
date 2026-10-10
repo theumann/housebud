@@ -58,6 +58,10 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 - **"me" users after a reset:** `seed-dev.ts` creates `me1`…`me5` before the ~100 Faker users and gives them no compatibility answers, so they sort to the last Matches pages. Create them after the Faker users and/or give them some answers. (They're no longer put in random chat rooms; see the fixed scenarios in `seed-dev.ts`.)
 - **Separate seed scripts for Playwright and manual testing.** `seed:e2e` and `seed:users` both run `seed-dev.ts`, so every manual-testing scenario added there is also e2e data, and e2e constraints (me1 in exactly one room, me1/me2 without a household) limit what manual testing can set up.
 
+### Accounts
+
+- **Signup is open to anyone with the link.** No invite, email confirmation, CAPTCHA or rate limit — fine while the staging link goes to a few people. Before sharing it more widely (or launching), gate signup: e.g. a `SIGNUP_CODE` env var on the backend that `POST /auth/signup` requires, handed to invited users.
+
 ### Look and feel
 
 - **App name in the nav on phones.** Below `sm` the nav shows the logo icon only, because the row is full. To show "HouseBud" there too, free up room: move the theme toggle and Logout into an account menu, and/or shorten "Find Roommates" on small screens. (Stacking the name under the icon was considered and rejected: too small, and taller sticky nav.)
