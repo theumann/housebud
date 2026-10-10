@@ -129,4 +129,50 @@ describe.sequential("Auth + Profile (smoke)", () => {
     expect(patch.status).toBe(200);
     expect(patch.body.avatarUrl).toBe("https://example.com/a.png");
   });
+
+  const signupBody = (overrides: Record<string, string> = {}) => ({
+    email: "sam@example.com",
+    password: "Password123!",
+    firstName: "Sam",
+    lastName: "Lee",
+    username: "samlee",
+    displayName: "Sam",
+    birthDate: "2005-09-15",
+    school: "SFSU",
+    collegeYear: "Freshman",
+    targetCity: "San Francisco",
+    targetState: "CA",
+    targetZip: "94110",
+    ...overrides,
+  });
+
+  it("signup without a display name (the form sends an empty string)", async () => {
+    const signup = await request(ctx.app)
+      .post("/auth/signup")
+      .send(signupBody({ displayName: "" }));
+    expect(signup.status).toBe(201);
+
+    const me = await request(ctx.app)
+      .get("/profile/me")
+      .set("Authorization", `Bearer ${signup.body.token}`);
+    expect(me.body.profile.displayName).toBeNull();
+  });
+
+  it("signup with a taken email or username returns 409, not 500", async () => {
+    await request(ctx.app).post("/auth/signup").send(signupBody()).expect(201);
+
+    const sameEmail = await request(ctx.app)
+      .post("/auth/signup")
+      .send(signupBody({ username: "other", email: "SAM@example.com" }));
+    expect(sameEmail.status).toBe(409);
+    expect(sameEmail.body.error).toBe(
+      "An account with this email already exists",
+    );
+
+    const sameUsername = await request(ctx.app)
+      .post("/auth/signup")
+      .send(signupBody({ email: "other@example.com", username: "SamLee" }));
+    expect(sameUsername.status).toBe(409);
+    expect(sameUsername.body.error).toBe("That username is taken");
+  });
 });
