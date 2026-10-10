@@ -1,8 +1,13 @@
 import { Router } from "express";
-import { signupHandler, loginHandler } from "./auth.controller";
+import {
+  signupHandler,
+  signupOptionsHandler,
+  loginHandler,
+} from "./auth.controller";
 
 const router = Router();
 
+router.get("/signup-options", signupOptionsHandler);
 router.post("/signup", signupHandler);
 router.post("/login", loginHandler);
 router.post("/logout", (req, res) => {

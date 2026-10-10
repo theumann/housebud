@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import clsx from "clsx";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
+import { ApiError, apiFetch } from "@/lib/api";
 
 type SignupField = {
   name: string;
@@ -75,10 +76,23 @@ const FIELDS: SignupField[] = [
 
 const COLLEGE_YEARS = ["Freshman", "Sophomore", "Junior", "Senior"];
 
+// useSearchParams needs a Suspense boundary for the page to prerender.
 export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
+  );
+}
+
+function SignupForm() {
   const { signup } = useAuth();
   const router = useRouter();
+  // A shared link like /signup?code=… fills in the invite code.
+  const codeFromLink = useSearchParams().get("code") ?? "";
+  const [codeRequired, setCodeRequired] = useState(false);
   const [form, setForm] = useState({
+    signupCode: codeFromLink,
     email: "",
     password: "",
     firstName: "",
@@ -95,6 +109,14 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    apiFetch<{ codeRequired: boolean }>("/auth/signup-options")
+      .then((res) => setCodeRequired(res.codeRequired))
+      .catch(() => {});
+  }, []);
+
+  const showCodeField = codeRequired || Boolean(codeFromLink);
+
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -110,6 +132,7 @@ export default function SignupPage() {
       router.replace("/matches");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
+      if (err instanceof ApiError && err.status === 403) setCodeRequired(true);
     } finally {
       setSubmitting(false);
     }
@@ -126,6 +149,30 @@ export default function SignupPage() {
         onSubmit={onSubmit}
         className="grid grid-cols-1 gap-4 sm:grid-cols-2"
       >
+        {showCodeField && (
+          <div className="sm:col-span-2">
+            <label
+              htmlFor="signup-code"
+              className="mb-1 block text-sm font-medium"
+            >
+              Invite code
+              <span className="text-red-600 dark:text-red-400">*</span>
+            </label>
+            <Input
+              id="signup-code"
+              data-testid="signup-code"
+              name="signupCode"
+              value={form.signupCode}
+              onChange={onChange}
+              required
+              autoComplete="off"
+              className="w-full"
+            />
+            <p className="mt-1 text-xs text-subtle">
+              HouseBud is invite-only for now. Ask the person who invited you.
+            </p>
+          </div>
+        )}
         {FIELDS.map((field) => {
           const id = `signup-${field.name}`;
           const value = form[field.name as keyof typeof form];

@@ -54,7 +54,7 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ### Accounts
 
-- **Signup is open to anyone with the link.** No invite, email confirmation, CAPTCHA or rate limit — fine while the staging link goes to a few people. Before sharing it more widely (or launching), gate signup: e.g. a `SIGNUP_CODE` env var on the backend that `POST /auth/signup` requires, handed to invited users.
+- **Signup has no rate limit, CAPTCHA or email confirmation.** With `SIGNUP_CODE` set (staging), only people with the code get that far; without it, nothing slows down automated signups and nothing checks that an email is real. Add a rate limit on `/auth/signup` and `/auth/login`, and email confirmation once the app sends email.
 
 ### Look and feel
 

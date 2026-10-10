@@ -38,3 +38,16 @@ test("User can not login with Invalid credentials", async ({ page }) => {
     0,
   );
 });
+
+test("Signup shows the invite code field only when needed", async ({
+  page,
+}) => {
+  // The e2e backend has no SIGNUP_CODE, so signup is open.
+  await page.goto("/signup");
+  await expect(page.getByTestId("signup-page")).toBeVisible();
+  await expect(page.getByTestId("signup-code")).toHaveCount(0);
+
+  // A shared invite link fills the code in.
+  await page.goto("/signup?code=Maple-Street");
+  await expect(page.getByTestId("signup-code")).toHaveValue("Maple-Street");
+});

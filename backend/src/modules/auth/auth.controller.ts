@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { SignupSchema, LoginSchema } from "./auth.types";
-import { signup, login } from "./auth.service";
+import { signup, login, signupOptions } from "./auth.service";
 
 export async function signupHandler(
   req: Request,
@@ -15,6 +15,10 @@ export async function signupHandler(
   } catch (err) {
     next(err);
   }
+}
+
+export function signupOptionsHandler(req: Request, res: Response) {
+  res.json(signupOptions());
 }
 
 export async function loginHandler(

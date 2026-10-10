@@ -11,6 +11,9 @@ export const env = {
   DATABASE_URL: process.env.DATABASE_URL!,
   JWT_SECRET: process.env.JWT_SECRET!,
   PORT: Number(process.env.PORT || 4000),
+  // When set, signup requires this code (handed to invited users). Unset or
+  // empty: anyone can sign up, as in local dev and tests.
+  SIGNUP_CODE: process.env.SIGNUP_CODE || null,
   // Matching (matches, shortlist, compatibility, chat) is built and tested but
   // not part of the product yet. Set to "false" in production to unmount it.
   FEATURE_MATCHING: process.env.FEATURE_MATCHING !== "false",

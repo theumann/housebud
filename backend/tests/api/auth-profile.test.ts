@@ -1,7 +1,16 @@
 import request from "supertest";
 import jwt from "jsonwebtoken";
+import { env } from "../../src/config/env";
 import { resetDb } from "../helpers/resetDb";
-import { describe, beforeAll, beforeEach, afterAll, it, expect } from "vitest";
+import {
+  describe,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "vitest";
 import type { TestContext } from "../helpers/testFactory";
 import { getTestContext } from "../helpers/testContext";
 
@@ -243,5 +252,51 @@ describe.sequential("Auth + Profile (smoke)", () => {
       .send({ email: "x@example.com" });
     expect(missing.status).toBe(400);
     expect(missing.body.error).toContain("password");
+  });
+
+  describe("with a signup code configured", () => {
+    beforeEach(() => {
+      env.SIGNUP_CODE = "Maple-Street";
+    });
+    afterEach(() => {
+      env.SIGNUP_CODE = null;
+    });
+
+    it("tells the signup page a code is required", async () => {
+      const res = await request(ctx.app).get("/auth/signup-options");
+      expect(res.body).toEqual({ codeRequired: true });
+    });
+
+    it("refuses signup without the right code, before checking anything else", async () => {
+      await request(ctx.app)
+        .post("/auth/signup")
+        .send(signupBody({ signupCode: "Maple-Street" }))
+        .expect(201);
+
+      for (const signupCode of [undefined, "", "wrong-code"]) {
+        // Same email as the existing account: still 403, not 409, so
+        // without a code signup doesn't reveal which emails are taken.
+        const res = await request(ctx.app)
+          .post("/auth/signup")
+          .send({ ...signupBody(), signupCode });
+        expect(res.status).toBe(403);
+        expect(res.body.error).toBe(
+          "A valid invite code is required to sign up",
+        );
+      }
+    });
+
+    it("accepts the code with different case and surrounding spaces", async () => {
+      const res = await request(ctx.app)
+        .post("/auth/signup")
+        .send(signupBody({ signupCode: "  maple-STREET " }));
+      expect(res.status).toBe(201);
+    });
+  });
+
+  it("without a signup code configured, signup is open", async () => {
+    const options = await request(ctx.app).get("/auth/signup-options");
+    expect(options.body).toEqual({ codeRequired: false });
+    await request(ctx.app).post("/auth/signup").send(signupBody()).expect(201);
   });
 });

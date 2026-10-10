@@ -44,6 +44,7 @@ type SignupPayload = {
   targetCity: string;
   targetState: string;
   targetZip: string;
+  signupCode?: string;
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
