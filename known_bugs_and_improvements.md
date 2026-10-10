@@ -13,12 +13,6 @@ The current page is only kept in the page's memory (`useState`), so reloading â€
 - **Fix:** keep the page number in the URL (`/matches?page=5`), so reload and Back keep your place and a page can be bookmarked or shared.
 - **Shortlist:** probably needs the same treatment. It has no pagination today (the whole list shows at once), but check it when fixing this â€” and anything else on it that resets on reload, like the current selection.
 
-### Invalid input returns 500 instead of 400
-
-Zod validation errors reach the global `errorHandler`, which has no status for them, so bad input (e.g. a room name over 40 characters) comes back as a 500 with a raw validation message. The frontend works around it for room names by checking the length first.
-
-- **Fix:** in `backend/src/middleware/errorHandler.ts`, map `ZodError` to 400 with a readable message.
-
 ### A household's only owner can't leave or delete it
 
 Leaving requires another owner, and there's no way to delete a household. Someone who creates a household and is its only member is stuck with it.

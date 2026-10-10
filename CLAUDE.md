@@ -128,7 +128,7 @@ export async function fooHandler(
 
 - Validate with Zod at the controller level, not in the service
 - Services are pure functions — they receive `prisma: PrismaClient` as the first parameter
-- Errors fall through to the global `errorHandler` middleware in `src/middleware/errorHandler.ts`
+- Errors fall through to the global `errorHandler` middleware in `src/middleware/errorHandler.ts`; a `ZodError` becomes a 400 whose message names the field (`password: Too small: …`)
 - Custom errors extend or resemble `AuthError` (statusCode + message)
 
 ### Prisma
