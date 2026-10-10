@@ -1,4 +1,5 @@
 import request from "supertest";
+import jwt from "jsonwebtoken";
 import { resetDb } from "../helpers/resetDb";
 import { describe, beforeAll, beforeEach, afterAll, it, expect } from "vitest";
 import type { TestContext } from "../helpers/testFactory";
@@ -174,5 +175,73 @@ describe.sequential("Auth + Profile (smoke)", () => {
       .send(signupBody({ email: "other@example.com", username: "SamLee" }));
     expect(sameUsername.status).toBe(409);
     expect(sameUsername.body.error).toBe("That username is taken");
+  });
+
+  it("login with a wrong password or an unknown account gives the same 401", async () => {
+    await request(ctx.app).post("/auth/signup").send(signupBody()).expect(201);
+
+    const wrongPassword = await request(ctx.app)
+      .post("/auth/login")
+      .send({ identifier: "samlee", password: "not-the-password" });
+    const unknownUser = await request(ctx.app)
+      .post("/auth/login")
+      .send({ identifier: "nobody@example.com", password: "not-the-password" });
+
+    // Same answer for both, so login doesn't reveal which accounts exist.
+    for (const res of [wrongPassword, unknownUser]) {
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ error: "Invalid credentials" });
+    }
+  });
+
+  it("protected routes reject a missing, made-up, foreign or expired token", async () => {
+    const signup = await request(ctx.app)
+      .post("/auth/signup")
+      .send(signupBody())
+      .expect(201);
+    const me = await request(ctx.app)
+      .get("/profile/me")
+      .set("Authorization", `Bearer ${signup.body.token}`)
+      .expect(200);
+    const userId = me.body.profile.userId;
+
+    const tokens = {
+      madeUp: "not-a-jwt",
+      foreign: jwt.sign({ userId }, "some-other-secret"),
+      expired: jwt.sign({ userId }, process.env.JWT_SECRET!, {
+        expiresIn: -10,
+      }),
+    };
+
+    const none = await request(ctx.app).get("/profile/me");
+    expect(none.status).toBe(401);
+
+    for (const token of Object.values(tokens)) {
+      const res = await request(ctx.app)
+        .get("/profile/me")
+        .set("Authorization", `Bearer ${token}`);
+      expect(res.status).toBe(401);
+    }
+  });
+
+  it("signup with invalid input returns 400 naming the field", async () => {
+    const cases: Array<[Record<string, string>, string]> = [
+      [{ email: "not-an-email" }, "email"],
+      [{ password: "short" }, "password"],
+      [{ username: "ab" }, "username"],
+    ];
+    for (const [overrides, field] of cases) {
+      const res = await request(ctx.app)
+        .post("/auth/signup")
+        .send(signupBody(overrides));
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(new RegExp(`^${field}: `));
+    }
+
+    const missing = await request(ctx.app)
+      .post("/auth/signup")
+      .send({ email: "x@example.com" });
+    expect(missing.status).toBe(400);
+    expect(missing.body.error).toContain("password");
   });
 });
