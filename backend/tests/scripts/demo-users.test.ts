@@ -8,6 +8,7 @@ import {
   assertDemoTarget,
   removeDemoUsers,
   seedDemoUsers,
+  portraitUrl,
 } from "../../scripts/demo-users";
 import { describe, beforeAll, beforeEach, afterAll, it, expect } from "vitest";
 
@@ -68,5 +69,26 @@ describe.sequential("demo users", () => {
     expect(await removeDemoUsers(ctx.prisma)).toBe(5);
     const left = await ctx.prisma.user.findMany({ select: { id: true } });
     expect(left.map((u) => u.id)).toEqual([real.userId]);
+  });
+
+  it("gives some users a Faker portrait, each used once", async () => {
+    await createQuestion(ctx, { code: "Q1", text: "Q1", options: ["A", "B"] });
+
+    await seedDemoUsers(ctx.prisma, 20);
+
+    const urls = (
+      await ctx.prisma.userProfile.findMany({ select: { avatarUrl: true } })
+    )
+      .map((p) => p.avatarUrl)
+      .filter((u): u is string => u !== null);
+    // ~60% get one; none at all out of 20 would mean photos are off.
+    expect(urls.length).toBeGreaterThan(0);
+    expect(new Set(urls).size).toBe(urls.length);
+    for (const url of urls) {
+      expect(url).toMatch(
+        /^https:\/\/cdn\.jsdelivr\.net\/gh\/faker-js\/assets-person-portrait\/(female|male)\/256\/\d+\.jpg$/,
+      );
+    }
+    expect(portraitUrl("male", 7)).toContain("/male/256/7.jpg");
   });
 });
