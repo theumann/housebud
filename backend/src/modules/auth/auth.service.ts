@@ -1,11 +1,31 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { SignupInput, LoginInput } from "./auth.types";
 import bcrypt from "bcrypt";
+import { createHash, timingSafeEqual } from "node:crypto";
+import { env } from "../../config/env";
 import { issueAuthResponse } from "./auth.utils";
 import { AuthError } from "../../errors/auth.error";
-import { conflict } from "../../errors/http.error";
+import { conflict, forbidden } from "../../errors/http.error";
+
+// Trimmed and case-insensitive, since people type codes from a message.
+function signupCodeMatches(given: string | undefined) {
+  if (!env.SIGNUP_CODE) return true;
+  const digest = (s: string) =>
+    createHash("sha256").update(s.trim().toLowerCase()).digest();
+  return timingSafeEqual(digest(given ?? ""), digest(env.SIGNUP_CODE));
+}
+
+export function signupOptions() {
+  return { codeRequired: Boolean(env.SIGNUP_CODE) };
+}
 
 export async function signup(prisma: PrismaClient, input: SignupInput) {
+  // Before anything else, so without a code signup reveals nothing, not even
+  // whether an email already has an account.
+  if (!signupCodeMatches(input.signupCode)) {
+    throw forbidden("A valid invite code is required to sign up");
+  }
+
   const email = input.email.toLowerCase();
   const username = input.username.toLowerCase();
   const passwordHash = await bcrypt.hash(input.password, 10);

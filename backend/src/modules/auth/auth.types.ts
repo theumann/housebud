@@ -20,6 +20,7 @@ export const SignupSchema = z.object({
   targetZip: z.string(),
   originalCity: z.string().optional(),
   originalState: z.string().optional(),
+  signupCode: z.string().optional(),
 });
 
 export type SignupInput = z.infer<typeof SignupSchema>;

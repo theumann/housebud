@@ -242,6 +242,8 @@ npx playwright test --ui
 
 Required backend vars: `DATABASE_URL`, `JWT_SECRET`, `PORT`
 
+Optional: `SIGNUP_CODE` — when set, `POST /auth/signup` requires it (403 otherwise, checked before anything else) and the signup page shows an "Invite code" field (`GET /auth/signup-options`). `/signup?code=…` fills it in, so an invite can be a link. Trimmed and case-insensitive. Unset in local dev and tests; set on staging.
+
 ### Testing on a phone
 
 The phone must be on the same Wi-Fi as the PC, and that network must be set to Private in Windows.
