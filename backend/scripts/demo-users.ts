@@ -77,6 +77,25 @@ const SCHOOLS = [
 
 const COLLEGE_YEARS = ["Freshman", "Sophomore", "Junior", "Senior"];
 
+// Faker's own portrait set (never avatarGitHub(): those are real people). It
+// has 100 per sex across all ages; these are the ones that pass for students,
+// picked by hand.
+const STUDENT_PORTRAITS = {
+  female: [
+    0, 1, 2, 3, 5, 8, 17, 22, 26, 28, 31, 36, 40, 42, 43, 44, 45, 47, 50, 56,
+    57, 58, 59, 60, 64, 65, 66, 67, 68, 72, 74, 82, 84, 85, 87, 88, 89, 90, 91,
+    92, 94, 97, 98, 99,
+  ],
+  male: [
+    4, 5, 7, 12, 18, 21, 27, 32, 34, 37, 43, 45, 46, 48, 49, 51, 58, 63, 66, 70,
+    71, 72, 74, 76, 78, 82, 83, 84, 87, 88, 91, 97, 98,
+  ],
+};
+
+export function portraitUrl(sex: "female" | "male", n: number) {
+  return `https://cdn.jsdelivr.net/gh/faker-js/assets-person-portrait/${sex}/256/${n}.jpg`;
+}
+
 const HOMETOWNS: Array<[string, string]> = [
   ["Los Angeles", "CA"],
   ["San Diego", "CA"],
@@ -143,14 +162,26 @@ export async function seedDemoUsers(prisma: PrismaClient, count: number) {
   // Nobody logs in as a demo user: the password is random and thrown away.
   const passwordHash = await bcrypt.hash(randomUUID(), 10);
 
+  // Each portrait at most once.
+  const portraits = {
+    female: faker.helpers.shuffle([...STUDENT_PORTRAITS.female]),
+    male: faker.helpers.shuffle([...STUDENT_PORTRAITS.male]),
+  };
+
   for (let i = 0; i < count; i++) {
-    const firstName = faker.person.firstName();
+    // Name and photo from the same sex, so they match.
+    const sex = faker.person.sexType();
+    const firstName = faker.person.firstName(sex);
     const lastName = faker.person.lastName();
     let username = `${slug(firstName)}.${slug(lastName)}`;
     while (taken.has(username)) {
       username = `${slug(firstName)}.${slug(lastName)}${faker.number.int({ min: 2, max: 99 })}`;
     }
     taken.add(username);
+
+    const portrait = faker.datatype.boolean(0.6)
+      ? portraits[sex].pop()
+      : undefined;
 
     const hometown = faker.helpers.maybe(
       () => faker.helpers.arrayElement(HOMETOWNS),
@@ -193,6 +224,8 @@ export async function seedDemoUsers(prisma: PrismaClient, count: number) {
               faker.helpers.maybe(() => faker.helpers.arrayElement(BIOS), {
                 probability: 0.75,
               }) ?? null,
+            avatarUrl:
+              portrait === undefined ? null : portraitUrl(sex, portrait),
           },
         },
         settings: { create: {} },
