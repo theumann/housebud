@@ -8,8 +8,8 @@ import {
   assertDemoTarget,
   removeDemoUsers,
   seedDemoUsers,
-  portraitUrl,
 } from "../../scripts/demo-users";
+import { portraitPicker, portraitUrl } from "../../scripts/portraits";
 import { describe, beforeAll, beforeEach, afterAll, it, expect } from "vitest";
 
 let ctx: TestContext;
@@ -27,6 +27,20 @@ describe("assertDemoTarget", () => {
     expect(() => assertDemoTarget("production", STAGING_MARKER)).toThrow(
       /production/,
     );
+  });
+});
+
+describe("portraitPicker", () => {
+  it("hands out each portrait of a sex once, then null", () => {
+    const take = portraitPicker();
+    const urls: string[] = [];
+    for (let url = take("female"); url !== null; url = take("female")) {
+      expect(url).toContain("/female/256/");
+      urls.push(url);
+    }
+    expect(urls.length).toBeGreaterThan(20);
+    expect(new Set(urls).size).toBe(urls.length);
+    expect(take("male")).toContain("/male/256/");
   });
 });
 
