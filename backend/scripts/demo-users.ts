@@ -3,10 +3,12 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { randomUUID } from "node:crypto";
 import { portraitPicker } from "./portraits";
+import { DEMO_EMAIL_DOMAIN } from "../src/modules/demo/demo.types";
 
 // Every demo user's email ends with this. Reserved for examples (RFC 2606), so
 // it can never reach a real inbox, and it's how --remove finds them again.
-export const DEMO_EMAIL_DOMAIN = "demo.example.com";
+// Defined in src: demo sandboxes pick their housemates from these users.
+export { DEMO_EMAIL_DOMAIN };
 
 // The staging database carries this as its Postgres comment (set once by hand,
 // see CLAUDE.md). Production never gets it, so the demo seed can't run there.

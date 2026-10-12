@@ -51,3 +51,15 @@ test("Signup shows the invite code field only when needed", async ({
   await page.goto("/signup?code=Maple-Street");
   await expect(page.getByTestId("signup-code")).toHaveValue("Maple-Street");
 });
+
+test("Without DEMO_SANDBOX there is no demo", async ({ page }) => {
+  // The e2e backend leaves the demo off, as production does.
+  await page.goto("/login");
+  await expect(page.getByTestId("login-submit")).toBeVisible();
+  await expect(page.getByTestId("try-demo-link")).toHaveCount(0);
+
+  await page.goto("/demo");
+  await expect(page.getByTestId("demo-error")).toHaveText(
+    "The demo isn't available here.",
+  );
+});

@@ -29,7 +29,7 @@ function generateJoinCode(length = 6) {
   return code;
 }
 
-async function generateUniqueJoinCode(prisma: PrismaClient) {
+export async function generateUniqueJoinCode(prisma: PrismaClient) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const joinCode = generateJoinCode();
     const existing = await prisma.household.findUnique({ where: { joinCode } });

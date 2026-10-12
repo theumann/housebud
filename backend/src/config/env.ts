@@ -14,6 +14,9 @@ export const env = {
   // When set, signup requires this code (handed to invited users). Unset or
   // empty: anyone can sign up, as in local dev and tests.
   SIGNUP_CODE: process.env.SIGNUP_CODE || null,
+  // Staging only: "Try the demo" creates a throwaway account in a sample
+  // household (POST /demo/sandbox). Never set it in production.
+  DEMO_SANDBOX: process.env.DEMO_SANDBOX === "true",
   // Matching (matches, shortlist, compatibility, chat) is built and tested but
   // not part of the product yet. Set to "false" in production to unmount it.
   FEATURE_MATCHING: process.env.FEATURE_MATCHING !== "false",

@@ -26,8 +26,12 @@ type AuthContextValue = {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (payload: SignupPayload) => Promise<void>;
+  // Staging only: a throwaway account in a sample household.
+  startDemo: () => Promise<void>;
   logout: () => void;
 };
+
+type AuthResponse = { token: string; user: UserProfile };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -80,15 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (identifier: string, password: string) => {
-    const res = await apiFetch<{
-      token: string;
-      user: UserProfile;
-    }>("/auth/login", {
-      method: "POST",
-      body: { identifier, password },
-    });
-
+  const storeSession = (res: AuthResponse) => {
     setToken(res.token);
     setUser(res.user);
     if (typeof window !== "undefined") {
@@ -96,20 +92,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const login = async (identifier: string, password: string) => {
+    const res = await apiFetch<AuthResponse>("/auth/login", {
+      method: "POST",
+      body: { identifier, password },
+    });
+
+    storeSession(res);
+  };
+
   const signup = async (payload: SignupPayload) => {
-    const res = await apiFetch<{
-      token: string;
-      user: UserProfile;
-    }>("/auth/signup", {
+    const res = await apiFetch<AuthResponse>("/auth/signup", {
       method: "POST",
       body: payload,
     });
 
-    setToken(res.token);
-    setUser(res.user);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("bb_token", res.token);
-    }
+    storeSession(res);
+  };
+
+  const startDemo = async () => {
+    storeSession(
+      await apiFetch<AuthResponse>("/demo/sandbox", { method: "POST" }),
+    );
   };
 
   const logout = async () => {
@@ -136,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     login,
     signup,
+    startDemo,
     logout,
   };
 

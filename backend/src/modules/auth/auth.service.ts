@@ -16,7 +16,10 @@ function signupCodeMatches(given: string | undefined) {
 }
 
 export function signupOptions() {
-  return { codeRequired: Boolean(env.SIGNUP_CODE) };
+  return {
+    codeRequired: Boolean(env.SIGNUP_CODE),
+    demoAvailable: env.DEMO_SANDBOX,
+  };
 }
 
 export async function signup(prisma: PrismaClient, input: SignupInput) {

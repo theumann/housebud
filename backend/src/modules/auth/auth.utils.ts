@@ -2,10 +2,11 @@ import jwt from "jsonwebtoken";
 import type { User } from "@prisma/client";
 import { env } from "../../config/env";
 
-export function issueAuthResponse(user: User) {
-  const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+export function issueAuthResponse(
+  user: User,
+  expiresIn: jwt.SignOptions["expiresIn"] = "7d",
+) {
+  const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, { expiresIn });
 
   return {
     token,
