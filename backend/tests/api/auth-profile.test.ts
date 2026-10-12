@@ -264,7 +264,7 @@ describe.sequential("Auth + Profile (smoke)", () => {
 
     it("tells the signup page a code is required", async () => {
       const res = await request(ctx.app).get("/auth/signup-options");
-      expect(res.body).toEqual({ codeRequired: true });
+      expect(res.body).toEqual({ codeRequired: true, demoAvailable: false });
     });
 
     it("refuses signup without the right code, before checking anything else", async () => {
@@ -296,7 +296,10 @@ describe.sequential("Auth + Profile (smoke)", () => {
 
   it("without a signup code configured, signup is open", async () => {
     const options = await request(ctx.app).get("/auth/signup-options");
-    expect(options.body).toEqual({ codeRequired: false });
+    expect(options.body).toEqual({
+      codeRequired: false,
+      demoAvailable: false,
+    });
     await request(ctx.app).post("/auth/signup").send(signupBody()).expect(201);
   });
 });

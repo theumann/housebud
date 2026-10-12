@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
@@ -8,7 +8,8 @@ import clsx from "clsx";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
-import { ApiError, apiFetch } from "@/lib/api";
+import { ApiError } from "@/lib/api";
+import { useSignupOptions } from "@/hooks/useSignupOptions";
 
 type SignupField = {
   name: string;
@@ -90,7 +91,9 @@ function SignupForm() {
   const router = useRouter();
   // A shared link like /signup?code=… fills in the invite code.
   const codeFromLink = useSearchParams().get("code") ?? "";
-  const [codeRequired, setCodeRequired] = useState(false);
+  const { codeRequired, demoAvailable } = useSignupOptions();
+  // A 403 means a code is needed even if the options didn't say so.
+  const [codeRefused, setCodeRefused] = useState(false);
   const [form, setForm] = useState({
     signupCode: codeFromLink,
     email: "",
@@ -109,13 +112,7 @@ function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    apiFetch<{ codeRequired: boolean }>("/auth/signup-options")
-      .then((res) => setCodeRequired(res.codeRequired))
-      .catch(() => {});
-  }, []);
-
-  const showCodeField = codeRequired || Boolean(codeFromLink);
+  const showCodeField = codeRequired || codeRefused || Boolean(codeFromLink);
 
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -132,7 +129,7 @@ function SignupForm() {
       router.replace("/matches");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
-      if (err instanceof ApiError && err.status === 403) setCodeRequired(true);
+      if (err instanceof ApiError && err.status === 403) setCodeRefused(true);
     } finally {
       setSubmitting(false);
     }
@@ -250,6 +247,18 @@ function SignupForm() {
           Log in
         </Link>
       </p>
+      {demoAvailable && (
+        <p className="mt-2 text-center text-sm text-muted">
+          Just looking around?{" "}
+          <Link
+            href="/demo"
+            data-testid="try-demo-link"
+            className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-500"
+          >
+            Try the demo
+          </Link>
+        </p>
+      )}
     </AuthLayout>
   );
 }

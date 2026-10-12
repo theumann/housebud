@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { SANDBOX_EMAIL_DOMAIN } from "../demo/demo.types";
 
 type MatchCandidate = {
   userId: string;
@@ -120,6 +121,8 @@ export async function getMatchesForUser(
         not: userId,
         notIn: busyUserIds,
       },
+      // Demo visitors' throwaway accounts stay invisible to everyone else.
+      NOT: { email: { endsWith: `@${SANDBOX_EMAIL_DOMAIN}` } },
       profile: {
         targetZip: {
           startsWith: zipPrefix,

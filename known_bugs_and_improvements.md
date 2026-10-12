@@ -56,6 +56,8 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 - **Signup has no rate limit, CAPTCHA or email confirmation.** With `SIGNUP_CODE` set (staging), only people with the code get that far; without it, nothing slows down automated signups and nothing checks that an email is real. Add a rate limit on `/auth/signup` and `/auth/login`, and email confirmation once the app sends email.
 
+- **Demo sandbox: Chat is empty.** Sandbox visitors get a household but no chat room: the housemates are seeded demo users who can't log in or accept invites, and putting them in rooms would count toward their 3-room limit and hide them from Matches. A pre-written conversation would need rooms excluded from that limit.
+
 ### Look and feel
 
 - **App name in the nav on phones.** Below `sm` the nav shows the logo icon only, because the row is full. To show "HouseBud" there too, free up room: move the theme toggle and Logout into an account menu, and/or shorten "Find Roommates" on small screens. (Stacking the name under the icon was considered and rejected: too small, and taller sticky nav.)

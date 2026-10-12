@@ -5,6 +5,9 @@ import React from "react";
 import { AppNav } from "@/components/layout/AppNav";
 import { useAuth } from "@/context/AuthContext";
 
+// Demo visitors' throwaway accounts (backend: SANDBOX_EMAIL_DOMAIN).
+const SANDBOX_EMAIL_SUFFIX = "@sandbox.example.com";
+
 type PageContainerProps = React.HTMLAttributes<HTMLElement>;
 
 export function PageContainer({
@@ -19,6 +22,15 @@ export function PageContainer({
   return (
     <div>
       {user && <AppNav />}
+      {user?.email.endsWith(SANDBOX_EMAIL_SUFFIX) && (
+        <p
+          data-testid="demo-banner"
+          className="border-b border-border-subtle bg-primary-50 px-4 py-2 text-center text-xs text-primary-700 dark:bg-primary-600/20 dark:text-primary-100"
+        >
+          You&apos;re exploring a demo household. Make yourself at home: it
+          resets after a day.
+        </p>
+      )}
       <main
         {...props}
         className={clsx("min-h-screen bg-surface-muted", className)}

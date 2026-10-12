@@ -7,6 +7,7 @@ import Link from "next/link";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useSignupOptions } from "@/hooks/useSignupOptions";
 
 export default function LoginPage() {
   const { login, loading, user } = useAuth();
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const { demoAvailable } = useSignupOptions();
 
   // "/" picks the landing page (household or matches).
   useEffect(() => {
@@ -100,6 +102,18 @@ export default function LoginPage() {
           Sign up
         </Link>
       </p>
+      {demoAvailable && (
+        <p className="mt-2 text-center text-sm text-muted">
+          Just looking around?{" "}
+          <Link
+            href="/demo"
+            data-testid="try-demo-link"
+            className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-500"
+          >
+            Try the demo
+          </Link>
+        </p>
+      )}
     </AuthLayout>
   );
 }
