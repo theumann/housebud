@@ -188,6 +188,7 @@ function MemberRow({
 
 // Add each module here together with the module itself.
 const MODULE_TOGGLES = [
+  { key: "chatEnabled", label: "Chat", testId: "chat" },
   { key: "choresEnabled", label: "Chores", testId: "chores" },
   { key: "shoppingEnabled", label: "Shopping list", testId: "shopping" },
 ] as const;

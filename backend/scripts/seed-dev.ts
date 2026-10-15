@@ -584,7 +584,7 @@ function choreData(input: {
 
 // me4 (owner) and me5 already share a household, with chores in every state
 // (overdue, today, started, upcoming, monthly, one-off), some history, and a
-// shopping list. Dates are relative to the seed day. The e2e smoke test
+// shopping list and chat. Dates are relative to the seed day. The e2e smoke test
 // (household-seed.spec.ts) checks these exact names.
 async function seedTestHousehold(me: Record<PersonalUsername, string>) {
   const existing = await prisma.household.findFirst({
@@ -598,6 +598,9 @@ async function seedTestHousehold(me: Record<PersonalUsername, string>) {
     return;
   }
 
+  // Members joined before the seeded messages, or the chat would hide them.
+  const joinedAt = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
   await prisma.household.create({
     data: {
       name: SEEDED_HOUSEHOLD_NAME,
@@ -610,8 +613,8 @@ async function seedTestHousehold(me: Record<PersonalUsername, string>) {
       settings: { create: {} },
       members: {
         create: [
-          { userId: me.me4, role: "owner", status: "active" },
-          { userId: me.me5, role: "member", status: "active" },
+          { userId: me.me4, role: "owner", status: "active", joinedAt },
+          { userId: me.me5, role: "member", status: "active", joinedAt },
         ],
       },
       chores: {
@@ -694,6 +697,20 @@ async function seedTestHousehold(me: Record<PersonalUsername, string>) {
             addedByUserId: me.me4,
             checkedAt: new Date(),
             checkedByUserId: me.me5,
+          },
+        ],
+      },
+      messages: {
+        create: [
+          {
+            senderUserId: me.me4,
+            text: "Who's home this weekend?",
+            createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
+          },
+          {
+            senderUserId: me.me5,
+            text: "Me, I'll do the bathroom.",
+            createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
           },
         ],
       },

@@ -32,6 +32,7 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 - **Invite from the chat room page.** Today invites are only sent from Matches and Shortlist cards. Still to decide: any accepted member (what the backend allows) or the owner only.
 - **Show participants and pending invitees in the chat room.** The backend already returns them (`GET /chatrooms/:roomId` → `participants`); the page doesn't display them yet.
 - **Remove (kick) a participant from the chat room page.** The backend endpoint exists (`POST /chatrooms/:roomId/kick`); there's no UI for it.
+- **Send on Enter, in both chats** (matching rooms and household chat — one change in `components/chat/MessageThread.tsx`). Today Enter adds a new line and only the Send button sends. Decide the new-line key: Shift+Enter is the common convention (Slack, WhatsApp Web, Discord); Ctrl+Enter is the alternative. On phones, keep Enter as a new line, since the on-screen keyboard has no Shift+Enter and people tap Send.
 - **Block / reject.** Let users block others so they don't see each other. Also the planned protection against someone being re-invited over and over after declining.
 
 ### Matches
@@ -45,6 +46,8 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ### Household
 
+- **Household chat: no unread badge.** The matching Chat link shows unread rooms; the household Chat link doesn't show new messages yet.
+- **Household chat: whole history on every page load.** Fine for a few hundred messages; add "load older" (e.g. the latest 100, then `before=`) once households have long histories.
 - **Module toggles** (expenses, calendar): add each to `MODULE_TOGGLES` in the owner settings together with its module — they control nothing visible until then. Chores and shopping have theirs.
 
 ### Dev data
@@ -56,10 +59,12 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 - **Signup has no rate limit, CAPTCHA or email confirmation.** With `SIGNUP_CODE` set (staging), only people with the code get that far; without it, nothing slows down automated signups and nothing checks that an email is real. Add a rate limit on `/auth/signup` and `/auth/login`, and email confirmation once the app sends email.
 
-- **Demo sandbox: Chat is empty.** Sandbox visitors get a household but no chat room: the housemates are seeded demo users who can't log in or accept invites, and putting them in rooms would count toward their 3-room limit and hide them from Matches. A pre-written conversation would need rooms excluded from that limit.
+- **Demo sandbox: matching Chat is empty.** The household chat is seeded, but sandbox visitors get no matching chat room: the housemates are seeded demo users who can't log in or accept invites, and putting them in rooms would count toward their 3-room limit and hide them from Matches. A pre-written conversation would need rooms excluded from that limit.
 
 ### Look and feel
 
+- **Icons for the nav items** (Matches, Shortlist, Compatibility, Chat, Overview, the household modules). Would also free up room on phones (see "App name in the nav on phones" below).
+- **Replace the browser's alert/confirm/prompt boxes and review their wording.** About 20 of them, in the chat room and room list, Matches, Shortlist, `ChoreBoard`, `HouseholdView` and `MessageThread`: leaving a chat room, leaving a household, making someone else owner, removing a member, renaming, forming a household, error messages… They're unstyled and look different in every browser, and the wording needs a review: each confirm should say what will happen (e.g. what someone loses by leaving). Use an in-app confirm dialog, and inline errors where they fit.
 - **App name in the nav on phones.** Below `sm` the nav shows the logo icon only, because the row is full. To show "HouseBud" there too, free up room: move the theme toggle and Logout into an account menu, and/or shorten "Find Roommates" on small screens. (Stacking the name under the icon was considered and rejected: too small, and taller sticky nav.)
 - **Per-page browser tab titles** ("Chores · HouseBud"). Every page shows "HouseBud" today. The pages are client components and can't export `metadata`, so this needs a small server `layout.tsx` per section.
 

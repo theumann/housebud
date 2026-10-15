@@ -34,13 +34,13 @@ type NavLink = {
 
 // Household module pages, shown while the module is turned on.
 const householdModules = [
+  { path: "chat", label: "Chat", setting: "chatEnabled" },
   { path: "chores", label: "Chores", setting: "choresEnabled" },
   { path: "shopping", label: "Shopping", setting: "shoppingEnabled" },
 ] as const;
 
 // Planned household modules, shown disabled until they're built.
 const upcomingHouseholdModules = [
-  { path: "chat", label: "Chat" },
   { path: "expenses", label: "Expenses" },
   { path: "calendar", label: "Calendar" },
   { path: "rules", label: "House rules" },

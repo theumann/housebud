@@ -34,6 +34,7 @@ describe.sequential("Households", () => {
     expect(house.members).toHaveLength(1);
     expect(house.members[0].role).toBe("owner");
     expect(house.settings).toMatchObject({
+      chatEnabled: true,
       choresEnabled: true,
       shoppingEnabled: true,
       expensesEnabled: false,

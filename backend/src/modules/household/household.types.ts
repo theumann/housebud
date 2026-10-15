@@ -12,6 +12,7 @@ export type UpdateHouseholdInput = z.infer<typeof UpdateHouseholdSchema>;
 
 export const UpdateSettingsSchema = z
   .object({
+    chatEnabled: z.boolean(),
     choresEnabled: z.boolean(),
     shoppingEnabled: z.boolean(),
     expensesEnabled: z.boolean(),
@@ -36,6 +37,7 @@ export const JoinByCodeSchema = z.object({
 export type JoinByCodeInput = z.infer<typeof JoinByCodeSchema>;
 
 export const HOUSEHOLD_MODULES = [
+  "chat",
   "chores",
   "shopping",
   "expenses",
@@ -45,8 +47,13 @@ export type HouseholdModule = (typeof HOUSEHOLD_MODULES)[number];
 
 export const MODULE_SETTING_KEY: Record<
   HouseholdModule,
-  "choresEnabled" | "shoppingEnabled" | "expensesEnabled" | "calendarEnabled"
+  | "chatEnabled"
+  | "choresEnabled"
+  | "shoppingEnabled"
+  | "expensesEnabled"
+  | "calendarEnabled"
 > = {
+  chat: "chatEnabled",
   chores: "choresEnabled",
   shopping: "shoppingEnabled",
   expenses: "expensesEnabled",

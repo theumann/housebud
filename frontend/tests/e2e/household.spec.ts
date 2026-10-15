@@ -100,3 +100,31 @@ test("declining an invite removes it and leaves the user without a household", a
   await expect(page.getByTestId("create-household")).toBeVisible();
   await expect(page.getByTestId("nav-household-badge")).toHaveCount(0);
 });
+
+test("a roommate who joins meanwhile shows up when you open Overview again", async ({
+  page,
+  request,
+}) => {
+  const owner = await signupFreshUser(request, "owner");
+  const roommate = await signupFreshUser(request, "roommate");
+  const house = await apiPost(request, owner.token, "/households", {
+    name: "Fresh Data House",
+  });
+  await loginAs(page, owner.token);
+  await gotoAuthed(page, `/household/${house.id}`, {
+    waitForTestId: "household-view",
+  });
+  const members = page.getByTestId("household-members").locator("li");
+  await expect(members).toHaveCount(1);
+
+  await page.getByTestId("nav-household-chores").click();
+  // Wait for the page to change: clicking Overview while still on it changes
+  // nothing, so nothing would be re-fetched.
+  await expect(page.getByTestId("chores-empty")).toBeVisible();
+  await apiPost(request, roommate.token, "/households/join", {
+    joinCode: house.joinCode,
+  });
+  await page.getByTestId("nav-household-overview").click();
+
+  await expect(members).toHaveCount(2);
+});
