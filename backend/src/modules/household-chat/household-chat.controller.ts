@@ -3,6 +3,7 @@ import type { AuthRequest } from "../../middleware/authMiddleware";
 import * as service from "./household-chat.service";
 import {
   GetHouseholdMessagesQuerySchema,
+  MarkReadSchema,
   SendHouseholdMessageSchema,
 } from "./household-chat.types";
 
@@ -39,6 +40,25 @@ export async function sendMessageHandler(
       input,
     );
     res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function markReadHandler(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const input = MarkReadSchema.parse(req.body);
+    await service.markRead(
+      req.prisma,
+      req.params.householdId,
+      req.userId!,
+      input,
+    );
+    res.status(204).end();
   } catch (err) {
     next(err);
   }

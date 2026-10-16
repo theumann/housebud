@@ -9,5 +9,6 @@ router.use(authMiddleware);
 
 router.get("/messages", controller.listMessagesHandler);
 router.post("/messages", controller.sendMessageHandler);
+router.post("/read", controller.markReadHandler);
 
 export default router;

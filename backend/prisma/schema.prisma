@@ -71,15 +71,17 @@ model Household {
 }
 
 model HouseholdMember {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   householdId String
   userId      String
   role        String // 'owner' | 'member'
   status      String // 'active' | 'left' | 'removed'
   // When they last became active; household chat shows messages from then on.
-  joinedAt    DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  joinedAt    DateTime  @default(now())
+  // Newest household chat message they've seen; later ones from others are unread.
+  chatReadAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)

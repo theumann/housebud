@@ -3,7 +3,10 @@ import {
   requireActiveMember,
   requireEnabledModule,
 } from "../household/household.service";
-import type { SendHouseholdMessageInput } from "./household-chat.types";
+import type {
+  MarkReadInput,
+  SendHouseholdMessageInput,
+} from "./household-chat.types";
 
 const messageInclude = {
   sender: {
@@ -62,5 +65,24 @@ export async function sendMessage(
   return prisma.householdMessage.create({
     data: { householdId, senderUserId: userId, text: input.text },
     include: messageInclude,
+  });
+}
+
+// `upTo` is the newest message the client has shown, so a message that
+// arrives meanwhile stays unread. Never moves backwards or into the future.
+export async function markRead(
+  prisma: PrismaClient,
+  householdId: string,
+  userId: string,
+  input: MarkReadInput,
+) {
+  const member = await requireChatAccess(prisma, householdId, userId);
+  const now = new Date();
+  const upTo = input.upTo > now ? now : input.upTo;
+  if (member.chatReadAt && member.chatReadAt >= upTo) return;
+
+  await prisma.householdMember.update({
+    where: { id: member.id },
+    data: { chatReadAt: upTo },
   });
 }

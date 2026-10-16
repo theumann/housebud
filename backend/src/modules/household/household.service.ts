@@ -150,7 +150,38 @@ export async function listMyHouseholds(prisma: PrismaClient, userId: string) {
     orderBy: { createdAt: "asc" },
   });
 
-  return memberships.map((m) => ({ ...m.household, myRole: m.role }));
+  return Promise.all(
+    memberships.map(async (m) => ({
+      ...m.household,
+      myRole: m.role,
+      unreadMessages: m.household.settings?.chatEnabled
+        ? await countUnreadMessages(prisma, m)
+        : 0,
+    })),
+  );
+}
+
+// Messages from others since they last read the chat or (re)joined.
+function countUnreadMessages(
+  prisma: PrismaClient,
+  member: {
+    householdId: string;
+    userId: string;
+    joinedAt: Date;
+    chatReadAt: Date | null;
+  },
+) {
+  const since =
+    member.chatReadAt && member.chatReadAt > member.joinedAt
+      ? member.chatReadAt
+      : member.joinedAt;
+  return prisma.householdMessage.count({
+    where: {
+      householdId: member.householdId,
+      senderUserId: { not: member.userId },
+      createdAt: { gt: since },
+    },
+  });
 }
 
 export async function getHousehold(

@@ -7,6 +7,11 @@ export type GetHouseholdMessagesQuery = z.infer<
   typeof GetHouseholdMessagesQuerySchema
 >;
 
+export const MarkReadSchema = z.object({
+  upTo: z.coerce.date(),
+});
+export type MarkReadInput = z.infer<typeof MarkReadSchema>;
+
 export const SendHouseholdMessageSchema = z.object({
   text: z.string().trim().min(1).max(5000),
 });
