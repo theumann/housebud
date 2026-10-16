@@ -3,7 +3,7 @@ import { createPrisma } from "../src/config/prisma";
 import { faker } from "@faker-js/faker";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { portraitPicker } from "./portraits";
+import { portraitPicker, type Sex } from "./portraits";
 
 // Fake users, chats and messages must never reach production. Checking the
 // host (not just NODE_ENV) also catches a local shell that has production
@@ -211,7 +211,8 @@ async function createUsersWithProfiles(targetCount: number) {
   const toCreate: Prisma.UserCreateInput[] = [];
   const takePortrait = portraitPicker();
   while (toCreate.length < targetCount) {
-    const sex = faker.person.sexType();
+    // Only female or male without `includeGeneric`; Faker types it wider.
+    const sex = faker.person.sexType() as Sex;
     const firstName = faker.person.firstName(sex);
     const lastName = faker.person.lastName();
     const email = faker.internet.email({ firstName, lastName }).toLowerCase();
