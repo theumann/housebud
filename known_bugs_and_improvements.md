@@ -33,6 +33,9 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 - **Show participants and pending invitees in the chat room.** The backend already returns them (`GET /chatrooms/:roomId` → `participants`); the page doesn't display them yet.
 - **Remove (kick) a participant from the chat room page.** The backend endpoint exists (`POST /chatrooms/:roomId/kick`); there's no UI for it.
 - **Send on Enter, in both chats** (matching rooms and household chat — one change in `components/chat/MessageThread.tsx`). Today Enter adds a new line and only the Send button sends. Decide the new-line key: Shift+Enter is the common convention (Slack, WhatsApp Web, Discord); Ctrl+Enter is the alternative. On phones, keep Enter as a new line, since the on-screen keyboard has no Shift+Enter and people tap Send.
+- **Keep the matching chat's unread badge on the server**, like the household chat's (`HouseholdMember.chatReadAt` + `POST …/chat/read`). Today "last seen" is in `localStorage` (`bb:lastSeen:<roomId>`, `lib/unread.ts`). Fix: add a `lastReadAt` to `ChatRoomParticipant` and a read endpoint, and return unread counts with the room list (it already has `latestMessageAt`). Problems with keeping it in the browser:
+  - reading on the phone leaves the badge on the laptop;
+  - it's per browser, not per user, so two accounts in one browser share it.
 - **Block / reject.** Let users block others so they don't see each other. Also the planned protection against someone being re-invited over and over after declining.
 
 ### Matches
@@ -46,7 +49,6 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ### Household
 
-- **Household chat: no unread badge.** The matching Chat link shows unread rooms; the household Chat link doesn't show new messages yet.
 - **Household chat: whole history on every page load.** Fine for a few hundred messages; add "load older" (e.g. the latest 100, then `before=`) once households have long histories.
 - **Module toggles** (expenses, calendar): add each to `MODULE_TOGGLES` in the owner settings together with its module — they control nothing visible until then. Chores and shopping have theirs.
 

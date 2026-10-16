@@ -92,7 +92,10 @@ export function AppNav() {
   const { user, logout } = useAuth();
   const { pendingInvitesCount, unreadRoomsCount } = useChatroomsFeed();
   const totalBadgeCount = pendingInvitesCount + unreadRoomsCount;
-  const householdInvitesCount = useHouseholdInvites().invites.length;
+  const { invites: householdInvites, unreadMessages } = useHouseholdInvites();
+  // Badges count chats with something new, like the matching Chat link, not
+  // messages.
+  const unreadChats = Object.values(unreadMessages).filter((n) => n > 0).length;
   const currentHousehold = useOptionalCurrentHousehold()?.household;
   const { isDark, toggle } = useTheme();
 
@@ -112,7 +115,8 @@ export function AppNav() {
       href: "/household",
       label: "Household",
       testId: "nav-household",
-      badge: householdInvitesCount,
+      // Inside the section the Chat link carries the unread count.
+      badge: householdInvites.length + (inHousehold ? 0 : unreadChats),
       active: inHousehold,
     },
   ];
@@ -149,6 +153,8 @@ export function AppNav() {
             href: `/household/${currentHousehold.id}/${m.path}`,
             label: m.label,
             testId: `nav-household-${m.path}`,
+            badge:
+              m.path === "chat" && unreadMessages[currentHousehold.id] ? 1 : 0,
           })),
       ]
     : [];

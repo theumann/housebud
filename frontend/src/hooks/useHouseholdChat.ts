@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, apiFetch } from "@/lib/api";
+import { useHouseholdInvites } from "@/context/HouseholdInvitesContext";
 
 export type HouseholdMessage = {
   id: string;
@@ -35,6 +36,7 @@ function merge(list: HouseholdMessage[], incoming: HouseholdMessage[]) {
 // on (the server includes that one, so ids already shown are skipped).
 export function useHouseholdChat(householdId: string, pollMs = 3_000) {
   const { token } = useAuth();
+  const { refresh: refreshBadges } = useHouseholdInvites();
   const [messages, setMessages] = useState<HouseholdMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -87,6 +89,30 @@ export function useHouseholdChat(householdId: string, pollMs = 3_000) {
       window.clearInterval(id);
     };
   }, [token, pollMs, refresh]);
+
+  // Marks what's on screen as read, then refreshes the nav badges so they
+  // clear right away. Only while the window has focus: a visible window
+  // behind another one (or on another screen) isn't being read.
+  const newestShown = messages.at(-1)?.createdAt;
+  useEffect(() => {
+    if (!token || !newestShown) return;
+    const markRead = async () => {
+      if (!document.hasFocus()) return;
+      try {
+        await apiFetch(`${base}/read`, {
+          method: "POST",
+          token,
+          body: { upTo: newestShown },
+        });
+        await refreshBadges();
+      } catch {
+        // The next poll shows why (e.g. the chat was turned off).
+      }
+    };
+    markRead();
+    window.addEventListener("focus", markRead);
+    return () => window.removeEventListener("focus", markRead);
+  }, [token, base, newestShown, refreshBadges]);
 
   return {
     messages,

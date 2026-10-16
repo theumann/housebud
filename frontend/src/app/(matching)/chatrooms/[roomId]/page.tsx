@@ -84,12 +84,18 @@ export default function ChatRoomPage() {
     loadRoom();
   }, [token, roomId]);
 
+  // Marks the room read up to the newest message shown, only while the window
+  // has focus: a visible window behind another one isn't being read.
+  const newestShown = messages.at(-1)?.createdAt;
   useEffect(() => {
-    // When the user opens the room OR messages update while they're viewing it,
-    // mark it as read.
-    if (!roomId) return;
-    setLastSeen(roomId);
-  }, [roomId, messages.length]);
+    if (!roomId || !newestShown) return;
+    const markRead = () => {
+      if (document.hasFocus()) setLastSeen(roomId, Date.parse(newestShown));
+    };
+    markRead();
+    window.addEventListener("focus", markRead);
+    return () => window.removeEventListener("focus", markRead);
+  }, [roomId, newestShown]);
 
   // Load messages + polling
   useEffect(() => {

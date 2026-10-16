@@ -24,6 +24,8 @@ export type HouseholdInvite = {
 
 type HouseholdInvitesValue = {
   invites: HouseholdInvite[];
+  // Unread household chat messages per household id, for the nav badges.
+  unreadMessages: Record<string, number>;
   error: string | null;
   refresh: () => Promise<void>;
   accept: (inviteId: string) => Promise<void>;
@@ -47,21 +49,32 @@ export function HouseholdInvitesProvider({
   const [state, setState] = useState<{
     token: string | null;
     invites: HouseholdInvite[];
+    unreadMessages: Record<string, number>;
     error: string | null;
-  }>({ token: null, invites: [], error: null });
+  }>({ token: null, invites: [], unreadMessages: {}, error: null });
 
   const refresh = useCallback(async () => {
     if (!token) return;
     try {
-      const invites = await apiFetch<HouseholdInvite[]>(
-        "/households/invites/mine",
-        { token },
-      );
-      setState({ token, invites, error: null });
+      const [invites, households] = await Promise.all([
+        apiFetch<HouseholdInvite[]>("/households/invites/mine", { token }),
+        apiFetch<{ id: string; unreadMessages: number }[]>("/households", {
+          token,
+        }),
+      ]);
+      setState({
+        token,
+        invites,
+        unreadMessages: Object.fromEntries(
+          households.map((h) => [h.id, h.unreadMessages]),
+        ),
+        error: null,
+      });
     } catch (err) {
       setState((prev) => ({
         token,
         invites: prev.token === token ? prev.invites : [],
+        unreadMessages: prev.token === token ? prev.unreadMessages : {},
         error: err instanceof Error ? err.message : "Failed to load invites",
       }));
     }
@@ -87,6 +100,7 @@ export function HouseholdInvitesProvider({
 
   const value: HouseholdInvitesValue = {
     invites: current ? state.invites : [],
+    unreadMessages: current ? state.unreadMessages : {},
     error: current ? state.error : null,
     refresh,
     accept: (inviteId) => respond(inviteId, "accept"),

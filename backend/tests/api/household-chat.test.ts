@@ -203,4 +203,97 @@ describe.sequential("Household chat", () => {
       .set(auth(roommate.token))
       .expect(200);
   });
+
+  describe("unread count", () => {
+    async function unread(token: string, householdId: string) {
+      const res = await request(ctx.app)
+        .get("/households")
+        .set(auth(token))
+        .expect(200);
+      return res.body.find((h: { id: string }) => h.id === householdId)
+        .unreadMessages;
+    }
+
+    async function markRead(token: string, base: string, upTo: string) {
+      await request(ctx.app)
+        .post(`${base}/read`)
+        .set(auth(token))
+        .send({ upTo })
+        .expect(204);
+    }
+
+    it("counts messages from others, not your own", async () => {
+      const { owner, roommate, house, base } = await householdWithRoommate();
+      await send(owner.token, base, "one");
+      await send(owner.token, base, "two");
+      await send(roommate.token, base, "mine");
+
+      expect(await unread(roommate.token, house.id)).toBe(2);
+      expect(await unread(owner.token, house.id)).toBe(1);
+    });
+
+    it("reading up to a message clears it and everything before it", async () => {
+      const { owner, roommate, house, base } = await householdWithRoommate();
+      await send(owner.token, base, "one");
+      await tick();
+      const second = await send(owner.token, base, "two");
+      await tick();
+      await send(owner.token, base, "three");
+
+      await markRead(roommate.token, base, second.createdAt);
+      expect(await unread(roommate.token, house.id)).toBe(1);
+    });
+
+    it("never moves the read point backwards or past now", async () => {
+      const { owner, roommate, house, base } = await householdWithRoommate();
+      const first = await send(owner.token, base, "one");
+      await tick();
+      const second = await send(owner.token, base, "two");
+
+      await markRead(roommate.token, base, second.createdAt);
+      await markRead(roommate.token, base, first.createdAt);
+      expect(await unread(roommate.token, house.id)).toBe(0);
+
+      const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+      await markRead(roommate.token, base, future);
+      await tick();
+      await send(owner.token, base, "three");
+      expect(await unread(roommate.token, house.id)).toBe(1);
+    });
+
+    it("doesn't count messages from before you joined", async () => {
+      const { owner, house, base } = await householdWithRoommate();
+      await send(owner.token, base, "before");
+      await tick();
+
+      const newcomer = await signupUser(ctx);
+      await joinHouseholdByCode(ctx, newcomer.token, house.joinCode);
+      expect(await unread(newcomer.token, house.id)).toBe(0);
+
+      await send(owner.token, base, "after");
+      expect(await unread(newcomer.token, house.id)).toBe(1);
+    });
+
+    it("is 0 while the chat is turned off", async () => {
+      const { owner, roommate, house, base } = await householdWithRoommate();
+      await send(owner.token, base, "hello");
+
+      await request(ctx.app)
+        .patch(`/households/${house.id}/settings`)
+        .set(auth(owner.token))
+        .send({ chatEnabled: false })
+        .expect(200);
+      expect(await unread(roommate.token, house.id)).toBe(0);
+    });
+
+    it("can't be marked by non-members", async () => {
+      const { base } = await householdWithRoommate();
+      const stranger = await signupUser(ctx);
+      await request(ctx.app)
+        .post(`${base}/read`)
+        .set(auth(stranger.token))
+        .send({ upTo: new Date().toISOString() })
+        .expect(404);
+    });
+  });
 });
