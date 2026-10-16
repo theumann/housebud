@@ -280,12 +280,22 @@ export async function revokeInvite(
   return { ok: true };
 }
 
-function addMember(prisma: PrismaClient, householdId: string, userId: string) {
-  // Someone who previously left or was removed rejoins as a plain member.
+async function addMember(
+  prisma: Prisma.TransactionClient,
+  householdId: string,
+  userId: string,
+) {
+  const existing = await prisma.householdMember.findUnique({
+    where: { householdId_userId: { householdId, userId } },
+  });
+  if (existing?.status === "active") return existing;
+
+  // Someone who previously left or was removed rejoins as a plain member, and
+  // only sees household chat from their new join on.
   return prisma.householdMember.upsert({
     where: { householdId_userId: { householdId, userId } },
     create: { householdId, userId, role: "member", status: "active" },
-    update: { status: "active" },
+    update: { status: "active", joinedAt: new Date() },
   });
 }
 
@@ -307,13 +317,13 @@ async function joinFromInvite(
   invite: InviteWithHousehold,
   userId: string,
 ) {
-  await prisma.$transaction([
-    addMember(prisma, invite.householdId, userId),
-    prisma.householdInvite.update({
+  await prisma.$transaction(async (tx) => {
+    await addMember(tx, invite.householdId, userId);
+    await tx.householdInvite.update({
       where: { id: invite.id },
       data: { acceptedAt: new Date() },
-    }),
-  ]);
+    });
+  });
 
   return getHousehold(prisma, invite.householdId, userId);
 }

@@ -26,7 +26,7 @@ Known bugs and planned improvements are tracked in `known_bugs_and_improvements.
 
 ### Done so far
 
-- `backend/src/modules/household/` — create/list/get/rename, module toggles (`HouseholdSettings`: chores + shopping on by default, expenses + calendar off), join code, email invites (token, 14-day expiry), leave, remove member, transfer ownership. Guards: `requireActiveMember`, `requireOwner`, `requireEnabledModule` (for upcoming modules).
+- `backend/src/modules/household/` — create/list/get/rename, module toggles (`HouseholdSettings`: chat, chores + shopping on by default, expenses + calendar off), join code, email invites (token, 14-day expiry), leave, remove member, transfer ownership. Guards: `requireActiveMember`, `requireOwner`, `requireEnabledModule` (for upcoming modules).
 - `backend/src/errors/http.error.ts` — `HttpError` + `badRequest`/`forbidden`/`notFound`/`conflict`; `errorHandler` reads `statusCode`.
 - `FEATURE_MATCHING` env flag gates the compatibility/matches/chatrooms routers. Matching is **not** being turned off — keep the flag only as an emergency off switch (or drop it) and fix the comment in `env.ts`.
 - Frontend matching pages moved into the `(matching)` route group (URLs unchanged).
@@ -58,7 +58,7 @@ Build the household modules in this order, each on its own branch:
 
 1.  **Shopping list** (done) — the template every later module copies:
     - Backend: its own module (`backend/src/modules/shopping/`) mounted at `/households/:householdId/<module>` (`Router({ mergeParams: true })`); every service call starts with `requireActiveMember` + `requireEnabledModule`, so non-members and a turned-off module both get 404. Items are looked up by id **and** `householdId`.
-    - Frontend: each household lives at `/household/[householdId]`; its layout loads the household and provides `CurrentHouseholdContext` (pages read it with `useCurrentHousehold()`), so a module page is `/household/[householdId]/<module>`. `/household` only redirects to the first household or shows invites + create/join.
+    - Frontend: each household lives at `/household/[householdId]`; its layout loads the household and provides `CurrentHouseholdContext` (pages read it with `useCurrentHousehold()`). The layout stays mounted between household pages, so it re-fetches quietly on every page change, on window focus and every 30s (`useHouseholds(30_000)`) — members, settings and the name stay current without a reload, so a module page is `/household/[householdId]/<module>`. `/household` only redirects to the first household or shows invites + create/join.
     - The module's link appears in the Household nav row only while its setting is on (add it to `householdModules` in `AppNav.tsx`, and remove its greyed-out "soon" entry from `upcomingHouseholdModules`); the page shows `ModuleOff` when it's off (also on a 404 from polling). The owner's toggle is one entry in `MODULE_TOGGLES` (`HouseholdView.tsx`).
     - Polling hook (`useShoppingList`) with optimistic check/remove; a request counter makes sure a slow poll can't overwrite a newer change.
 2.  **Chores** (done) — `backend/src/modules/chores/`, page `/household/[householdId]/chores`. Rules:
@@ -68,14 +68,14 @@ Build the household modules in this order, each on its own branch:
     - Any member can create, edit, delete and complete chores. Completions are kept (`ChoreCompletion`, "Recently done"); a second "done" on the same occurrence gets 409.
     - **Undo**: a chore's latest completion can be undone by any member; it restores the due date, the turn (`ChoreCompletion.previousRotationIndex`) and a one-off chore. Earlier completions can't be undone (409).
     - **Started**: any member can start a chore ("Sam started · 2:15 pm"); only the starter can stop it, and done/undo clear it. It doesn't change whose turn it is. A start by someone who has since left can be taken over.
-3.  **Household chat** — separate from the matching chat (see Decided below); should reuse much of the existing chat code.
+3.  **Household chat** (done) — `backend/src/modules/household-chat/` (`HouseholdMessage`), page `/household/[householdId]/chat`. Separate from the matching chat (see Decided below); the message list + composer is the shared `components/chat/MessageThread.tsx`, also used by matching chat rooms. Members only see messages sent since they joined (`HouseholdMember.joinedAt`, reset when someone who left or was removed rejoins; seeds back-date it so their messages show); former members lose access. `GET …/chat/messages?after=<createdAt>` returns messages at or after that time (inclusive, so a same-millisecond message isn't missed, and never before `joinedAt`); `useHouseholdChat` loads the history once, then polls with `after` and skips ids it already has.
 4.  **Expenses** and **calendar** — later. Expense splitting has the most rules and gets its own design discussion first.
 
-Navigation has two sections, "Find Roommates" (Matches, Shortlist, Compatibility, Chat) and "Household" (Overview + enabled modules of the open household, then the planned modules — chat, expenses, calendar, house rules — greyed out with a "soon" tag), each with its pages in a second row (`AppNav.tsx`).
+Navigation has two sections, "Find Roommates" (Matches, Shortlist, Compatibility, Chat) and "Household" (Overview + enabled modules of the open household, then the planned modules — expenses, calendar, house rules — greyed out with a "soon" tag), each with its pages in a second row (`AppNav.tsx`).
 
 Decided:
 
-- **The household gets its own chat**, separate from the matching room. The matching chat shows full history to every accepted participant, so carrying it over would expose pre-household conversations to members added later and keep non-joiners in the household's conversation. The matching room stays as-is for its participants, linked via `sourceChatRoomId`. Household chat is not built yet.
+- **The household gets its own chat**, separate from the matching room. The matching chat shows full history to every accepted participant, so carrying it over would expose pre-household conversations to members added later and keep non-joiners in the household's conversation. The matching room stays as-is for its participants, linked via `sourceChatRoomId`.
 - **Re-inviting to a chat room:** people who declined or left can be invited again by any accepted member; someone the owner removed can only be brought back by the owner. Re-invites reset them to pending as a plain member, and the 3-room limit applies. No protection against repeated re-invites yet — that will come with block/reject.
 
 Open questions:
@@ -222,7 +222,7 @@ npx playwright test --ui
 
 - E2E data lives in the `e2e` schema of the dev database (`backend/.env.e2e`), not in `bunkbuddy_test`
 - Global setup resets that schema (`prisma migrate reset --force --skip-seed`), runs `seed:e2e`, and pre-authenticates as `me1` / `Password123!` — every run starts clean, and data from the last run stays around for debugging until the next one
-- `seed:e2e` runs the same `seed-dev.ts` as `seed:users`, including its fixed scenarios: `me3` is in 3 chat rooms (the limit), `me1` in exactly one (`chatrooms.spec.ts` opens it), `me4` + `me5` share "Seeded Test household" (with chores in every state, chore history and a shopping list, dates relative to the seed day — checked read-only by `household-seed.spec.ts`), and the other "me" users are in no room. `me1` and `me2` must stay without a household — `auth-with-ui.spec.ts` expects them to land on Matches
+- `seed:e2e` runs the same `seed-dev.ts` as `seed:users`, including its fixed scenarios: `me3` is in 3 chat rooms (the limit), `me1` in exactly one (`chatrooms.spec.ts` opens it), `me4` + `me5` share "Seeded Test household" (with chores in every state, chore history, a shopping list and a few chat messages, dates relative to the seed day — checked read-only by `household-seed.spec.ts`), and the other "me" users are in no room. `me1` and `me2` must stay without a household — `auth-with-ui.spec.ts` expects them to land on Matches
 - Tests run with `workers: 1`: the Next dev server compiles pages on first request and parallel workers make tests time out. Revisit (or switch to `next build` + `next start`) when the suite gets slow
 - Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests
 - Tests that need a logged-out state use: `test.use({ storageState: { cookies: [], origins: [] } })`
@@ -244,7 +244,7 @@ Required backend vars: `DATABASE_URL`, `JWT_SECRET`, `PORT`
 
 Optional: `SIGNUP_CODE` — when set, `POST /auth/signup` requires it (403 otherwise, checked before anything else) and the signup page shows an "Invite code" field (`GET /auth/signup-options`). `/signup?code=…` fills it in, so an invite can be a link. Trimmed and case-insensitive. Unset in local dev and tests; set on staging.
 
-Optional, **staging only — never production**: `DEMO_SANDBOX=true` turns on "Try the demo". `POST /demo/sandbox` (404 when off) creates a throwaway visitor (`@sandbox.example.com`) who owns "Maple Street House" with two of the `seed:demo` users as housemates (503 if they don't exist), chores in every state and a shopping list, and returns a 24-hour login. Sandboxes older than 24 hours are deleted whenever a new one is created (no scheduled job), at most 60 are created per hour (429), and Matches never shows sandbox users. The frontend's `/demo` page starts one and lands on the household; login and signup link to it when it's on (`demoAvailable` in `GET /auth/signup-options`). Link to `https://<frontend>/demo` from outside the app. `frontend/public/robots.txt` disallows `/demo`: crawlers that run JavaScript (Google's does) would otherwise create a sandbox on every visit.
+Optional, **staging only — never production**: `DEMO_SANDBOX=true` turns on "Try the demo". `POST /demo/sandbox` (404 when off) creates a throwaway visitor (`@sandbox.example.com`) who owns "Maple Street House" with two of the `seed:demo` users as housemates (503 if they don't exist), chores in every state, a shopping list and a short household chat, and returns a 24-hour login. Sandboxes older than 24 hours are deleted whenever a new one is created (no scheduled job), at most 60 are created per hour (429), and Matches never shows sandbox users. The frontend's `/demo` page starts one and lands on the household; login and signup link to it when it's on (`demoAvailable` in `GET /auth/signup-options`). Link to `https://<frontend>/demo` from outside the app. `frontend/public/robots.txt` disallows `/demo`: crawlers that run JavaScript (Google's does) would otherwise create a sandbox on every visit.
 
 ### Testing on a phone
 

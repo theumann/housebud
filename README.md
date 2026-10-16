@@ -4,7 +4,7 @@
 
 HouseBud helps students find compatible roommates and then manage the shared household they form: chores, a shared shopping list, and more to come. Matching and household management are one app: people meet through matching, talk it over in a chat room, and form a household from that room.
 
-> **Status: in development.** Not deployed yet; the public app will live at [housebud.app](https://housebud.app).
+> **Status: in development.** Not in production yet; the public app will live at [housebud.app](https://housebud.app). A staging version runs at [frontend-staging-971b.up.railway.app](https://frontend-staging-971b.up.railway.app/).
 >
 > The local database and Docker container still use the project's working name, `bunkbuddy` (see below).
 
@@ -22,11 +22,12 @@ HouseBud helps students find compatible roommates and then manage the shared hou
 - **Form a household** straight from a chat room. Everyone else in the room gets an invite and decides for themselves. You can also create a household from scratch and invite people with a join code or by their email address (the invite shows up when they log in; no email is sent yet).
 - **Chores**: repeating chores (every N days, weeks, months or quarters) or one-off ones, with an optional rotation that passes the turn to the next person. Late chores stay on schedule. Mark one as started so roommates know you're on it, and undo a "done" clicked by mistake.
 - **Shopping list** shared by the whole household: add items with quantities and check them off.
+- **Household chat**, separate from the matching chat rooms. Members see messages from when they joined, so a new roommate doesn't get the earlier conversation.
 - **Owner controls**: rename, manage members and invites, hand over ownership, and turn features on or off.
 
 ### Coming next
 
-Household chat, shared expenses, and a household calendar. Later: listings for shared houses and apartments, where households with a free room can look for a roommate.
+Shared expenses and a household calendar. Later: listings for shared houses and apartments, where households with a free room can look for a roommate.
 
 ## Tech stack
 

@@ -150,7 +150,10 @@ export async function createSandbox(prisma: PrismaClient) {
   const me = visitor.id;
 
   // The same states as the dev seed's household: overdue, due today and
-  // started, upcoming, rotating, monthly, one-off, with some history.
+  // started, upcoming, rotating, monthly, one-off, with some history, plus a
+  // short chat. Members joined before its messages, or the chat would hide them.
+  const joinedAt = new Date(Date.now() - 30 * 24 * HOUR);
+
   await prisma.household.create({
     data: {
       name: "Maple Street House",
@@ -159,9 +162,9 @@ export async function createSandbox(prisma: PrismaClient) {
       settings: { create: {} },
       members: {
         create: [
-          { userId: me, role: "owner", status: "active" },
-          { userId: mate1, role: "member", status: "active" },
-          { userId: mate2, role: "member", status: "active" },
+          { userId: me, role: "owner", status: "active", joinedAt },
+          { userId: mate1, role: "member", status: "active", joinedAt },
+          { userId: mate2, role: "member", status: "active", joinedAt },
         ],
       },
       chores: {
@@ -252,6 +255,25 @@ export async function createSandbox(prisma: PrismaClient) {
             addedByUserId: me,
             checkedAt: new Date(),
             checkedByUserId: mate2,
+          },
+        ],
+      },
+      messages: {
+        create: [
+          {
+            senderUserId: mate1,
+            text: "Welcome to the house! Chores and the shopping list are in the tabs above.",
+            createdAt: new Date(Date.now() - 26 * HOUR),
+          },
+          {
+            senderUserId: mate2,
+            text: "Heads up, the trash is overdue. Whose turn is it?",
+            createdAt: new Date(Date.now() - 3 * HOUR),
+          },
+          {
+            senderUserId: mate2,
+            text: "I'm on the bathroom now.",
+            createdAt: new Date(Date.now() - HOUR),
           },
         ],
       },

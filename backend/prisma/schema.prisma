@@ -35,13 +35,14 @@ model User {
   resetTokens   PasswordResetToken[]
 
   householdMemberships HouseholdMember[]
-  createdHouseholds    Household[]       @relation("HouseholdCreator")
-  sentHouseholdInvites HouseholdInvite[] @relation("HouseholdInviter")
-  addedShoppingItems   ShoppingItem[]    @relation("ShoppingItemAdder")
-  checkedShoppingItems ShoppingItem[]    @relation("ShoppingItemChecker")
-  createdChores        Chore[]           @relation("ChoreCreator")
-  startedChores        Chore[]           @relation("ChoreStarter")
+  createdHouseholds    Household[]        @relation("HouseholdCreator")
+  sentHouseholdInvites HouseholdInvite[]  @relation("HouseholdInviter")
+  addedShoppingItems   ShoppingItem[]     @relation("ShoppingItemAdder")
+  checkedShoppingItems ShoppingItem[]     @relation("ShoppingItemChecker")
+  createdChores        Chore[]            @relation("ChoreCreator")
+  startedChores        Chore[]            @relation("ChoreStarter")
   choreCompletions     ChoreCompletion[]
+  householdMessages    HouseholdMessage[]
 
   @@index([username])
 }
@@ -64,6 +65,7 @@ model Household {
   settings      HouseholdSettings?
   shoppingItems ShoppingItem[]
   chores        Chore[]
+  messages      HouseholdMessage[]
 
   @@index([joinCode])
 }
@@ -74,6 +76,8 @@ model HouseholdMember {
   userId      String
   role        String // 'owner' | 'member'
   status      String // 'active' | 'left' | 'removed'
+  // When they last became active; household chat shows messages from then on.
+  joinedAt    DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -108,6 +112,7 @@ model HouseholdSettings {
   householdId String    @id
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
 
+  chatEnabled     Boolean @default(true)
   choresEnabled   Boolean @default(true)
   shoppingEnabled Boolean @default(true)
   expensesEnabled Boolean @default(false)
@@ -115,6 +120,19 @@ model HouseholdSettings {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model HouseholdMessage {
+  id           String   @id @default(uuid())
+  householdId  String
+  senderUserId String
+  text         String
+  createdAt    DateTime @default(now())
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  sender    User      @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+
+  @@index([householdId, createdAt])
 }
 
 model ShoppingItem {

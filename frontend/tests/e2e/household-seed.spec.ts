@@ -78,3 +78,12 @@ test("the seeded shopping list shows open and checked items", async ({
   await expect(done).toContainText("Coffee");
   await expect(done).toContainText("Toilet paper");
 });
+
+test("the seeded chat shows both members' messages", async ({ page }) => {
+  await gotoAuthed(page, "/household", { waitForTestId: "household-view" });
+  await page.getByTestId("nav-household-chat").click();
+
+  const thread = page.getByTestId("message-container");
+  await expect(thread).toContainText("Who's home this weekend?");
+  await expect(thread).toContainText("Me, I'll do the bathroom.");
+});

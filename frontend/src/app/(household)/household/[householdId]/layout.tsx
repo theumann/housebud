@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useHouseholds } from "@/hooks/useHouseholds";
@@ -18,8 +18,8 @@ export default function HouseholdLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
-  const { households, loadingHouseholds, householdsError, reload } =
-    useHouseholds();
+  const { households, loadingHouseholds, householdsError, reload, refresh } =
+    useHouseholds(30_000);
 
   const household = households.find((h) => h.id === householdId) ?? null;
   // Not a member (left, removed, or a stale link): /household picks another
@@ -36,6 +36,15 @@ export default function HouseholdLayout({
   useEffect(() => {
     if (missing) router.replace("/household");
   }, [missing, router]);
+
+  // The layout stays mounted between household pages, so re-fetch on each
+  // page change (the first load is the hook's own).
+  const lastPathname = useRef(pathname);
+  useEffect(() => {
+    if (pathname === lastPathname.current) return;
+    lastPathname.current = pathname;
+    refresh();
+  }, [pathname, refresh]);
 
   if (loading) {
     return (
