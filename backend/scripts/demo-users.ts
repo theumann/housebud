@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { randomUUID } from "node:crypto";
-import { portraitPicker } from "./portraits";
+import { portraitPicker, type Sex } from "./portraits";
 import { DEMO_EMAIL_DOMAIN } from "../src/modules/demo/demo.types";
 
 // Every demo user's email ends with this. Reserved for examples (RFC 2606), so
@@ -150,7 +150,8 @@ export async function seedDemoUsers(prisma: PrismaClient, count: number) {
 
   for (let i = 0; i < count; i++) {
     // Name and photo from the same sex, so they match.
-    const sex = faker.person.sexType();
+    // Only female or male without `includeGeneric`; Faker types it wider.
+    const sex = faker.person.sexType() as Sex;
     const firstName = faker.person.firstName(sex);
     const lastName = faker.person.lastName();
     let username = `${slug(firstName)}.${slug(lastName)}`;
