@@ -87,3 +87,16 @@ test("the seeded chat shows both members' messages", async ({ page }) => {
   await expect(thread).toContainText("Who's home this weekend?");
   await expect(thread).toContainText("Me, I'll do the bathroom.");
 });
+
+test("the seeded expenses show what me5 owes", async ({ page }) => {
+  await gotoAuthed(page, "/household", { waitForTestId: "household-view" });
+  await page.getByTestId("nav-household-expenses").click();
+
+  const list = page.getByTestId("expenses-list");
+  await expect(list).toContainText("Groceries");
+  await expect(list).toContainText("Internet");
+  await expect(list).toContainText("Coffee");
+  await expect(page.getByTestId("payments-list")).toContainText("$5.00");
+  await expect(page.getByTestId("transfer")).toHaveCount(1);
+  await expect(page.getByTestId("transfer")).toContainText("$13.00");
+});

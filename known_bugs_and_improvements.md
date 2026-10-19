@@ -50,7 +50,9 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 ### Household
 
 - **Household chat: whole history on every page load.** Fine for a few hundred messages; add "load older" (e.g. the latest 100, then `before=`) once households have long histories.
-- **Module toggles** (expenses, calendar): add each to `MODULE_TOGGLES` in the owner settings together with its module — they control nothing visible until then. Chores and shopping have theirs.
+- **Calendar module toggle:** add it to `MODULE_TOGGLES` in the owner settings together with the module; it controls nothing visible until then.
+- **Expenses: whole history on every poll.** `GET …/expenses` returns every expense and payment (balances need them all). Fine for a household's first year; page the lists (and maybe cache balances) once they grow.
+- **Expenses: owner removing a member** doesn't warn about an open balance the way leaving does. The balance stays visible either way.
 
 ### Dev data
 
@@ -66,7 +68,7 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 ### Look and feel
 
 - **Icons for the nav items** (Matches, Shortlist, Compatibility, Chat, Overview, the household modules). Would also free up room on phones (see "App name in the nav on phones" below).
-- **Replace the browser's alert/confirm/prompt boxes and review their wording.** About 20 of them, in the chat room and room list, Matches, Shortlist, `ChoreBoard`, `HouseholdView` and `MessageThread`: leaving a chat room, leaving a household, making someone else owner, removing a member, renaming, forming a household, error messages… They're unstyled and look different in every browser, and the wording needs a review: each confirm should say what will happen (e.g. what someone loses by leaving). Use an in-app confirm dialog, and inline errors where they fit.
+- **Replace the browser's alert/confirm/prompt boxes and review their wording.** About 20 of them, in the chat room and room list, Matches, Shortlist, `ChoreBoard`, `ExpenseBoard`, `HouseholdView` and `MessageThread`: leaving a chat room, leaving a household, making someone else owner, removing a member, deleting an expense or payment, renaming, forming a household, error messages… They're unstyled and look different in every browser, and the wording needs a review: each confirm should say what will happen (e.g. what someone loses by leaving). Use an in-app confirm dialog, and inline errors where they fit.
 - **App name in the nav on phones.** Below `sm` the nav shows the logo icon only, because the row is full. To show "HouseBud" there too, free up room: move the theme toggle and Logout into an account menu, and/or shorten "Find Roommates" on small screens. (Stacking the name under the icon was considered and rejected: too small, and taller sticky nav.)
 - **Per-page browser tab titles** ("Chores · HouseBud"). Every page shows "HouseBud" today. The pages are client components and can't export `metadata`, so this needs a small server `layout.tsx` per section.
 
@@ -82,4 +84,5 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 - **`backend/scripts/seed-dev.ts`** uses `Array.prototype.at()`, which `tsconfig.scripts.json`'s target doesn't allow (`tsc -p tsconfig.scripts.json` reports 2 errors; `tsx` runs it fine).
 - **Backend dependency audit leftovers.** Production: `deepmerge-ts` (pinned by Prisma 6's `@prisma/config`, only used when the Prisma CLI loads its config — goes away with Prisma 7) and `csv-parse` (fix is 7.x, a major; only `import-questions.ts` uses it, on our own CSV).
 - **npm 11 crashes installing or updating in `backend/`** (`Cannot read properties of null (reading 'edgesOut')`, while resolving `vitest`'s optional peers: vite 8 → `@vitejs/devtools` → vitest 5). npm 12 works: `npx -y npm@12.2.0 install …` / `update <pkg>`. It warns that Node 24.14 is below its supported 24.15, and skips install scripts by default (Prisma, bcrypt, esbuild — already built, so nothing broke; a fresh `node_modules` would need them). Upgrading Node to ≥ 24.15 and npm to 12 fixes it for good.
+- **Backend tests push the schema once per test file.** `tests/setup.ts` is a `setupFiles` entry, so its `beforeAll` runs `prisma db push --force-reset` for every file. With parallel workers that pushed past Vitest's 10s hook timeout, so `vitest.config.ts` now sets `hookTimeout: 60_000`. Better: push once per worker schema (e.g. a `globalSetup` that prepares the `test_w*` schemas up front) and keep `resetDb` between tests. That would also make the suite noticeably faster.
 - **Prisma 7 upgrade** (latest stable 7.x, not the 8.0 release candidate). Also clears the `deepmerge-ts` audit finding above. Mostly touches `createPrisma()`, `tests/setup.ts` (per-worker `datasources` override) and the generator block. Do it on its own branch with the test suite as the safety net.

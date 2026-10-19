@@ -43,6 +43,12 @@ model User {
   startedChores        Chore[]            @relation("ChoreStarter")
   choreCompletions     ChoreCompletion[]
   householdMessages    HouseholdMessage[]
+  paidExpenses         Expense[]          @relation("ExpensePayer")
+  createdExpenses      Expense[]          @relation("ExpenseCreator")
+  expenseShares        ExpenseShare[]
+  settlementsSent      Settlement[]       @relation("SettlementFrom")
+  settlementsReceived  Settlement[]       @relation("SettlementTo")
+  createdSettlements   Settlement[]       @relation("SettlementCreator")
 
   @@index([username])
 }
@@ -66,6 +72,8 @@ model Household {
   shoppingItems ShoppingItem[]
   chores        Chore[]
   messages      HouseholdMessage[]
+  expenses      Expense[]
+  settlements   Settlement[]
 
   @@index([joinCode])
 }
@@ -120,6 +128,9 @@ model HouseholdSettings {
   expensesEnabled Boolean @default(false)
   calendarEnabled Boolean @default(false)
 
+  // ISO 4217 code; every amount in the household is in this currency.
+  currency String @default("USD")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -145,12 +156,15 @@ model ShoppingItem {
   addedByUserId   String?
   checkedAt       DateTime?
   checkedByUserId String?
+  // The expense this item was bought on ("I bought these").
+  expenseId       String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
   addedByUser   User?     @relation("ShoppingItemAdder", fields: [addedByUserId], references: [id], onDelete: SetNull)
   checkedByUser User?     @relation("ShoppingItemChecker", fields: [checkedByUserId], references: [id], onDelete: SetNull)
+  expense       Expense?  @relation(fields: [expenseId], references: [id], onDelete: SetNull)
 
   @@index([householdId])
 }
@@ -201,6 +215,61 @@ model ChoreCompletion {
   doneByUser User? @relation(fields: [doneByUserId], references: [id], onDelete: SetNull)
 
   @@index([choreId])
+}
+
+// Amounts are whole cents in the household's currency.
+model Expense {
+  id              String   @id @default(uuid())
+  householdId     String
+  description     String
+  amountCents     Int
+  paidByUserId    String
+  spentOn         DateTime @db.Date
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  household     Household      @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  paidByUser    User           @relation("ExpensePayer", fields: [paidByUserId], references: [id], onDelete: Cascade)
+  createdByUser User?          @relation("ExpenseCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  shares        ExpenseShare[]
+  shoppingItems ShoppingItem[]
+
+  @@index([householdId, spentOn])
+}
+
+// What each person owes of an expense; shares add up to the expense amount.
+model ExpenseShare {
+  id          String @id @default(uuid())
+  expenseId   String
+  userId      String
+  amountCents Int
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@index([userId])
+}
+
+// Money paid back between members ("Sam paid Alex $40").
+model Settlement {
+  id              String   @id @default(uuid())
+  householdId     String
+  fromUserId      String
+  toUserId        String
+  amountCents     Int
+  paidOn          DateTime @db.Date
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  fromUser      User      @relation("SettlementFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser        User      @relation("SettlementTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  createdByUser User?     @relation("SettlementCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([householdId, paidOn])
 }
 
 model UserProfile {

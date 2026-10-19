@@ -5,6 +5,8 @@ import clsx from "clsx";
 import type { Household } from "@/hooks/useHouseholds";
 import { type ShoppingItem, useShoppingList } from "@/hooks/useShoppingList";
 import { ModuleOff } from "@/components/household/ModuleOff";
+import { ExpenseForm } from "@/components/household/ExpenseForm";
+import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getUserDisplayName } from "@/lib/displayName";
@@ -63,6 +65,7 @@ function ItemRow({
           <p className="text-xs text-subtle">
             {checked ? "Got it: " : "Added by "}
             {getUserDisplayName(who)}
+            {item.expenseId && " · on an expense"}
           </p>
         )}
       </div>
@@ -82,7 +85,9 @@ function ItemRow({
 }
 
 export function ShoppingList({ household }: { household: Household }) {
+  const { user } = useAuth();
   const list = useShoppingList(household.id);
+  const [buying, setBuying] = useState(false);
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [adding, setAdding] = useState(false);
@@ -97,6 +102,11 @@ export function ShoppingList({ household }: { household: Household }) {
   const done = list.items
     .filter((i) => i.checkedAt)
     .sort((a, b) => b.checkedAt!.localeCompare(a.checkedAt!));
+
+  // What I checked off that isn't on an expense yet.
+  const myUnpaid = done.filter(
+    (i) => i.checkedByUser?.id === user?.id && !i.expenseId,
+  );
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true);
@@ -222,6 +232,45 @@ export function ShoppingList({ household }: { household: Household }) {
                     Clear checked
                   </Button>
                 </div>
+                {household.settings.expensesEnabled &&
+                  (buying ? (
+                    <div className="my-2 rounded border border-border-subtle p-3">
+                      <p className="mb-2 text-sm text-muted">
+                        Add the receipt total for what you bought; it&apos;s
+                        split like any other expense.
+                      </p>
+                      <ExpenseForm
+                        household={household}
+                        currency={household.settings.currency}
+                        initialDescription={myUnpaid
+                          .map((i) => i.name)
+                          .join(", ")
+                          .slice(0, 200)}
+                        submitLabel="Add expense"
+                        onSubmit={async (input) => {
+                          await list.recordPurchase({
+                            ...input,
+                            shoppingItemIds: myUnpaid.map((i) => i.id),
+                          });
+                          setBuying(false);
+                        }}
+                        onCancel={() => setBuying(false)}
+                      />
+                    </div>
+                  ) : (
+                    myUnpaid.length > 0 && (
+                      <Button
+                        data-testid="shopping-bought"
+                        variant="ghost"
+                        size="sm"
+                        className="my-1"
+                        disabled={busy}
+                        onClick={() => setBuying(true)}
+                      >
+                        I bought these ({myUnpaid.length}) → add expense
+                      </Button>
+                    )
+                  ))}
                 <ul
                   data-testid="shopping-done-items"
                   className="divide-y divide-border-subtle"
