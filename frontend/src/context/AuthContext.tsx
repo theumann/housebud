@@ -12,6 +12,7 @@ type UserProfile = {
     firstName: string;
     lastName: string;
     displayName: string | null;
+    avatarUrl?: string | null;
     school: string;
     collegeYear: string;
     targetCity: string;

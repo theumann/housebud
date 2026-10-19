@@ -15,6 +15,7 @@ HouseBud helps students find roommates and then run the household they form. Mat
     - Common shopping list
     - House rules
     - More to be determined later
+  - Profile photo upload: today a photo is only a pasted URL (`UserProfile.avatarUrl`, loaded from third-party servers). Let users upload one, hosted by us, and show it in the nav's account menu bubble and everywhere `Avatar` is used. Needs file storage (shared with expense receipt uploads) and settles the avatar point under "Before going live".
   - House, Appartment and room listings (later phase)
     - Rental app for shared units
 

@@ -3,14 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/Logo";
 import { useChatroomsFeed } from "@/context/ChatroomsFeedContext";
-import { getUserDisplayName } from "@/lib/displayName";
-import { useTheme } from "@/hooks/useTheme";
 import { useHouseholdInvites } from "@/context/HouseholdInvitesContext";
 import { useOptionalCurrentHousehold } from "@/context/CurrentHouseholdContext";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 
 function NavBadge({ count, testId }: { count: number; testId?: string }) {
   if (count <= 0) return null;
@@ -89,7 +86,6 @@ function NavPill({
 
 export function AppNav() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
   const { pendingInvitesCount, unreadRoomsCount } = useChatroomsFeed();
   const totalBadgeCount = pendingInvitesCount + unreadRoomsCount;
   const { invites: householdInvites, unreadMessages } = useHouseholdInvites();
@@ -97,7 +93,6 @@ export function AppNav() {
   // messages.
   const unreadChats = Object.values(unreadMessages).filter((n) => n > 0).length;
   const currentHousehold = useOptionalCurrentHousehold()?.household;
-  const { isDark, toggle } = useTheme();
 
   const inMatching = matchingPaths.some((p) => pathname.startsWith(p));
   const inHousehold = pathname.startsWith("/household");
@@ -190,74 +185,7 @@ export function AppNav() {
           ))}
         </div>
 
-        {/* Right side */}
-        <div className="flex items-center gap-2 text-xs">
-          {user && (
-            <Link
-              href="/profile"
-              data-testid="nav-profile"
-              className="hidden text-muted underline-offset-2 hover:underline sm:inline"
-            >
-              {user
-                ? `Hi, ${getUserDisplayName({
-                    username: user.username,
-                    profile: {
-                      displayName: user.profile?.displayName,
-                      firstName: user.profile?.firstName,
-                      lastName: user.profile?.lastName,
-                    },
-                  })}`
-                : ""}
-            </Link>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-foreground-soft hover:bg-surface-muted"
-            data-testid="toggle-theme"
-            aria-label="Toggle theme"
-            onClick={toggle}
-          >
-            {isDark ? (
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="4" />
-                <circle cx="12" cy="3" r="1.5" />
-                <circle cx="12" cy="21" r="1.5" />
-                <circle cx="3" cy="12" r="1.5" />
-                <circle cx="21" cy="12" r="1.5" />
-                <circle cx="5.6" cy="5.6" r="1.5" />
-                <circle cx="18.4" cy="18.4" r="1.5" />
-                <circle cx="5.6" cy="18.4" r="1.5" />
-                <circle cx="18.4" cy="5.6" r="1.5" />
-              </svg>
-            ) : (
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
-          </Button>
-          <Button
-            data-testid="logout-button"
-            variant="ghost"
-            size="sm"
-            className="text-foreground-soft hover:bg-surface-muted"
-            onClick={logout}
-          >
-            Logout
-          </Button>
-        </div>
+        <AccountMenu />
       </div>
 
       {/* Pages of the current section */}

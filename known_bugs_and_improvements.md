@@ -25,6 +25,12 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 - **Fix:** decide whether removal should block rejoining by code (e.g. only an invite brings them back).
 
+### Saving the profile doesn't update the account menu
+
+The logged-in user in `AuthContext` is loaded once (login, or `/profile/me` on page load), and the profile page doesn't refresh it after a save. A new display name or photo URL only shows in the account menu bubble after a reload.
+
+- **Fix:** have `AuthContext` expose a `refreshUser()` (re-fetch `/profile/me`) and call it after the profile page saves, or let the save update the user directly.
+
 ## Improvements
 
 ### Chat
@@ -69,7 +75,7 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 - **Icons for the nav items** (Matches, Shortlist, Compatibility, Chat, Overview, the household modules). Would also free up room on phones (see "App name in the nav on phones" below).
 - **Replace the browser's alert/confirm/prompt boxes and review their wording.** About 20 of them, in the chat room and room list, Matches, Shortlist, `ChoreBoard`, `ExpenseBoard`, `HouseholdView` and `MessageThread`: leaving a chat room, leaving a household, making someone else owner, removing a member, deleting an expense or payment, renaming, forming a household, error messages… They're unstyled and look different in every browser, and the wording needs a review: each confirm should say what will happen (e.g. what someone loses by leaving). Use an in-app confirm dialog, and inline errors where they fit.
-- **App name in the nav on phones.** Below `sm` the nav shows the logo icon only, because the row is full. To show "HouseBud" there too, free up room: move the theme toggle and Logout into an account menu, and/or shorten "Find Roommates" on small screens. (Stacking the name under the icon was considered and rejected: too small, and taller sticky nav.)
+- **App name in the nav on phones.** Below `sm` the nav shows the logo icon only, because the row is full. The account menu (`AccountMenu.tsx`) freed about 80px, enough for "Find Roommates" on one line but not for the wordmark (about 115px). To show "HouseBud" there too, shorten "Find Roommates" on small screens (e.g. "Roommates"). (Stacking the name under the icon was considered and rejected: too small, and taller sticky nav.)
 - **Per-page browser tab titles** ("Chores · HouseBud"). Every page shows "HouseBud" today. The pages are client components and can't export `metadata`, so this needs a small server `layout.tsx` per section.
 
 ### Deployment
