@@ -20,6 +20,7 @@ export async function getMyProfile(prisma: PrismaClient, userId: string) {
   return {
     id: user.id,
     email: user.email,
+    username: user.username,
     isActive: user.isActive,
     createdAt: user.createdAt,
     profile: user.profile,
