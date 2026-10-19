@@ -25,12 +25,6 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 - **Fix:** decide whether removal should block rejoining by code (e.g. only an invite brings them back).
 
-### Saving the profile doesn't update the account menu
-
-The logged-in user in `AuthContext` is loaded once (login, or `/profile/me` on page load), and the profile page doesn't refresh it after a save. A new display name or photo URL only shows in the account menu bubble after a reload.
-
-- **Fix:** have `AuthContext` expose a `refreshUser()` (re-fetch `/profile/me`) and call it after the profile page saves, or let the save update the user directly.
-
 ## Improvements
 
 ### Chat

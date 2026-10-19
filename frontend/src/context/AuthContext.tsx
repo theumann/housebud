@@ -6,8 +6,7 @@ import { apiFetch, ApiError } from "@/lib/api";
 type UserProfile = {
   id: string;
   email: string;
-  // Only the login/signup response includes it; /profile/me doesn't.
-  username?: string;
+  username: string;
   profile: {
     firstName: string;
     lastName: string;
@@ -30,6 +29,8 @@ type AuthContextValue = {
   // Staging only: a throwaway account in a sample household.
   startDemo: () => Promise<void>;
   logout: () => void;
+  // Re-fetch the user after their profile changed (name, photo).
+  refreshUser: () => Promise<void>;
 };
 
 type AuthResponse = { token: string; user: UserProfile };
@@ -117,6 +118,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const refreshUser = async () => {
+    if (!token) return;
+    setUser(await apiFetch<UserProfile>("/profile/me", { token }));
+  };
+
   const logout = async () => {
     try {
       if (token) {
@@ -143,6 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signup,
     startDemo,
     logout,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

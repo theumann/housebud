@@ -24,7 +24,7 @@ type ProfilePayload = {
 };
 
 export default function ProfilePage() {
-  const { user, token, loading } = useAuth();
+  const { user, token, loading, refreshUser } = useAuth();
   const router = useRouter();
 
   const [form, setForm] = useState<ProfilePayload>({
@@ -160,6 +160,8 @@ export default function ProfilePage() {
 
       setSuccess("Profile saved successfully.");
       setInitialForm(form); // reset dirty state baseline
+      // The save worked; if this fails, the menu catches up on the next load.
+      refreshUser().catch(() => {});
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save profile");
     } finally {
@@ -215,6 +217,7 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-sm mb-1">Display name</label>
                   <Input
+                    data-testid="profile-display-name"
                     type="text"
                     value={form.displayName}
                     onChange={(e) =>

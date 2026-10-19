@@ -63,6 +63,7 @@ describe.sequential("Auth + Profile (smoke)", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(me.status).toBe(200);
+    expect(me.body.username).toBe("johndoe");
     expect(me.body.profile).toHaveProperty("displayName");
     expect(me.body.profile.displayName).toBe("JDD");
     expect(me.body.profile.targetZip).toBe("94110");
