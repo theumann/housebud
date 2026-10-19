@@ -21,6 +21,7 @@ test("nav links route to core pages", async ({ page }) => {
   await page.getByTestId("nav-find-roommates").click();
   await expect(page.getByTestId("matches-page")).toBeVisible();
 
+  await page.getByTestId("account-menu").click();
   await page.getByTestId("nav-profile").click();
   await expect(page.getByTestId("profile-edit-page")).toBeVisible();
 });
