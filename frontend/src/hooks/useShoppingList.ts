@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, apiFetch } from "@/lib/api";
+import type { ExpenseInput } from "@/hooks/useExpenses";
 
 type ItemUser = {
   id: string;
@@ -22,6 +23,8 @@ export type ShoppingItem = {
   checkedAt: string | null;
   addedByUser: ItemUser | null;
   checkedByUser: ItemUser | null;
+  // The expense it was bought on, if any.
+  expenseId: string | null;
 };
 
 // Polls the list so roommates' changes show up. Checking and removing update
@@ -117,6 +120,15 @@ export function useShoppingList(householdId: string, pollMs = 10_000) {
         (list) => list.filter((i) => i.id !== itemId),
         () => apiFetch(`${base}/items/${itemId}`, { method: "DELETE", token }),
       ),
+    // One expense for the items bought on a trip.
+    recordPurchase: async (input: ExpenseInput) => {
+      await apiFetch(`/households/${householdId}/expenses/expenses`, {
+        method: "POST",
+        token,
+        body: input,
+      });
+      await refresh();
+    },
     clearChecked: () =>
       mutate(
         (list) => list.filter((i) => !i.checkedAt),

@@ -37,11 +37,11 @@ const householdModules = [
   { path: "chat", label: "Chat", setting: "chatEnabled" },
   { path: "chores", label: "Chores", setting: "choresEnabled" },
   { path: "shopping", label: "Shopping", setting: "shoppingEnabled" },
+  { path: "expenses", label: "Expenses", setting: "expensesEnabled" },
 ] as const;
 
 // Planned household modules, shown disabled until they're built.
 const upcomingHouseholdModules = [
-  { path: "expenses", label: "Expenses" },
   { path: "calendar", label: "Calendar" },
   { path: "rules", label: "House rules" },
 ] as const;

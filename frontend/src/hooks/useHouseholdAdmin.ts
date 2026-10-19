@@ -19,7 +19,7 @@ export function useHouseholdAdmin(
   household: Household,
   onChanged: () => Promise<void>,
 ) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [sentInvites, setSentInvites] = useState<SentInvite[]>([]);
   const isOwner = household.myRole === "owner";
   const base = `/households/${household.id}`;
@@ -58,6 +58,13 @@ export function useHouseholdAdmin(
     updateSettings: async (settings: Partial<HouseholdSettings>) => {
       await call(`${base}/settings`, "PATCH", settings);
       await onChanged();
+    },
+    // What I'm owed (positive) or owe (negative) in the expenses module.
+    myBalanceCents: async () => {
+      const { balances } = await apiFetch<{
+        balances: { user: { id: string }; netCents: number }[];
+      }>(`${base}/expenses`, { token });
+      return balances.find((b) => b.user.id === user?.id)?.netCents ?? 0;
     },
     regenerateJoinCode: async () => {
       await call(`${base}/join-code`, "POST");

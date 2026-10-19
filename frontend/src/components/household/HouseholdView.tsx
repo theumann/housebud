@@ -4,10 +4,11 @@ import { FormEvent, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import type { Household, HouseholdMember } from "@/hooks/useHouseholds";
 import { useHouseholdAdmin } from "@/hooks/useHouseholdAdmin";
+import { formatMoney } from "@/hooks/useExpenses";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getUserDisplayName } from "@/lib/displayName";
-import { Input } from "@/components/ui/Input";
+import { Input, Select } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
 
 type Admin = ReturnType<typeof useHouseholdAdmin>;
@@ -191,8 +192,11 @@ const MODULE_TOGGLES = [
   { key: "chatEnabled", label: "Chat", testId: "chat" },
   { key: "choresEnabled", label: "Chores", testId: "chores" },
   { key: "shoppingEnabled", label: "Shopping list", testId: "shopping" },
+  { key: "expensesEnabled", label: "Expenses", testId: "expenses" },
 ] as const;
 type ModuleKey = (typeof MODULE_TOGGLES)[number]["key"];
+
+const CURRENCIES = ["USD", "CAD", "EUR", "GBP", "AUD", "NZD", "CHF"];
 
 function ModuleSettings({
   household,
@@ -235,6 +239,27 @@ function ModuleSettings({
           {m.label}
         </label>
       ))}
+      {household.settings.expensesEnabled && (
+        <label className="flex items-center gap-2 text-sm">
+          Currency
+          <Select
+            data-testid="currency-select"
+            value={household.settings.currency}
+            disabled={busy !== null}
+            onChange={(e) =>
+              run("currency", () =>
+                admin.updateSettings({ currency: e.target.value }),
+              )
+            }
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </Select>
+        </label>
+      )}
       <ErrorNote error={error} />
     </div>
   );
@@ -395,10 +420,27 @@ function LeaveHousehold({
     );
   }
 
-  const handleLeave = () => {
-    if (!window.confirm(`Leave ${household.name}?`)) return;
-    run("leave", admin.leave);
-  };
+  const handleLeave = () =>
+    run("leave", async () => {
+      // Leaving with money still open is allowed; the others keep seeing the
+      // balance and can record payments with a former member.
+      const balance = household.settings.expensesEnabled
+        ? await admin.myBalanceCents()
+        : 0;
+      const money = formatMoney(Math.abs(balance), household.settings.currency);
+      const warning =
+        balance < 0
+          ? `
+
+You still owe ${money}. Your housemates will keep seeing it after you leave.`
+          : balance > 0
+            ? `
+
+You're still owed ${money}. Payments to you can still be recorded after you leave.`
+            : "";
+      if (!window.confirm(`Leave ${household.name}?${warning}`)) return;
+      await admin.leave();
+    });
 
   return (
     <div className="flex flex-col gap-2">

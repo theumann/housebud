@@ -5,6 +5,7 @@ import { env } from "../../config/env";
 import { HttpError, notFound } from "../../errors/http.error";
 import { issueAuthResponse } from "../auth/auth.utils";
 import { generateUniqueJoinCode } from "../household/household.service";
+import { splitEqually } from "../expenses/expenses.service";
 import {
   DEMO_EMAIL_DOMAIN,
   SANDBOX_EMAIL_DOMAIN,
@@ -154,12 +155,12 @@ export async function createSandbox(prisma: PrismaClient) {
   // short chat. Members joined before its messages, or the chat would hide them.
   const joinedAt = new Date(Date.now() - 30 * 24 * HOUR);
 
-  await prisma.household.create({
+  const household = await prisma.household.create({
     data: {
       name: "Maple Street House",
       joinCode: await generateUniqueJoinCode(prisma),
       createdByUserId: me,
-      settings: { create: {} },
+      settings: { create: { expensesEnabled: true } },
       members: {
         create: [
           { userId: me, role: "owner", status: "active", joinedAt },
@@ -256,6 +257,13 @@ export async function createSandbox(prisma: PrismaClient) {
             checkedAt: new Date(),
             checkedByUserId: mate2,
           },
+          // Checked by the visitor, so they can try "I bought these".
+          {
+            name: "Pasta",
+            addedByUserId: mate1,
+            checkedAt: new Date(),
+            checkedByUserId: me,
+          },
         ],
       },
       messages: {
@@ -277,6 +285,55 @@ export async function createSandbox(prisma: PrismaClient) {
           },
         ],
       },
+    },
+  });
+
+  // The visitor owes mate1 $12.50, so Dues has something to settle.
+  const everyone = [me, mate1, mate2];
+  const expenses = [
+    {
+      description: "Groceries",
+      amountCents: 7350,
+      paidBy: mate1,
+      split: everyone,
+      dayOffset: -5,
+    },
+    {
+      description: "Internet",
+      amountCents: 6000,
+      paidBy: me,
+      split: everyone,
+      dayOffset: -12,
+    },
+    {
+      description: "Pizza night",
+      amountCents: 3600,
+      paidBy: mate2,
+      split: [me, mate2],
+      dayOffset: -2,
+    },
+  ];
+  for (const e of expenses) {
+    await prisma.expense.create({
+      data: {
+        householdId: household.id,
+        description: e.description,
+        amountCents: e.amountCents,
+        paidByUserId: e.paidBy,
+        spentOn: day(e.dayOffset),
+        createdByUserId: e.paidBy,
+        shares: { create: splitEqually(e.amountCents, e.split) },
+      },
+    });
+  }
+  await prisma.settlement.create({
+    data: {
+      householdId: household.id,
+      fromUserId: mate2,
+      toUserId: me,
+      amountCents: 1000,
+      paidOn: day(-1),
+      createdByUserId: mate2,
     },
   });
 

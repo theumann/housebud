@@ -17,6 +17,7 @@ export const UpdateSettingsSchema = z
     shoppingEnabled: z.boolean(),
     expensesEnabled: z.boolean(),
     calendarEnabled: z.boolean(),
+    currency: z.string().regex(/^[A-Z]{3}$/, "Use a 3-letter currency code"),
   })
   .partial();
 export type UpdateSettingsInput = z.infer<typeof UpdateSettingsSchema>;

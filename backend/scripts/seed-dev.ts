@@ -4,6 +4,7 @@ import { faker } from "@faker-js/faker";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { portraitPicker, type Sex } from "./portraits";
+import { splitEqually } from "../src/modules/expenses/expenses.service";
 
 // Fake users, chats and messages must never reach production. Checking the
 // host (not just NODE_ENV) also catches a local shell that has production
@@ -602,7 +603,7 @@ async function seedTestHousehold(me: Record<PersonalUsername, string>) {
   // Members joined before the seeded messages, or the chat would hide them.
   const joinedAt = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-  await prisma.household.create({
+  const household = await prisma.household.create({
     data: {
       name: SEEDED_HOUSEHOLD_NAME,
       // Same alphabet as real join codes (no 0/O, 1/I).
@@ -611,7 +612,7 @@ async function seedTestHousehold(me: Record<PersonalUsername, string>) {
         6,
       ),
       createdByUserId: me.me4,
-      settings: { create: {} },
+      settings: { create: { expensesEnabled: true } },
       members: {
         create: [
           { userId: me.me4, role: "owner", status: "active", joinedAt },
@@ -716,9 +717,49 @@ async function seedTestHousehold(me: Record<PersonalUsername, string>) {
         ],
       },
     },
+    include: { shoppingItems: true },
   });
+
+  // me5 ends up owing me4 $13.00.
+  const coffee = household.shoppingItems.find((i) => i.name === "Coffee")!;
+  const expenses = [
+    { description: "Groceries", amountCents: 8400, paidBy: me.me4, day: -6 },
+    { description: "Internet", amountCents: 6000, paidBy: me.me5, day: -12 },
+    {
+      description: "Coffee",
+      amountCents: 1200,
+      paidBy: me.me4,
+      day: 0,
+      itemIds: [coffee.id],
+    },
+  ];
+  for (const e of expenses) {
+    await prisma.expense.create({
+      data: {
+        householdId: household.id,
+        description: e.description,
+        amountCents: e.amountCents,
+        paidByUserId: e.paidBy,
+        spentOn: seedDay(e.day),
+        createdByUserId: e.paidBy,
+        shares: { create: splitEqually(e.amountCents, [me.me4, me.me5]) },
+        shoppingItems: { connect: (e.itemIds ?? []).map((id) => ({ id })) },
+      },
+    });
+  }
+  await prisma.settlement.create({
+    data: {
+      householdId: household.id,
+      fromUserId: me.me5,
+      toUserId: me.me4,
+      amountCents: 500,
+      paidOn: seedDay(-3),
+      createdByUserId: me.me5,
+    },
+  });
+
   console.log(
-    `Seeded "${SEEDED_HOUSEHOLD_NAME}" (me4 owner, me5 member) with chores and a shopping list.`,
+    `Seeded "${SEEDED_HOUSEHOLD_NAME}" (me4 owner, me5 member) with chores, a shopping list and expenses.`,
   );
 }
 
