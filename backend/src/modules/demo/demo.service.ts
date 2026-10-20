@@ -337,5 +337,69 @@ export async function createSandbox(prisma: PrismaClient) {
     },
   });
 
+  // Rules everyone agreed to, and a new one from mate1 waiting for the
+  // visitor, so House rules has a badge on arrival.
+  const rules = [
+    {
+      title: "Quiet hours after 11pm",
+      details: "Sunday to Thursday. Headphones for music and calls.",
+      daysAgo: 25,
+    },
+    {
+      title: "Dishes done the same day",
+      details: "Nothing left in the sink overnight.",
+      daysAgo: 20,
+    },
+    {
+      title: "Tell the house before overnight guests",
+      details: "A message in the household chat is enough.",
+      daysAgo: 14,
+    },
+  ];
+  for (const r of rules) {
+    const adoptedAt = new Date(Date.now() - r.daysAgo * 24 * HOUR);
+    const rule = await prisma.houseRule.create({
+      data: {
+        householdId: household.id,
+        title: r.title,
+        details: r.details,
+        adoptedAt,
+      },
+    });
+    await prisma.ruleProposal.create({
+      data: {
+        householdId: household.id,
+        kind: "add",
+        ruleId: rule.id,
+        title: r.title,
+        details: r.details,
+        proposedByUserId: mate1,
+        status: "adopted",
+        decidedAt: adoptedAt,
+        createdAt: new Date(adoptedAt.getTime() - 24 * HOUR),
+        votes: {
+          create: everyone.map((userId) => ({ userId, agree: true })),
+        },
+      },
+    });
+  }
+  await prisma.ruleProposal.create({
+    data: {
+      householdId: household.id,
+      kind: "add",
+      title: "Label your food in the fridge",
+      details: "Unlabelled food is fair game after three days.",
+      reason: "My yogurt keeps disappearing!",
+      proposedByUserId: mate1,
+      createdAt: new Date(Date.now() - 5 * HOUR),
+      votes: {
+        create: [
+          { userId: mate1, agree: true },
+          { userId: mate2, agree: true },
+        ],
+      },
+    },
+  });
+
   return issueAuthResponse(visitor, `${SANDBOX_LIFETIME_HOURS}h`);
 }

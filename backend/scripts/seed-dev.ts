@@ -758,8 +758,86 @@ async function seedTestHousehold(me: Record<PersonalUsername, string>) {
     },
   });
 
+  // Two rules both agreed to after joining, a declined proposal, and one from
+  // me4 waiting for me5 (so me5 sees a badge).
+  const daysAgo = (n: number) => new Date(Date.now() - n * 24 * 60 * 60 * 1000);
+  const adopted = [
+    {
+      title: "Quiet hours after 11pm",
+      details: "Sunday to Thursday. Headphones for music and calls.",
+      day: 20,
+    },
+    {
+      title: "Dishes done the same day",
+      details: "Nothing left in the sink overnight.",
+      day: 15,
+    },
+  ];
+  for (const r of adopted) {
+    const rule = await prisma.houseRule.create({
+      data: {
+        householdId: household.id,
+        title: r.title,
+        details: r.details,
+        adoptedAt: daysAgo(r.day),
+      },
+    });
+    await prisma.ruleProposal.create({
+      data: {
+        householdId: household.id,
+        kind: "add",
+        ruleId: rule.id,
+        title: r.title,
+        details: r.details,
+        proposedByUserId: me.me4,
+        status: "adopted",
+        decidedAt: daysAgo(r.day),
+        createdAt: daysAgo(r.day + 1),
+        votes: {
+          create: [
+            { userId: me.me4, agree: true },
+            { userId: me.me5, agree: true },
+          ],
+        },
+      },
+    });
+  }
+  await prisma.ruleProposal.create({
+    data: {
+      householdId: household.id,
+      kind: "add",
+      title: "No overnight guests on weeknights",
+      proposedByUserId: me.me4,
+      status: "declined",
+      decidedAt: daysAgo(8),
+      createdAt: daysAgo(9),
+      votes: {
+        create: [
+          { userId: me.me4, agree: true },
+          {
+            userId: me.me5,
+            agree: false,
+            reason: "My partner visits on Tuesdays.",
+          },
+        ],
+      },
+    },
+  });
+  await prisma.ruleProposal.create({
+    data: {
+      householdId: household.id,
+      kind: "add",
+      title: "Label your food in the fridge",
+      details: "Unlabelled food is fair game after three days.",
+      reason: "Things keep disappearing.",
+      proposedByUserId: me.me4,
+      createdAt: daysAgo(1),
+      votes: { create: { userId: me.me4, agree: true } },
+    },
+  });
+
   console.log(
-    `Seeded "${SEEDED_HOUSEHOLD_NAME}" (me4 owner, me5 member) with chores, a shopping list and expenses.`,
+    `Seeded "${SEEDED_HOUSEHOLD_NAME}" (me4 owner, me5 member) with chores, a shopping list, expenses and house rules.`,
   );
 }
 

@@ -35,12 +35,12 @@ const householdModules = [
   { path: "chores", label: "Chores", setting: "choresEnabled" },
   { path: "shopping", label: "Shopping", setting: "shoppingEnabled" },
   { path: "expenses", label: "Expenses", setting: "expensesEnabled" },
+  { path: "rules", label: "House rules", setting: "rulesEnabled" },
 ] as const;
 
 // Planned household modules, shown disabled until they're built.
 const upcomingHouseholdModules = [
   { path: "calendar", label: "Calendar" },
-  { path: "rules", label: "House rules" },
 ] as const;
 
 const matchingPaths = [
@@ -88,10 +88,18 @@ export function AppNav() {
   const pathname = usePathname();
   const { pendingInvitesCount, unreadRoomsCount } = useChatroomsFeed();
   const totalBadgeCount = pendingInvitesCount + unreadRoomsCount;
-  const { invites: householdInvites, unreadMessages } = useHouseholdInvites();
+  const {
+    invites: householdInvites,
+    unreadMessages,
+    pendingRules,
+  } = useHouseholdInvites();
   // Badges count chats with something new, like the matching Chat link, not
   // messages.
   const unreadChats = Object.values(unreadMessages).filter((n) => n > 0).length;
+  const allPendingRules = Object.values(pendingRules).reduce(
+    (sum, n) => sum + n,
+    0,
+  );
   const currentHousehold = useOptionalCurrentHousehold()?.household;
 
   const inMatching = matchingPaths.some((p) => pathname.startsWith(p));
@@ -110,8 +118,10 @@ export function AppNav() {
       href: "/household",
       label: "Household",
       testId: "nav-household",
-      // Inside the section the Chat link carries the unread count.
-      badge: householdInvites.length + (inHousehold ? 0 : unreadChats),
+      // Inside the section the Chat and House rules links carry these.
+      badge:
+        householdInvites.length +
+        (inHousehold ? 0 : unreadChats + allPendingRules),
       active: inHousehold,
     },
   ];
@@ -149,7 +159,13 @@ export function AppNav() {
             label: m.label,
             testId: `nav-household-${m.path}`,
             badge:
-              m.path === "chat" && unreadMessages[currentHousehold.id] ? 1 : 0,
+              m.path === "chat"
+                ? unreadMessages[currentHousehold.id]
+                  ? 1
+                  : 0
+                : m.path === "rules"
+                  ? (pendingRules[currentHousehold.id] ?? 0)
+                  : 0,
           })),
       ]
     : [];

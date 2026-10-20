@@ -10,6 +10,7 @@ import shoppingRoutes from "./modules/shopping/shopping.routes";
 import choresRoutes from "./modules/chores/chores.routes";
 import householdChatRoutes from "./modules/household-chat/household-chat.routes";
 import expensesRoutes from "./modules/expenses/expenses.routes";
+import rulesRoutes from "./modules/rules/rules.routes";
 import demoRoutes from "./modules/demo/demo.routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { env } from "./config/env";
@@ -38,6 +39,7 @@ export function createApp(prisma: PrismaClient) {
   app.use("/households/:householdId/chores", choresRoutes);
   app.use("/households/:householdId/chat", householdChatRoutes);
   app.use("/households/:householdId/expenses", expensesRoutes);
+  app.use("/households/:householdId/rules", rulesRoutes);
   app.use("/households", householdRoutes);
   app.use("/demo", demoRoutes);
 
