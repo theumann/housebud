@@ -26,6 +26,7 @@ export type HouseholdSettings = {
   shoppingEnabled: boolean;
   expensesEnabled: boolean;
   calendarEnabled: boolean;
+  rulesEnabled: boolean;
   currency: string;
 };
 

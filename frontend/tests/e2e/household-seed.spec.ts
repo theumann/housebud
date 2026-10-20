@@ -100,3 +100,22 @@ test("the seeded expenses show what me5 owes", async ({ page }) => {
   await expect(page.getByTestId("transfer")).toHaveCount(1);
   await expect(page.getByTestId("transfer")).toContainText("$13.00");
 });
+
+test("the seeded house rules show with a proposal waiting for me5", async ({
+  page,
+}) => {
+  await gotoAuthed(page, "/household", { waitForTestId: "household-view" });
+  await page.getByTestId("nav-household-rules").click();
+
+  const rules = page.getByTestId("rules-list");
+  await expect(rules).toContainText("Quiet hours after 11pm");
+  await expect(rules).toContainText("Dishes done the same day");
+  const proposals = page.getByTestId("rule-proposals");
+  await expect(proposals).toContainText("Label your food in the fridge");
+  await expect(proposals).toContainText("Waiting for Me5");
+  // me4 proposed it, so there's nothing for me4 to answer.
+  await expect(page.getByTestId("proposal-agree")).toHaveCount(0);
+  await expect(page.getByTestId("rule-history")).toContainText(
+    "My partner visits on Tuesdays.",
+  );
+});

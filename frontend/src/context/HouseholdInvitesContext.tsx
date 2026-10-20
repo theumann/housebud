@@ -26,6 +26,9 @@ type HouseholdInvitesValue = {
   invites: HouseholdInvite[];
   // Unread household chat messages per household id, for the nav badges.
   unreadMessages: Record<string, number>;
+  // Rule proposals waiting for my answer (+1 if I still need to agree to the
+  // rules) per household id.
+  pendingRules: Record<string, number>;
   error: string | null;
   refresh: () => Promise<void>;
   accept: (inviteId: string) => Promise<void>;
@@ -50,23 +53,33 @@ export function HouseholdInvitesProvider({
     token: string | null;
     invites: HouseholdInvite[];
     unreadMessages: Record<string, number>;
+    pendingRules: Record<string, number>;
     error: string | null;
-  }>({ token: null, invites: [], unreadMessages: {}, error: null });
+  }>({
+    token: null,
+    invites: [],
+    unreadMessages: {},
+    pendingRules: {},
+    error: null,
+  });
 
   const refresh = useCallback(async () => {
     if (!token) return;
     try {
       const [invites, households] = await Promise.all([
         apiFetch<HouseholdInvite[]>("/households/invites/mine", { token }),
-        apiFetch<{ id: string; unreadMessages: number }[]>("/households", {
-          token,
-        }),
+        apiFetch<
+          { id: string; unreadMessages: number; pendingRules: number }[]
+        >("/households", { token }),
       ]);
       setState({
         token,
         invites,
         unreadMessages: Object.fromEntries(
           households.map((h) => [h.id, h.unreadMessages]),
+        ),
+        pendingRules: Object.fromEntries(
+          households.map((h) => [h.id, h.pendingRules]),
         ),
         error: null,
       });
@@ -75,6 +88,7 @@ export function HouseholdInvitesProvider({
         token,
         invites: prev.token === token ? prev.invites : [],
         unreadMessages: prev.token === token ? prev.unreadMessages : {},
+        pendingRules: prev.token === token ? prev.pendingRules : {},
         error: err instanceof Error ? err.message : "Failed to load invites",
       }));
     }
@@ -101,6 +115,7 @@ export function HouseholdInvitesProvider({
   const value: HouseholdInvitesValue = {
     invites: current ? state.invites : [],
     unreadMessages: current ? state.unreadMessages : {},
+    pendingRules: current ? state.pendingRules : {},
     error: current ? state.error : null,
     refresh,
     accept: (inviteId) => respond(inviteId, "accept"),

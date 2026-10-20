@@ -49,6 +49,8 @@ model User {
   settlementsSent      Settlement[]       @relation("SettlementFrom")
   settlementsReceived  Settlement[]       @relation("SettlementTo")
   createdSettlements   Settlement[]       @relation("SettlementCreator")
+  ruleProposals        RuleProposal[]
+  ruleVotes            RuleVote[]
 
   @@index([username])
 }
@@ -74,22 +76,26 @@ model Household {
   messages      HouseholdMessage[]
   expenses      Expense[]
   settlements   Settlement[]
+  houseRules    HouseRule[]
+  ruleProposals RuleProposal[]
 
   @@index([joinCode])
 }
 
 model HouseholdMember {
-  id          String    @id @default(uuid())
-  householdId String
-  userId      String
-  role        String // 'owner' | 'member'
-  status      String // 'active' | 'left' | 'removed'
+  id            String    @id @default(uuid())
+  householdId   String
+  userId        String
+  role          String // 'owner' | 'member'
+  status        String // 'active' | 'left' | 'removed'
   // When they last became active; household chat shows messages from then on.
-  joinedAt    DateTime  @default(now())
+  joinedAt      DateTime  @default(now())
   // Newest household chat message they've seen; later ones from others are unread.
-  chatReadAt  DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  chatReadAt    DateTime?
+  // When they agreed to the house rules; before joinedAt means not since they (re)joined.
+  rulesAgreedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -127,6 +133,7 @@ model HouseholdSettings {
   shoppingEnabled Boolean @default(true)
   expensesEnabled Boolean @default(false)
   calendarEnabled Boolean @default(false)
+  rulesEnabled    Boolean @default(true)
 
   // ISO 4217 code; every amount in the household is in this currency.
   currency String @default("USD")
@@ -270,6 +277,61 @@ model Settlement {
   createdByUser User?     @relation("SettlementCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@index([householdId, paidOn])
+}
+
+// An adopted house rule. Rules only change through a RuleProposal everyone agreed to.
+model HouseRule {
+  id          String   @id @default(uuid())
+  householdId String
+  title       String
+  details     String?
+  adoptedAt   DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  household Household      @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  proposals RuleProposal[]
+
+  @@index([householdId, adoptedAt])
+}
+
+// A proposed new rule, change or removal; adopted once every active member agrees.
+model RuleProposal {
+  id               String    @id @default(uuid())
+  householdId      String
+  kind             String // 'add' | 'change' | 'remove'
+  ruleId           String?
+  // The proposed text; for a removal, the rule's text when it was proposed.
+  title            String
+  details          String?
+  reason           String?
+  proposedByUserId String?
+  status           String    @default("open") // 'open' | 'adopted' | 'declined' | 'withdrawn'
+  decidedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  household  Household  @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  rule       HouseRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  proposedBy User?      @relation(fields: [proposedByUserId], references: [id], onDelete: SetNull)
+  votes      RuleVote[]
+
+  @@index([householdId, status])
+}
+
+model RuleVote {
+  id         String   @id @default(uuid())
+  proposalId String
+  userId     String
+  agree      Boolean
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  proposal RuleProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([proposalId, userId])
+  @@index([userId])
 }
 
 model UserProfile {

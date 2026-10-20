@@ -157,8 +157,36 @@ export async function listMyHouseholds(prisma: PrismaClient, userId: string) {
       unreadMessages: m.household.settings?.chatEnabled
         ? await countUnreadMessages(prisma, m)
         : 0,
+      pendingRules: m.household.settings?.rulesEnabled
+        ? await countPendingRules(prisma, m)
+        : 0,
     })),
   );
+}
+
+// Rule proposals waiting for their answer, plus one if they joined after
+// rules were adopted and haven't agreed to them yet.
+async function countPendingRules(
+  prisma: PrismaClient,
+  member: {
+    householdId: string;
+    userId: string;
+    joinedAt: Date;
+    rulesAgreedAt: Date | null;
+  },
+) {
+  const { householdId, userId, joinedAt, rulesAgreedAt } = member;
+  const [proposals, olderRules] = await Promise.all([
+    prisma.ruleProposal.count({
+      where: { householdId, status: "open", votes: { none: { userId } } },
+    }),
+    rulesAgreedAt && rulesAgreedAt >= joinedAt
+      ? 0
+      : prisma.houseRule.count({
+          where: { householdId, adoptedAt: { lt: joinedAt } },
+        }),
+  ]);
+  return proposals + (olderRules > 0 ? 1 : 0);
 }
 
 // Messages from others since they last read the chat or (re)joined.

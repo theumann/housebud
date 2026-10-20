@@ -57,7 +57,7 @@ describe.sequential("Demo sandbox", () => {
     expect(res.status).toBe(503);
   });
 
-  it("logs the visitor into their own household with chores, shopping, chat and expenses", async () => {
+  it("logs the visitor into their own household with chores, shopping, chat, expenses and rules", async () => {
     await withDemoUsers();
 
     const res = await request(ctx.app).post("/demo/sandbox");
@@ -105,6 +105,15 @@ describe.sequential("Demo sandbox", () => {
       (b: { user: { id: string } }) => b.user.id === res.body.user.id,
     );
     expect(mine.netCents).toBeLessThan(0);
+
+    const rules = await request(ctx.app)
+      .get(`/households/${id}/rules`)
+      .set(auth(token))
+      .expect(200);
+    expect(rules.body.rules.length).toBeGreaterThan(0);
+    expect(rules.body.needsMyAgreement).toBe(false);
+    expect(rules.body.proposals[0].myAnswer).toBe(false);
+    expect(households.body[0].pendingRules).toBe(1);
   });
 
   it("gives every visitor a separate sandbox", async () => {

@@ -17,6 +17,7 @@ export const UpdateSettingsSchema = z
     shoppingEnabled: z.boolean(),
     expensesEnabled: z.boolean(),
     calendarEnabled: z.boolean(),
+    rulesEnabled: z.boolean(),
     currency: z.string().regex(/^[A-Z]{3}$/, "Use a 3-letter currency code"),
   })
   .partial();
@@ -43,6 +44,7 @@ export const HOUSEHOLD_MODULES = [
   "shopping",
   "expenses",
   "calendar",
+  "rules",
 ] as const;
 export type HouseholdModule = (typeof HOUSEHOLD_MODULES)[number];
 
@@ -53,10 +55,12 @@ export const MODULE_SETTING_KEY: Record<
   | "shoppingEnabled"
   | "expensesEnabled"
   | "calendarEnabled"
+  | "rulesEnabled"
 > = {
   chat: "chatEnabled",
   chores: "choresEnabled",
   shopping: "shoppingEnabled",
   expenses: "expensesEnabled",
   calendar: "calendarEnabled",
+  rules: "rulesEnabled",
 };
