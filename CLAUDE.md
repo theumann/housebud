@@ -88,7 +88,7 @@ Build the household modules in this order, each on its own branch:
     - Later: reordering, categories, comments on proposals, a chat message for new proposals, suggestions from compatibility answers.
 6.  **Calendar** — later.
 
-Navigation has two sections, "Find Roommates" (Matches, Shortlist, Compatibility, Chat) and "Household" (Overview + enabled modules of the open household, then the planned modules — calendar — greyed out with a "soon" tag), each with its pages in a second row (`AppNav.tsx`).
+Navigation has two sections, "Find Roommates" (Matches, Shortlist, Compatibility, Chat) and "Household" (Overview + enabled modules of the open household, then the planned modules — calendar — greyed out with a "soon" tag), each with its pages in a second row (`AppNav.tsx`). Below the `sm` breakpoint, a row of more than 4 entries keeps the first 3 and puts the rest under a "More" menu, whose badge adds up the badges of the pages it holds; wider windows show the whole row. Menus close on an outside click or Escape (`useMenuDismiss`, shared with the account menu).
 
 Decided:
 

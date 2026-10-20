@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -8,6 +9,7 @@ import { useChatroomsFeed } from "@/context/ChatroomsFeedContext";
 import { useHouseholdInvites } from "@/context/HouseholdInvitesContext";
 import { useOptionalCurrentHousehold } from "@/context/CurrentHouseholdContext";
 import { AccountMenu } from "@/components/layout/AccountMenu";
+import { useMenuDismiss } from "@/hooks/useMenuDismiss";
 
 function NavBadge({ count, testId }: { count: number; testId?: string }) {
   if (count <= 0) return null;
@@ -43,6 +45,10 @@ const upcomingHouseholdModules = [
   { path: "calendar", label: "Calendar" },
 ] as const;
 
+// On narrow windows a row of more than NARROW_ROW + 1 pages keeps the first
+// NARROW_ROW and puts the rest under "More", so none (or its badge) is off-screen.
+const NARROW_ROW = 3;
+
 const matchingPaths = [
   "/matches",
   "/shortlist",
@@ -67,13 +73,7 @@ function NavPill({
     <Link
       href={link.href}
       data-testid={link.testId}
-      className={clsx(
-        "rounded-full px-3 py-1",
-        active
-          ? "bg-primary-100 text-primary-700 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
-          : "text-muted hover:bg-surface-muted",
-        className,
-      )}
+      className={clsx(pillClass(active), className)}
       aria-current={active ? "page" : undefined}
     >
       <span className="relative inline-flex items-center gap-2">
@@ -81,6 +81,124 @@ function NavPill({
         <NavBadge count={link.badge ?? 0} testId={`${link.testId}-badge`} />
       </span>
     </Link>
+  );
+}
+
+const pillClass = (active: boolean) =>
+  clsx(
+    "rounded-full px-3 py-1",
+    active
+      ? "bg-primary-100 text-primary-700 font-semibold dark:bg-primary-600/20 dark:text-primary-100"
+      : "text-muted hover:bg-surface-muted",
+  );
+
+function ChevronDown() {
+  return (
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      aria-hidden="true"
+    >
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
+// The pages that don't fit in the row on narrow windows. Shown as active
+// while one of them is open, with the badges of the pages it holds.
+function MoreMenu({
+  links,
+  soon,
+  pathname,
+}: {
+  links: NavLink[];
+  soon: readonly { path: string; label: string }[];
+  pathname: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const container = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useMenuDismiss(open, close, container, button);
+
+  const badge = links.reduce((sum, l) => sum + (l.badge ?? 0), 0);
+  const active = links.some((l) => isActive(pathname, l));
+
+  return (
+    <div ref={container} className="relative shrink-0 sm:hidden">
+      <button
+        ref={button}
+        type="button"
+        data-testid="nav-more"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className={clsx(pillClass(active), "whitespace-nowrap")}
+      >
+        <span className="inline-flex items-center gap-1">
+          More
+          <ChevronDown />
+          <NavBadge count={badge} testId="nav-more-badge" />
+        </span>
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          data-testid="nav-more-items"
+          className="absolute right-0 z-10 mt-2 w-48 overflow-hidden rounded-lg border border-border-subtle bg-surface py-1 text-sm shadow-lg"
+        >
+          {links.map((link) => {
+            const current = isActive(pathname, link);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                role="menuitem"
+                data-testid={`${link.testId}-more`}
+                aria-current={current ? "page" : undefined}
+                onClick={close}
+                className={clsx(
+                  "flex items-center justify-between gap-2 px-4 py-2 hover:bg-surface-muted",
+                  current
+                    ? "font-semibold text-primary-700 dark:text-primary-500"
+                    : "text-foreground-soft",
+                )}
+              >
+                {link.label}
+                <NavBadge
+                  count={link.badge ?? 0}
+                  testId={`${link.testId}-more-badge`}
+                />
+              </Link>
+            );
+          })}
+          {soon.map((m) => (
+            <span
+              key={m.path}
+              role="menuitem"
+              aria-disabled="true"
+              className="flex items-center justify-between gap-2 px-4 py-2 text-faint"
+            >
+              {m.label}
+              <SoonTag />
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SoonTag() {
+  return (
+    <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-subtle">
+      soon
+    </span>
   );
 }
 
@@ -175,6 +293,11 @@ export function AppNav() {
     : inHousehold
       ? householdLinks
       : [];
+  const soonLinks =
+    inHousehold && currentHousehold ? upcomingHouseholdModules : [];
+  // Index of the first page that goes under "More" on narrow windows.
+  const overflowAt =
+    subLinks.length + soonLinks.length > NARROW_ROW + 1 ? NARROW_ROW : Infinity;
 
   return (
     <nav className="sticky top-0 z-20 border-b border-border-subtle bg-linear-to-r from-nav-from/90 to-nav-to/90 backdrop-blur">
@@ -210,31 +333,42 @@ export function AppNav() {
           data-testid="nav-section-links"
           className="border-t border-border-subtle bg-linear-to-r from-theme-from to-theme-to"
         >
-          <div className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 py-2 text-[11px] sm:gap-2 sm:text-xs">
-            {subLinks.map((link) => (
-              <NavPill
-                key={link.href}
-                link={link}
-                active={isActive(pathname, link)}
-                className="whitespace-nowrap"
-              />
-            ))}
-            {inHousehold &&
-              currentHousehold &&
-              upcomingHouseholdModules.map((m) => (
+          <div className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-2 text-[11px] sm:gap-2 sm:text-xs">
+            <div className="flex min-w-0 gap-1 overflow-x-auto sm:gap-2">
+              {subLinks.map((link, i) => (
+                <NavPill
+                  key={link.href}
+                  link={link}
+                  active={isActive(pathname, link)}
+                  className={clsx(
+                    "whitespace-nowrap",
+                    i >= overflowAt && "max-sm:hidden",
+                  )}
+                />
+              ))}
+              {soonLinks.map((m) => (
                 <span
                   key={m.path}
                   data-testid={`nav-household-${m.path}-soon`}
                   title="Coming soon"
                   aria-disabled="true"
-                  className="inline-flex cursor-help items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-faint"
+                  className={clsx(
+                    "inline-flex cursor-help items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-faint",
+                    overflowAt !== Infinity && "max-sm:hidden",
+                  )}
                 >
                   <span>{m.label}</span>
-                  <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-subtle">
-                    soon
-                  </span>
+                  <SoonTag />
                 </span>
               ))}
+            </div>
+            {overflowAt !== Infinity && (
+              <MoreMenu
+                links={subLinks.slice(overflowAt)}
+                soon={soonLinks}
+                pathname={pathname}
+              />
+            )}
           </div>
         </div>
       )}
