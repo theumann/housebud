@@ -15,6 +15,12 @@ export default defineConfig({
   // The Next dev server compiles each page on first request; parallel workers
   // overwhelm it and tests time out. Revisit when the suite gets slow.
   workers: 1,
+  // In CI, one retry records a trace and marks the test "flaky" in the HTML
+  // report (uploaded as an artifact) instead of failing the run on a fluke.
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI
+    ? [["list"], ["html", { open: "never" }], ["github"]]
+    : "list",
   use: {
     baseURL: "http://localhost:3000",
     storageState: storageStatePath,
