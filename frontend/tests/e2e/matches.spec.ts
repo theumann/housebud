@@ -1,6 +1,6 @@
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
-import { apiPost, loginAs, signupFreshUser } from "./utils/users";
+import { apiPost, loginAs, randomZip, signupFreshUser } from "./utils/users";
 
 // Regression: the page size used to be derived from the number of items on
 // the current page, so a short last page showed "Page 5 of 7" and Next led
@@ -35,9 +35,13 @@ test.describe("inviting a match to your room", () => {
     page,
     request,
   }) => {
-    const owner = await signupFreshUser(request, "inviter");
-    const alreadyInvited = await signupFreshUser(request, "pendingone");
-    const target = await signupFreshUser(request, "target");
+    // Only this test\'s users share the ZIP, so they all fit on page 1.
+    const zip = randomZip();
+    const owner = await signupFreshUser(request, "inviter", { zip });
+    const alreadyInvited = await signupFreshUser(request, "pendingone", {
+      zip,
+    });
+    const target = await signupFreshUser(request, "target", { zip });
     await apiPost(request, owner.token, "/chatrooms", {
       participantIds: [alreadyInvited.id],
       name: "Invite Test Room",
@@ -70,8 +74,10 @@ test.describe("inviting a match to your room", () => {
     page,
     request,
   }) => {
-    const owner = await signupFreshUser(request, "roomowner");
-    const member = await signupFreshUser(request, "member");
+    // Only this test\'s users share the ZIP, so they all fit on page 1.
+    const zip = randomZip();
+    const owner = await signupFreshUser(request, "roomowner", { zip });
+    const member = await signupFreshUser(request, "member", { zip });
     const { roomId } = await apiPost(request, owner.token, "/chatrooms", {
       participantIds: [member.id],
       name: "Shared Room",
@@ -96,9 +102,11 @@ test.describe("inviting a match to your room", () => {
     page,
     request,
   }) => {
-    const owner = await signupFreshUser(request, "reinviter");
-    const member = await signupFreshUser(request, "stayer");
-    const decliner = await signupFreshUser(request, "decliner");
+    // Only this test\'s users share the ZIP, so they all fit on page 1.
+    const zip = randomZip();
+    const owner = await signupFreshUser(request, "reinviter", { zip });
+    const member = await signupFreshUser(request, "stayer", { zip });
+    const decliner = await signupFreshUser(request, "decliner", { zip });
     const { roomId } = await apiPost(request, owner.token, "/chatrooms", {
       participantIds: [member.id, decliner.id],
       name: "Second Chance",

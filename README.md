@@ -127,7 +127,9 @@ PORT=4002
 NODE_ENV="test"
 ```
 
-Then, from `frontend/`: `npx playwright test` (or `npx playwright test --ui`). Playwright starts its own backend (port 4002) and frontend (port 3000), so stop your frontend dev server first.
+Then, from `frontend/`: `npx playwright install` once (Chromium, Firefox and WebKit), then `npx playwright test` (or `npx playwright test --ui`). Playwright starts its own backend (port 4002) and a production build of the frontend (port 3000), so stop your frontend dev server first.
+
+Every test runs on five projects: desktop Chromium, Firefox and WebKit, plus an emulated Pixel 7 and iPhone 14 (viewport, touch and user agent on the matching engine, not real devices). For a quicker run, pick one: `npx playwright test --project=chromium`.
 
 ### Continuous integration
 
@@ -135,7 +137,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and every
 
 - **Checks**: Prettier, backend type-check and build, frontend lint and build.
 - **API tests**: Vitest against a Postgres 16 service container.
-- **End-to-end tests**: Playwright (Chromium) against its own Postgres, backend and frontend. Failing tests are retried once, so a flaky test shows up as "flaky" rather than failing the run. The HTML report is kept as the `playwright-report` artifact of each run, along with traces, screenshots and videos (`playwright-test-results`) when something fails.
+- **End-to-end tests**: Playwright against its own Postgres, backend and frontend, one job per browser engine: Chromium (desktop + Pixel 7), Firefox, and WebKit (desktop + iPhone 14). Failing tests are retried once, so a flaky test shows up as "flaky" rather than failing the run. The HTML report is kept as the `playwright-report` artifact of each job (`playwright-report-chromium`, …), along with traces, screenshots and videos (`playwright-test-results-…`) when something fails.
 
 ## Code formatting
 

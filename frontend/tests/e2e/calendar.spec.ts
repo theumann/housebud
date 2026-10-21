@@ -1,5 +1,6 @@
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
+import { clickNav } from "./utils/nav";
 import { apiPost, loginAs, signupFreshUser } from "./utils/users";
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -29,7 +30,7 @@ test("add a weekly event, skip one, and say you're away", async ({
   await gotoAuthed(page, `/household/${house.id}`, {
     waitForTestId: "household-view",
   });
-  await page.getByTestId("nav-household-calendar").click();
+  await clickNav(page, "nav-household-calendar");
   await expect(page.getByTestId("calendar-empty")).toBeVisible();
 
   // A house meeting today at 7pm, every week: four of them in the agenda.
@@ -94,7 +95,7 @@ test("add a weekly event, skip one, and say you're away", async ({
   const comingUp = page.getByTestId("coming-up");
   await expect(comingUp).toContainText("House meeting");
   await expect(comingUp).toContainText("away");
-  await page.getByTestId("nav-household-calendar").click();
+  await clickNav(page, "nav-household-calendar");
   await expect(page.getByTestId("calendar-agenda")).toBeVisible();
   await expect(page.getByTestId("calendar-entry-edit")).toHaveCount(0);
 });

@@ -1,6 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
+import { clickNav } from "./utils/nav";
 import { API, apiPost, loginAs, signupFreshUser } from "./utils/users";
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -39,7 +40,7 @@ test("propose a starter rule; it's adopted once the roommate agrees", async ({
     waitForTestId: "household-view",
   });
 
-  await page.getByTestId("nav-household-rules").click();
+  await clickNav(page, "nav-household-rules");
   await expect(page.getByTestId("rules-empty")).toBeVisible();
   await page.getByTestId("rule-starter").first().click();
   await expect(page.getByTestId("rule-title")).toHaveValue(

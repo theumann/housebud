@@ -1,6 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
+import { clickNav } from "./utils/nav";
 import { apiPost, loginAs, signupFreshUser } from "./utils/users";
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -117,14 +118,14 @@ test("a roommate who joins meanwhile shows up when you open Overview again", asy
   const members = page.getByTestId("household-members").locator("li");
   await expect(members).toHaveCount(1);
 
-  await page.getByTestId("nav-household-chores").click();
+  await clickNav(page, "nav-household-chores");
   // Wait for the page to change: clicking Overview while still on it changes
   // nothing, so nothing would be re-fetched.
   await expect(page.getByTestId("chores-empty")).toBeVisible();
   await apiPost(request, roommate.token, "/households/join", {
     joinCode: house.joinCode,
   });
-  await page.getByTestId("nav-household-overview").click();
+  await clickNav(page, "nav-household-overview");
 
   await expect(members).toHaveCount(2);
 });

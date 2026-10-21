@@ -89,9 +89,21 @@ jobs:
       - run: npm test
 
   e2e:
-    name: End-to-end tests (Playwright)
+    name: End-to-end tests (${{ matrix.browser }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # One job per browser engine; the phone profiles run on the engine they
+    # emulate (Pixel 7 on Chromium, iPhone 14 on WebKit).
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - browser: chromium
+            projects: --project=chromium --project=pixel-7
+          - browser: firefox
+            projects: --project=firefox
+          - browser: webkit
+            projects: --project=webkit --project=iphone-14
     services:
       postgres:
         image: postgres:16
@@ -129,19 +141,19 @@ jobs:
         working-directory: backend
       - run: npm ci
         working-directory: frontend
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
         working-directory: frontend
-      - run: npx playwright test
+      - run: npx playwright test ${{ matrix.projects }}
         working-directory: frontend
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.browser }}
           path: frontend/playwright-report/
           retention-days: 14
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-test-results
+          name: playwright-test-results-${{ matrix.browser }}
           path: frontend/test-results/
           retention-days: 14

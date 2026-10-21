@@ -1,6 +1,6 @@
-import { chromium } from "@playwright/test";
+import { request } from "@playwright/test";
 import { execSync } from "node:child_process";
-import { mkdir, rm, stat } from "node:fs/promises";
+import { mkdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const API = "http://localhost:4002";
@@ -15,12 +15,11 @@ function run(cmd: string) {
   execSync(cmd, { cwd: backendDir, stdio: "inherit" });
 }
 
+// Logs in through the API and writes the token as Playwright storage state,
+// without a browser: each CI job installs only the browsers it tests.
 async function loginAndSaveStorage() {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-
-  // Programmatic login via API
-  const res = await page.request.post(`${API}/auth/login`, {
+  const api = await request.newContext();
+  const res = await api.post(`${API}/auth/login`, {
     data: { identifier: "me1", password: "Password123!" },
   });
 
@@ -33,17 +32,21 @@ async function loginAndSaveStorage() {
   if (!token) {
     throw new Error(`Missing token from /auth/login: ${JSON.stringify(body)}`);
   }
+  await api.dispose();
 
-  // Put token in localStorage under bb_token
-  await page.goto("http://localhost:3000/login");
-  await page.evaluate((t) => localStorage.setItem("bb_token", t), token);
-
-  // Save storage state
   await mkdir(path.dirname(storageStatePath), { recursive: true });
-  await rm(storageStatePath, { force: true });
-  await page.context().storageState({ path: storageStatePath });
-
-  await browser.close();
+  await writeFile(
+    storageStatePath,
+    JSON.stringify({
+      cookies: [],
+      origins: [
+        {
+          origin: "http://localhost:3000",
+          localStorage: [{ name: "bb_token", value: token }],
+        },
+      ],
+    }),
+  );
 }
 
 export default async function globalSetup() {

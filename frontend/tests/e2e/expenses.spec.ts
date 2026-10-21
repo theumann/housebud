@@ -1,6 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
+import { clickNav } from "./utils/nav";
 import { API, apiPost, loginAs, signupFreshUser } from "./utils/users";
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -32,7 +33,7 @@ test("add an expense, see who owes what, and settle up", async ({
     waitForTestId: "household-view",
   });
 
-  await page.getByTestId("nav-household-expenses").click();
+  await clickNav(page, "nav-household-expenses");
   await expect(page.getByTestId("expenses-empty")).toBeVisible();
 
   await page.getByTestId("expense-new").click();
@@ -91,7 +92,7 @@ test("checked shopping items become one expense", async ({ page, request }) => {
   await expect(page.getByTestId("shopping-bought")).toHaveCount(0);
   await expect(done).toContainText("on an expense");
 
-  await page.getByTestId("nav-household-expenses").click();
+  await clickNav(page, "nav-household-expenses");
   await expect(
     page.getByTestId(`balance-${roommate.id}`).getByTestId("balance-amount"),
   ).toHaveText("owes $3.50");

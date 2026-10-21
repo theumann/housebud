@@ -225,7 +225,7 @@ const data = await apiFetch<SomeType>("/endpoint", {
 
 ## Testing
 
-CI (`.github/workflows/ci.yml`, GitHub Actions) runs on every PR and push to `main`: a checks job (Prettier on the whole repo, backend `test:types` + `build`, frontend `lint` + `build`), Vitest against a Postgres 16 service, and Playwright (Chromium) against its own Postgres. CI writes `backend/.env.test` and `.env.e2e` itself (throwaway credentials, no secrets). In CI only, Playwright retries a failed test once (reported as "flaky") and saves an HTML report as an artifact.
+CI (`.github/workflows/ci.yml`, GitHub Actions) runs on every PR and push to `main`: a checks job (Prettier on the whole repo, backend `test:types` + `build`, frontend `lint` + `build`), Vitest against a Postgres 16 service, and Playwright against its own Postgres, one job per browser engine (Chromium + Pixel 7, Firefox, WebKit + iPhone 14). CI writes `backend/.env.test` and `.env.e2e` itself (throwaway credentials, no secrets). In CI only, Playwright retries a failed test once (reported as "flaky") and saves an HTML report as an artifact.
 
 ### Backend (Vitest) — run from `backend/`
 
@@ -250,7 +250,10 @@ npx playwright test --ui
 - E2E data lives in the `e2e` schema of the dev database (`backend/.env.e2e`), not in `bunkbuddy_test`
 - Global setup resets that schema (`prisma migrate reset --force --skip-seed`), runs `seed:e2e`, and pre-authenticates as `me1` / `Password123!` — every run starts clean, and data from the last run stays around for debugging until the next one
 - `seed:e2e` runs the same `seed-dev.ts` as `seed:users`, including its fixed scenarios: `me3` is in 3 chat rooms (the limit), `me1` in exactly one (`chatrooms.spec.ts` opens it), `me4` + `me5` share "Seeded Test household" (with chores in every state, chore history, a shopping list, a few chat messages, expenses (me5 owes me4 $13.00), house rules (a proposal from me4 waiting for me5) and calendar entries (a weekly house meeting, events, me5 away, a guest of me4's), dates relative to the seed day — checked read-only by `household-seed.spec.ts`), and the other "me" users are in no room. `me1` and `me2` must stay without a household — `auth-with-ui.spec.ts` expects them to land on Matches
-- Tests run with `workers: 1`: the Next dev server compiles pages on first request and parallel workers make tests time out. Revisit (or switch to `next build` + `next start`) when the suite gets slow
+- Five projects: desktop `chromium`, `firefox`, `webkit`, and the emulated phones `pixel-7` (Chromium) and `iphone-14` (WebKit) — emulated devices, not real phones. A test tagged `@phone` or `@desktop` (`{ tag: "@phone" }`) runs only on those projects; tag only what can't work on the other, with the reason in the test. `npx playwright test --project=chromium` for a quick local run
+- Playwright serves a production build (`next build` + `next start`, rebuilt every run) and runs 4 workers locally, all cores in CI. `next dev` compiled pages on first request, which made parallel workers time out
+- Parallel-safe by rule: tests never change seed users' data (me1–me5 are read-only), and fresh users get a ZIP outside the seed's 941xx so they don't show up on the seed users' Matches. A test that checks who appears on Matches gives its users a `randomZip()`
+- Click household nav links with `clickNav(page, testId)` (`utils/nav.ts`): on a phone the links past the first 3 are under "More"
 - Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests
 - Tests that need a logged-out state use: `test.use({ storageState: { cookies: [], origins: [] } })`
 - Use `data-testid` attributes for selectors; add them when writing new components that need E2E coverage
