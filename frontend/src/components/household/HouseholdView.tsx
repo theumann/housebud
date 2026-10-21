@@ -194,6 +194,7 @@ const MODULE_TOGGLES = [
   { key: "shoppingEnabled", label: "Shopping list", testId: "shopping" },
   { key: "expensesEnabled", label: "Expenses", testId: "expenses" },
   { key: "rulesEnabled", label: "House rules", testId: "rules" },
+  { key: "calendarEnabled", label: "Calendar", testId: "calendar" },
 ] as const;
 type ModuleKey = (typeof MODULE_TOGGLES)[number]["key"];
 

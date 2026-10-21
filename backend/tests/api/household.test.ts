@@ -38,7 +38,7 @@ describe.sequential("Households", () => {
       choresEnabled: true,
       shoppingEnabled: true,
       expensesEnabled: false,
-      calendarEnabled: false,
+      calendarEnabled: true,
     });
   });
 

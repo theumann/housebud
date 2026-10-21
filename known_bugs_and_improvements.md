@@ -50,7 +50,6 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 ### Household
 
 - **Household chat: whole history on every page load.** Fine for a few hundred messages; add "load older" (e.g. the latest 100, then `before=`) once households have long histories.
-- **Calendar module toggle:** add it to `MODULE_TOGGLES` in the owner settings together with the module; it controls nothing visible until then.
 - **Expenses: whole history on every poll.** `GET …/expenses` returns every expense and payment (balances need them all). Fine for a household's first year; page the lists (and maybe cache balances) once they grow.
 - **Expenses: owner removing a member** doesn't warn about an open balance the way leaving does. The balance stays visible either way.
 

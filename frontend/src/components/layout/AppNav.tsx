@@ -38,11 +38,7 @@ const householdModules = [
   { path: "shopping", label: "Shopping", setting: "shoppingEnabled" },
   { path: "expenses", label: "Expenses", setting: "expensesEnabled" },
   { path: "rules", label: "House rules", setting: "rulesEnabled" },
-] as const;
-
-// Planned household modules, shown disabled until they're built.
-const upcomingHouseholdModules = [
-  { path: "calendar", label: "Calendar" },
+  { path: "calendar", label: "Calendar", setting: "calendarEnabled" },
 ] as const;
 
 // On narrow windows a row of more than NARROW_ROW + 1 pages keeps the first
@@ -110,15 +106,7 @@ function ChevronDown() {
 
 // The pages that don't fit in the row on narrow windows. Shown as active
 // while one of them is open, with the badges of the pages it holds.
-function MoreMenu({
-  links,
-  soon,
-  pathname,
-}: {
-  links: NavLink[];
-  soon: readonly { path: string; label: string }[];
-  pathname: string;
-}) {
+function MoreMenu({ links, pathname }: { links: NavLink[]; pathname: string }) {
   const [open, setOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -177,28 +165,9 @@ function MoreMenu({
               </Link>
             );
           })}
-          {soon.map((m) => (
-            <span
-              key={m.path}
-              role="menuitem"
-              aria-disabled="true"
-              className="flex items-center justify-between gap-2 px-4 py-2 text-faint"
-            >
-              {m.label}
-              <SoonTag />
-            </span>
-          ))}
         </div>
       )}
     </div>
-  );
-}
-
-function SoonTag() {
-  return (
-    <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-subtle">
-      soon
-    </span>
   );
 }
 
@@ -293,11 +262,8 @@ export function AppNav() {
     : inHousehold
       ? householdLinks
       : [];
-  const soonLinks =
-    inHousehold && currentHousehold ? upcomingHouseholdModules : [];
   // Index of the first page that goes under "More" on narrow windows.
-  const overflowAt =
-    subLinks.length + soonLinks.length > NARROW_ROW + 1 ? NARROW_ROW : Infinity;
+  const overflowAt = subLinks.length > NARROW_ROW + 1 ? NARROW_ROW : Infinity;
 
   return (
     <nav className="sticky top-0 z-20 border-b border-border-subtle bg-linear-to-r from-nav-from/90 to-nav-to/90 backdrop-blur">
@@ -346,26 +312,10 @@ export function AppNav() {
                   )}
                 />
               ))}
-              {soonLinks.map((m) => (
-                <span
-                  key={m.path}
-                  data-testid={`nav-household-${m.path}-soon`}
-                  title="Coming soon"
-                  aria-disabled="true"
-                  className={clsx(
-                    "inline-flex cursor-help items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-faint",
-                    overflowAt !== Infinity && "max-sm:hidden",
-                  )}
-                >
-                  <span>{m.label}</span>
-                  <SoonTag />
-                </span>
-              ))}
             </div>
             {overflowAt !== Infinity && (
               <MoreMenu
                 links={subLinks.slice(overflowAt)}
-                soon={soonLinks}
                 pathname={pathname}
               />
             )}

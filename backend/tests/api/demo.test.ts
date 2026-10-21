@@ -57,7 +57,7 @@ describe.sequential("Demo sandbox", () => {
     expect(res.status).toBe(503);
   });
 
-  it("logs the visitor into their own household with chores, shopping, chat, expenses and rules", async () => {
+  it("logs the visitor into their own household with chores, shopping, chat, expenses, rules and a calendar", async () => {
     await withDemoUsers();
 
     const res = await request(ctx.app).post("/demo/sandbox");
@@ -114,6 +114,21 @@ describe.sequential("Demo sandbox", () => {
     expect(rules.body.needsMyAgreement).toBe(false);
     expect(rules.body.proposals[0].myAnswer).toBe(false);
     expect(households.body[0].pendingRules).toBe(1);
+
+    const iso = (offset: number) =>
+      new Date(Date.now() + offset * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
+    const calendar = await request(ctx.app)
+      .get(`/households/${id}/calendar`)
+      .query({ from: iso(0), to: iso(13) })
+      .set(auth(token))
+      .expect(200);
+    const kinds = new Set(
+      calendar.body.occurrences.map((o: { kind: string }) => o.kind),
+    );
+    expect([...kinds].sort()).toEqual(["away", "chore", "event", "guest"]);
+    expect(households.body[0].settings.calendarEnabled).toBe(true);
   });
 
   it("gives every visitor a separate sandbox", async () => {

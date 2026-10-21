@@ -34,8 +34,8 @@ test("on a phone, pages that don't fit go under More, badges included", async ({
     waitForTestId: "household-view",
   });
 
-  // Overview, Chat and Chores stay in the row; Shopping, House rules and the
-  // upcoming Calendar move under More.
+  // Overview, Chat and Chores stay in the row; Shopping, House rules and
+  // Calendar move under More.
   await expect(page.getByTestId("nav-household-chores")).toBeVisible();
   await expect(page.getByTestId("nav-household-rules")).toBeHidden();
   await expect(page.getByTestId("nav-more-badge")).toHaveText("1");

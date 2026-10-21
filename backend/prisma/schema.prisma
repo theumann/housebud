@@ -34,23 +34,25 @@ model User {
   messages      ChatMessage[]
   resetTokens   PasswordResetToken[]
 
-  householdMemberships HouseholdMember[]
-  createdHouseholds    Household[]        @relation("HouseholdCreator")
-  sentHouseholdInvites HouseholdInvite[]  @relation("HouseholdInviter")
-  addedShoppingItems   ShoppingItem[]     @relation("ShoppingItemAdder")
-  checkedShoppingItems ShoppingItem[]     @relation("ShoppingItemChecker")
-  createdChores        Chore[]            @relation("ChoreCreator")
-  startedChores        Chore[]            @relation("ChoreStarter")
-  choreCompletions     ChoreCompletion[]
-  householdMessages    HouseholdMessage[]
-  paidExpenses         Expense[]          @relation("ExpensePayer")
-  createdExpenses      Expense[]          @relation("ExpenseCreator")
-  expenseShares        ExpenseShare[]
-  settlementsSent      Settlement[]       @relation("SettlementFrom")
-  settlementsReceived  Settlement[]       @relation("SettlementTo")
-  createdSettlements   Settlement[]       @relation("SettlementCreator")
-  ruleProposals        RuleProposal[]
-  ruleVotes            RuleVote[]
+  householdMemberships  HouseholdMember[]
+  createdHouseholds     Household[]        @relation("HouseholdCreator")
+  sentHouseholdInvites  HouseholdInvite[]  @relation("HouseholdInviter")
+  addedShoppingItems    ShoppingItem[]     @relation("ShoppingItemAdder")
+  checkedShoppingItems  ShoppingItem[]     @relation("ShoppingItemChecker")
+  createdChores         Chore[]            @relation("ChoreCreator")
+  startedChores         Chore[]            @relation("ChoreStarter")
+  choreCompletions      ChoreCompletion[]
+  householdMessages     HouseholdMessage[]
+  paidExpenses          Expense[]          @relation("ExpensePayer")
+  createdExpenses       Expense[]          @relation("ExpenseCreator")
+  expenseShares         ExpenseShare[]
+  settlementsSent       Settlement[]       @relation("SettlementFrom")
+  settlementsReceived   Settlement[]       @relation("SettlementTo")
+  createdSettlements    Settlement[]       @relation("SettlementCreator")
+  ruleProposals         RuleProposal[]
+  ruleVotes             RuleVote[]
+  calendarEventsCreated CalendarEvent[]    @relation("CalendarEventCreator")
+  calendarEntries       CalendarEvent[]    @relation("CalendarEventAbout")
 
   @@index([username])
 }
@@ -68,16 +70,17 @@ model Household {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  members       HouseholdMember[]
-  invites       HouseholdInvite[]
-  settings      HouseholdSettings?
-  shoppingItems ShoppingItem[]
-  chores        Chore[]
-  messages      HouseholdMessage[]
-  expenses      Expense[]
-  settlements   Settlement[]
-  houseRules    HouseRule[]
-  ruleProposals RuleProposal[]
+  members        HouseholdMember[]
+  invites        HouseholdInvite[]
+  settings       HouseholdSettings?
+  shoppingItems  ShoppingItem[]
+  chores         Chore[]
+  messages       HouseholdMessage[]
+  expenses       Expense[]
+  settlements    Settlement[]
+  houseRules     HouseRule[]
+  ruleProposals  RuleProposal[]
+  calendarEvents CalendarEvent[]
 
   @@index([joinCode])
 }
@@ -132,7 +135,7 @@ model HouseholdSettings {
   choresEnabled   Boolean @default(true)
   shoppingEnabled Boolean @default(true)
   expensesEnabled Boolean @default(false)
-  calendarEnabled Boolean @default(false)
+  calendarEnabled Boolean @default(true)
   rulesEnabled    Boolean @default(true)
 
   // ISO 4217 code; every amount in the household is in this currency.
@@ -317,6 +320,41 @@ model RuleProposal {
   votes      RuleVote[]
 
   @@index([householdId, status])
+}
+
+// A household event, or an away/guest entry about one member. Dates are
+// calendar days and times are the house's clock time ("19:00"), with no time
+// zone. Only events repeat (the chore repeat rules) or have times.
+model CalendarEvent {
+  id              String     @id @default(uuid())
+  householdId     String
+  kind            String // 'event' | 'away' | 'guest'
+  // Who an away/guest entry is about (the host, for a guest).
+  userId          String?
+  // Required for an event; the guest for a guest entry ("My sister").
+  title           String?
+  notes           String?
+  startsOn        DateTime   @db.Date
+  endsOn          DateTime   @db.Date
+  startTime       String?
+  endTime         String?
+  // Both null: no repeat.
+  repeatEvery     Int?
+  repeatUnit      String? // 'day' | 'week' | 'month' | 'quarter'
+  anchorDay       Int
+  // Occurrences of a repeating event that were skipped.
+  skippedDates    DateTime[] @db.Date
+  createdByUserId String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user          User?     @relation("CalendarEventAbout", fields: [userId], references: [id], onDelete: Cascade)
+  createdByUser User?     @relation("CalendarEventCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([householdId, startsOn])
+  @@index([userId])
+  @@index([createdByUserId])
 }
 
 model RuleVote {

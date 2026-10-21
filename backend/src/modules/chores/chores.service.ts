@@ -20,8 +20,8 @@ import type {
 const DAY_MS = 24 * 60 * 60 * 1000;
 const HISTORY_LIMIT = 20;
 
-const toDateString = (d: Date) => d.toISOString().slice(0, 10);
-const addDays = (d: Date, days: number) =>
+export const toDateString = (d: Date) => d.toISOString().slice(0, 10);
+export const addDays = (d: Date, days: number) =>
   new Date(d.getTime() + days * DAY_MS);
 
 // Moves by calendar months onto anchorDay, or the month's last day when it's
@@ -33,7 +33,7 @@ function addMonths(d: Date, months: number, anchorDay: number) {
   return new Date(Date.UTC(year, month, Math.min(anchorDay, lastDay)));
 }
 
-function step(d: Date, repeat: Repeat, anchorDay: number) {
+export function step(d: Date, repeat: Repeat, anchorDay: number) {
   switch (repeat.unit) {
     case "day":
       return addDays(d, repeat.every);
@@ -60,7 +60,10 @@ export function nextDueDate(
   return next;
 }
 
-function repeatOf(chore: Chore): Repeat | null {
+export function repeatOf(chore: {
+  repeatEvery: number | null;
+  repeatUnit: string | null;
+}): Repeat | null {
   return chore.repeatEvery === null
     ? null
     : { every: chore.repeatEvery, unit: chore.repeatUnit as RepeatUnit };
@@ -112,13 +115,17 @@ function nextMemberIndex(
 }
 
 // The rotation in turn order (whoever's turn it is first), members only.
-function serializeChore(chore: Chore, memberIds: Set<string>) {
+export function turnOrder(chore: Chore, memberIds: Set<string>) {
   const turn =
     nextMemberIndex(chore.rotation, chore.rotationIndex, memberIds) ?? 0;
-  const rotation = [
+  return [
     ...chore.rotation.slice(turn),
     ...chore.rotation.slice(0, turn),
   ].filter((id) => memberIds.has(id));
+}
+
+function serializeChore(chore: Chore, memberIds: Set<string>) {
+  const rotation = turnOrder(chore, memberIds);
 
   return {
     id: chore.id,

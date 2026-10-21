@@ -401,5 +401,53 @@ export async function createSandbox(prisma: PrismaClient) {
     },
   });
 
+  // A weekly house meeting, a few events, a housemate away and the
+  // visitor's guest, in the next two weeks.
+  const entry = (input: {
+    kind: "event" | "away" | "guest";
+    title?: string;
+    notes?: string;
+    userId?: string;
+    from: number;
+    to?: number;
+    startTime?: string;
+    weekly?: boolean;
+  }) => ({
+    householdId: household.id,
+    kind: input.kind,
+    userId: input.userId ?? null,
+    title: input.title ?? null,
+    notes: input.notes ?? null,
+    startsOn: day(input.from),
+    endsOn: day(input.to ?? input.from),
+    startTime: input.startTime ?? null,
+    repeatEvery: input.weekly ? 1 : null,
+    repeatUnit: input.weekly ? "week" : null,
+    anchorDay: day(input.from).getUTCDate(),
+    createdByUserId: input.userId ?? mate1,
+  });
+  await prisma.calendarEvent.createMany({
+    data: [
+      entry({
+        kind: "event",
+        title: "House meeting",
+        notes: "Living room. Bring your chore swaps.",
+        from: -4,
+        startTime: "19:00",
+        weekly: true,
+      }),
+      entry({ kind: "event", title: "Landlord inspection", from: 3 }),
+      entry({ kind: "event", title: "Painting the hallway", from: 8, to: 9 }),
+      entry({
+        kind: "away",
+        userId: mate2,
+        notes: "Visiting family",
+        from: 5,
+        to: 7,
+      }),
+      entry({ kind: "guest", userId: me, title: "My cousin", from: 1, to: 2 }),
+    ],
+  });
+
   return issueAuthResponse(visitor, `${SANDBOX_LIFETIME_HOURS}h`);
 }

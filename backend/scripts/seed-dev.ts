@@ -836,8 +836,65 @@ async function seedTestHousehold(me: Record<PersonalUsername, string>) {
     },
   });
 
+  // A weekly house meeting, one-day and multi-day events, me5 away and a
+  // guest of me4's, all in the next two weeks.
+  const event = (input: {
+    kind: "event" | "away" | "guest";
+    title?: string;
+    notes?: string;
+    userId?: string;
+    from: number;
+    to?: number;
+    startTime?: string;
+    repeat?: { every: number; unit: "week" };
+  }) => {
+    const startsOn = seedDay(input.from);
+    return {
+      householdId: household.id,
+      kind: input.kind,
+      userId: input.userId ?? null,
+      title: input.title ?? null,
+      notes: input.notes ?? null,
+      startsOn,
+      endsOn: seedDay(input.to ?? input.from),
+      startTime: input.startTime ?? null,
+      repeatEvery: input.repeat?.every ?? null,
+      repeatUnit: input.repeat?.unit ?? null,
+      anchorDay: startsOn.getUTCDate(),
+      createdByUserId: input.userId ?? me.me4,
+    };
+  };
+  await prisma.calendarEvent.createMany({
+    data: [
+      event({
+        kind: "event",
+        title: "House meeting",
+        notes: "Living room. Bring your chore swaps.",
+        from: -5,
+        startTime: "19:00",
+        repeat: { every: 1, unit: "week" },
+      }),
+      event({ kind: "event", title: "Landlord inspection", from: 4 }),
+      event({ kind: "event", title: "Painting the hallway", from: 9, to: 10 }),
+      event({
+        kind: "away",
+        userId: me.me5,
+        notes: "Visiting family",
+        from: 6,
+        to: 8,
+      }),
+      event({
+        kind: "guest",
+        userId: me.me4,
+        title: "My cousin",
+        from: 2,
+        to: 3,
+      }),
+    ],
+  });
+
   console.log(
-    `Seeded "${SEEDED_HOUSEHOLD_NAME}" (me4 owner, me5 member) with chores, a shopping list, expenses and house rules.`,
+    `Seeded "${SEEDED_HOUSEHOLD_NAME}" (me4 owner, me5 member) with chores, a shopping list, expenses, house rules and calendar entries.`,
   );
 }
 
