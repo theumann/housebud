@@ -119,3 +119,23 @@ test("the seeded house rules show with a proposal waiting for me5", async ({
     "My partner visits on Tuesdays.",
   );
 });
+
+test("the seeded calendar shows events, away and guests", async ({ page }) => {
+  await gotoAuthed(page, "/household", { waitForTestId: "household-view" });
+  await expect(page.getByTestId("coming-up")).toBeVisible();
+  // Overdue chores are one line ("Take out trash").
+  await expect(page.getByTestId("coming-up-overdue")).toHaveText(
+    "1 overdue chore",
+  );
+  await page.getByTestId("nav-household-calendar").click();
+
+  const agenda = page.getByTestId("calendar-agenda");
+  await expect(agenda).toContainText("House meeting");
+  await expect(agenda).toContainText("Landlord inspection");
+  await expect(agenda).toContainText("Me5 away");
+  await expect(agenda).toContainText("Your guest: My cousin");
+  // Seeded chores show too.
+  await expect(
+    agenda.getByTestId("calendar-entry-chore").first(),
+  ).toBeVisible();
+});
