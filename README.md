@@ -1,5 +1,7 @@
 # HouseBud
 
+[![CI](https://github.com/theumann/housebud/actions/workflows/ci.yml/badge.svg)](https://github.com/theumann/housebud/actions/workflows/ci.yml)
+
 **Find roommates, then run the household together.**
 
 HouseBud helps students find compatible roommates and then manage the shared household they form: chores, a shared shopping list, and more to come. Matching and household management are one app: people meet through matching, talk it over in a chat room, and form a household from that room.
@@ -126,6 +128,14 @@ NODE_ENV="test"
 ```
 
 Then, from `frontend/`: `npx playwright test` (or `npx playwright test --ui`). Playwright starts its own backend (port 4002) and frontend (port 3000), so stop your frontend dev server first.
+
+### Continuous integration
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and every push to `main`, in three parallel jobs:
+
+- **Checks**: Prettier, backend type-check and build, frontend lint and build.
+- **API tests**: Vitest against a Postgres 16 service container.
+- **End-to-end tests**: Playwright (Chromium) against its own Postgres, backend and frontend. Failing tests are retried once, so a flaky test shows up as "flaky" rather than failing the run. The HTML report is kept as the `playwright-report` artifact of each run, along with traces, screenshots and videos (`playwright-test-results`) when something fails.
 
 ## Code formatting
 

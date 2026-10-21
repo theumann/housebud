@@ -12,7 +12,7 @@
     "prisma:generate": "prisma generate",
     "db:reset:dev": "dotenv -e .env -- prisma migrate reset --force",
     "db:reset:test": "dotenv -e .env.test -- prisma migrate reset --force",
-    "seed:questions": "node -e \"const { execSync } = require('node:child_process'); const envPath = process.env.DOTENV_CONFIG_PATH || '.env'; execSync(`npx dotenv -e ${envPath} -- npx tsx scripts/import-questions.ts data/compatibility_questions.csv`, { stdio: 'inherit' });\"",
+    "seed:questions": "tsx scripts/import-questions.ts data/compatibility_questions.csv",
     "seed:users": "npx tsx scripts/seed-dev.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "seed:all:dev": "npm run db:reset:dev && dotenv -e .env -- npm run seed:questions && dotenv -e .env -- npm run seed:users",
