@@ -131,6 +131,8 @@ Then, from `frontend/`: `npx playwright install` once (Chromium, Firefox and Web
 
 Every test runs on five projects: desktop Chromium, Firefox and WebKit, plus an emulated Pixel 7 and iPhone 14 (viewport, touch and user agent on the matching engine, not real devices). For a quicker run, pick one: `npx playwright test --project=chromium`.
 
+`accessibility.spec.ts` checks every main page with [axe](https://github.com/dequelabs/axe-core) against WCAG 2.1 A and AA, in light and dark mode, on desktop and phone.
+
 ### Continuous integration
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and every push to `main`, in three parallel jobs:

@@ -455,7 +455,7 @@ export function HouseholdCalendar({ household }: { household: Household }) {
                       className={clsx(
                         "text-xs font-semibold uppercase tracking-wide",
                         day === today
-                          ? "text-primary-700 dark:text-primary-500"
+                          ? "text-primary-700 dark:text-primary-400"
                           : "text-subtle",
                       )}
                     >

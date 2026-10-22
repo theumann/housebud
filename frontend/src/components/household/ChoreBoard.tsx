@@ -310,7 +310,7 @@ function ChoreRow({
             data-testid={`chore-assignee-${chore.id}`}
             className={clsx(
               myTurn
-                ? "font-semibold text-primary-700 dark:text-primary-500"
+                ? "font-semibold text-primary-700 dark:text-primary-400"
                 : "text-muted",
             )}
           >

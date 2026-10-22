@@ -315,7 +315,7 @@ export default function ChatRoomPage() {
             </p>
             <Link
               href="/household"
-              className="text-sm font-medium text-primary-700 underline dark:text-primary-500 underline-offset-2"
+              className="text-sm font-medium text-primary-700 underline dark:text-primary-400 underline-offset-2"
             >
               Go to Household
             </Link>

@@ -104,7 +104,7 @@ export function RuleProposalForm({
           onToggle={(e) => setStartersOpen(e.currentTarget.open)}
           className="rounded-md border border-border-subtle bg-surface text-sm"
         >
-          <summary className="cursor-pointer px-3 py-2 font-medium text-primary-700 dark:text-primary-500">
+          <summary className="cursor-pointer px-3 py-2 font-medium text-primary-700 dark:text-primary-400">
             Start from a common rule{" "}
             <span className="font-normal text-subtle">(optional)</span>
           </summary>

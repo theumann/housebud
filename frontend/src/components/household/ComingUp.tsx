@@ -45,7 +45,7 @@ function ComingUpCard({ household }: { household: Household }) {
         <h2 className="text-lg font-semibold">Coming up</h2>
         <Link
           href={calendarHref}
-          className="text-sm text-primary-700 underline-offset-2 hover:underline dark:text-primary-500"
+          className="text-sm text-primary-700 underline-offset-2 hover:underline dark:text-primary-400"
         >
           Calendar
         </Link>
@@ -57,7 +57,7 @@ function ComingUpCard({ household }: { household: Household }) {
               className={clsx(
                 "text-xs font-semibold uppercase tracking-wide",
                 day === today
-                  ? "text-primary-700 dark:text-primary-500"
+                  ? "text-primary-700 dark:text-primary-400"
                   : "text-subtle",
               )}
             >

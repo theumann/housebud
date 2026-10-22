@@ -97,7 +97,7 @@ export default function LoginPage() {
         <Link
           href="/signup"
           data-testid="signup-link"
-          className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-500"
+          className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-400"
         >
           Sign up
         </Link>
@@ -108,7 +108,7 @@ export default function LoginPage() {
           <Link
             href="/demo"
             data-testid="try-demo-link"
-            className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-500"
+            className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-400"
           >
             Try the demo
           </Link>

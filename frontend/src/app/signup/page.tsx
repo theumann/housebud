@@ -242,7 +242,7 @@ function SignupForm() {
         Already have an account?{" "}
         <Link
           href="/login"
-          className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-500"
+          className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-400"
         >
           Log in
         </Link>
@@ -253,7 +253,7 @@ function SignupForm() {
           <Link
             href="/demo"
             data-testid="try-demo-link"
-            className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-500"
+            className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-400"
           >
             Try the demo
           </Link>
