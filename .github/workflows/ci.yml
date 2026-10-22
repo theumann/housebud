@@ -39,6 +39,10 @@ jobs:
         working-directory: backend
       - run: npm run test:types
         working-directory: backend
+      # Pure functions, no database: they fail fast here instead of waiting
+      # for the API job's Postgres.
+      - run: npm run test:unit
+        working-directory: backend
       - run: npm run build
         working-directory: backend
       - run: npm ci
@@ -86,7 +90,7 @@ jobs:
           PORT=4001
           NODE_ENV="test"
           EOF
-      - run: npm test
+      - run: npm run test:api
 
   e2e:
     name: End-to-end tests (${{ matrix.browser }})

@@ -114,7 +114,7 @@ PORT=4001
 NODE_ENV="test"
 ```
 
-Then, from `backend/`: `npm test`.
+Then, from `backend/`: `npm test`. The unit tests (`tests/unit/`) need no database: `npm run test:unit` runs only them.
 
 ### End-to-end tests (Playwright)
 
@@ -135,7 +135,7 @@ Every test runs on five projects: desktop Chromium, Firefox and WebKit, plus an 
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and every push to `main`, in three parallel jobs:
 
-- **Checks**: Prettier, backend type-check and build, frontend lint and build.
+- **Checks**: Prettier, backend type-check, unit tests and build, frontend lint and build.
 - **API tests**: Vitest against a Postgres 16 service container.
 - **End-to-end tests**: Playwright against its own Postgres, backend and frontend, one job per browser engine: Chromium (desktop + Pixel 7), Firefox, and WebKit (desktop + iPhone 14). Failing tests are retried once, so a flaky test shows up as "flaky" rather than failing the run. The HTML report is kept as the `playwright-report` artifact of each job (`playwright-report-chromium`, …), along with traces, screenshots and videos (`playwright-test-results-…`) when something fails.
 

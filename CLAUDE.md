@@ -225,15 +225,23 @@ const data = await apiFetch<SomeType>("/endpoint", {
 
 ## Testing
 
-CI (`.github/workflows/ci.yml`, GitHub Actions) runs on every PR and push to `main`: a checks job (Prettier on the whole repo, backend `test:types` + `build`, frontend `lint` + `build`), Vitest against a Postgres 16 service, and Playwright against its own Postgres, one job per browser engine (Chromium + Pixel 7, Firefox, WebKit + iPhone 14). CI writes `backend/.env.test` and `.env.e2e` itself (throwaway credentials, no secrets). In CI only, Playwright retries a failed test once (reported as "flaky") and saves an HTML report as an artifact.
+CI (`.github/workflows/ci.yml`, GitHub Actions) runs on every PR and push to `main`: a checks job (Prettier on the whole repo, backend `test:types` + unit tests + `build`, frontend `lint` + `build`), the API tests against a Postgres 16 service, and Playwright against its own Postgres, one job per browser engine (Chromium + Pixel 7, Firefox, WebKit + iPhone 14). CI writes `backend/.env.test` and `.env.e2e` itself (throwaway credentials, no secrets). In CI only, Playwright retries a failed test once (reported as "flaky") and saves an HTML report as an artifact.
 
 ### Backend (Vitest) — run from `backend/`
 
 ```bash
 npm test                  # all tests
+npm run test:unit         # unit tests only (no database)
 npm run test:api          # API integration tests only
 npm run test:coverage     # with coverage
 ```
+
+Two Vitest projects (`vitest.config.ts`):
+
+- **unit** (`tests/unit/`): pure functions with rules worth pinning down — chore repeat steps and next due dates, rotation turn order, calendar repeats (`eventDays`), equal splits, balances and suggested transfers. No database and no setup, so they run in seconds and Claude can run them. Export a function from its service to test it; when a rule lives inside a database call, pull the pure part out first
+- **api** (`tests/api/`, `tests/scripts/`): the endpoints against Postgres
+
+API tests:
 
 - Tests use worker-isolated PostgreSQL schemas (`test_w{workerId}`) — requires `DATABASE_URL` pointing to `bunkbuddy_test`
 - `resetDb()` is called in `beforeEach` — each test starts with a clean schema

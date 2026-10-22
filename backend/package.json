@@ -19,7 +19,8 @@
     "seed:all:test": "npm run db:reset:test && dotenv -e .env.test -- npm run seed:questions && dotenv -e .env.test -- npm run seed:users",
     "seed:e2e": "dotenv -e .env.e2e -- npm run seed:questions && cross-env DOTENV_CONFIG_PATH=.env.e2e tsx scripts/seed-dev.ts",
     "test": "vitest run",
-    "test:api": "vitest run tests/api",
+    "test:unit": "vitest run --project unit",
+    "test:api": "vitest run --project api",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
     "test:types": "tsc -p tsconfig.vitest.json --noEmit"
