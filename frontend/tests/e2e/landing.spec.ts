@@ -1,15 +1,8 @@
-import type { Page } from "@playwright/test";
 import { test, expect } from "./utils/test";
+import { loginWithForm } from "./utils/auth";
 import { apiPost, signupFreshUser } from "./utils/users";
 
 test.use({ storageState: { cookies: [], origins: [] } });
-
-async function loginWithForm(page: Page, email: string) {
-  await page.goto("/login");
-  await page.getByTestId("login-identifier").fill(email);
-  await page.getByTestId("login-password").fill("Password123!");
-  await page.getByTestId("login-submit").click();
-}
 
 test("a household member lands on their household after login", async ({
   page,

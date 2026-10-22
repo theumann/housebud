@@ -47,6 +47,10 @@ export function useHouseholds(pollMs?: number) {
   const [households, setHouseholds] = useState<Household[]>([]);
   const [loadingHouseholds, setLoadingHouseholds] = useState(true);
   const [householdsError, setHouseholdsError] = useState<string | null>(null);
+  // The token the list was last loaded with. The first render has no token
+  // yet and loads an empty list; until the list is loaded again with the
+  // token, pages must not read it as "not a member" (they redirected away).
+  const [loadedWith, setLoadedWith] = useState<string | null>();
   // Only the latest request may update the list, so a slow background refresh
   // can't overwrite the result of a change made after it started.
   const requestSeq = useRef(0);
@@ -56,6 +60,7 @@ export function useHouseholds(pollMs?: number) {
       if (!token) {
         setHouseholds([]);
         setLoadingHouseholds(false);
+        setLoadedWith(null);
         return;
       }
       const seq = ++requestSeq.current;
@@ -75,7 +80,10 @@ export function useHouseholds(pollMs?: number) {
           err instanceof Error ? err.message : "Failed to load households",
         );
       } finally {
-        if (seq === requestSeq.current) setLoadingHouseholds(false);
+        if (seq === requestSeq.current) {
+          setLoadingHouseholds(false);
+          setLoadedWith(token);
+        }
       }
     },
     [token],
@@ -126,7 +134,7 @@ export function useHouseholds(pollMs?: number) {
 
   return {
     households,
-    loadingHouseholds,
+    loadingHouseholds: loadingHouseholds || loadedWith !== token,
     householdsError,
     reload,
     refresh,
