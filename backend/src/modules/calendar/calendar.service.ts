@@ -115,7 +115,7 @@ function eventData(input: EventInput, userId: string | null) {
 
 // The days a stored event happens on within [from, to]: each day of its
 // range, or each repeat (minus skipped ones).
-function eventDays(event: CalendarEvent, from: Date, to: Date) {
+export function eventDays(event: CalendarEvent, from: Date, to: Date) {
   const repeat = repeatOf(event);
   const days: Date[] = [];
   if (!repeat) {
