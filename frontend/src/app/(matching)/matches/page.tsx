@@ -229,7 +229,7 @@ export default function MatchesPage() {
           <a
             href="/compatibility"
             data-testid="improve-compatibility-link"
-            className="text-primary-700 underline dark:text-primary-500"
+            className="text-primary-700 underline dark:text-primary-400"
           >
             Improve compatibility
           </a>

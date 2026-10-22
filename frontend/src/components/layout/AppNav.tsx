@@ -153,7 +153,7 @@ function MoreMenu({ links, pathname }: { links: NavLink[]; pathname: string }) {
                 className={clsx(
                   "flex items-center justify-between gap-2 px-4 py-2 hover:bg-surface-muted",
                   current
-                    ? "font-semibold text-primary-700 dark:text-primary-500"
+                    ? "font-semibold text-primary-700 dark:text-primary-400"
                     : "text-foreground-soft",
                 )}
               >

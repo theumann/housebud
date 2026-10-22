@@ -222,9 +222,12 @@ export default function ChatroomsPage() {
                             type="button"
                             onClick={() => router.push(`/chatrooms/${room.id}`)}
                             className="rounded-full bg-primary-600 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-primary-700 cursor-pointer"
-                            aria-label="Open chat"
                           >
                             New
+                            <span className="sr-only">
+                              {" "}
+                              messages, open chat
+                            </span>
                           </button>
                         )}
                         {isOwner && (

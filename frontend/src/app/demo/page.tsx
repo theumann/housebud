@@ -53,7 +53,7 @@ export default function DemoPage() {
           </p>
           <Link
             href="/login"
-            className="text-sm font-medium text-primary-700 underline underline-offset-2 dark:text-primary-500"
+            className="text-sm font-medium text-primary-700 underline underline-offset-2 dark:text-primary-400"
           >
             Go to login
           </Link>

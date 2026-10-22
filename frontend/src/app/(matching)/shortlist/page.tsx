@@ -343,7 +343,7 @@ export default function ShortlistPage() {
                         onClick={handleInviteSelectedToOwnedRoom}
                         disabled={inviting}
                         title={`Invite to ${roomDisplayName(ownedRoom)}`}
-                        className="min-w-0 max-w-xs border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-500 dark:hover:bg-primary-600/20"
+                        className="min-w-0 max-w-xs border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-600/20"
                       >
                         <span className="truncate">
                           {inviting
@@ -381,7 +381,7 @@ export default function ShortlistPage() {
                 onClick={handleInviteSelectedToOwnedRoom}
                 disabled={inviting || selectedIds.length === 0}
                 title={`Invite selected to ${roomDisplayName(ownedRoom)}`}
-                className="min-w-0 border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-500 dark:hover:bg-primary-600/20"
+                className="min-w-0 border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-600/20"
               >
                 <span className="truncate">
                   {inviting

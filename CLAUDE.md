@@ -202,9 +202,10 @@ const data = await apiFetch<SomeType>("/endpoint", {
 - Styling is Tailwind only — no CSS modules or inline style objects
 - Colors come from the theme tokens in `src/app/globals.css`, which switch for dark mode — not raw Tailwind palette classes:
   - Text: `text-foreground`, `text-foreground-soft`, `text-muted`, `text-subtle`, `text-faint` (strongest to faintest) instead of `text-gray-*`
-  - Brand: `primary-*` (the logo's teal) instead of `blue-*`. Buttons use `bg-primary-600`; teal text uses `text-primary-700 dark:text-primary-500`
+  - Brand: `primary-*` (the logo's teal) instead of `blue-*`. Buttons use `bg-primary-600`; teal text uses `text-primary-700 dark:text-primary-400`
   - Surfaces and borders: `bg-surface`, `bg-surface-muted`, `border-border-subtle` (dividers, cards), `border-border-strong` (form controls)
   - Red, green and amber stay as status colors (errors, success, warnings)
+  - Every text token, `text-faint` included, keeps WCAG AA contrast (4.5:1) on every surface in both themes; `accessibility.spec.ts` checks it. A new color for text needs the same
 - Form fields use `Input`, `Select` and `Textarea` from `src/components/ui/Input.tsx` (they set no width — pass `w-full` etc.); checkboxes and radios stay plain `<input>` and get the brand color from `globals.css`
 - Brand: `Logo` (`src/components/Logo.tsx`) is the icon (`public/logo-mark.svg`) plus the "HouseBud" wordmark in Nunito. The UI font is Figtree, loaded in `src/app/layout.tsx` as `--font-app`
 - UI primitives live in `src/components/ui/` (Button, Card, Input, Avatar, etc.). Show people with `Avatar` (photo, or their initial on a color fixed by user id)
@@ -263,6 +264,7 @@ npx playwright test --ui
 - Five projects: desktop `chromium`, `firefox`, `webkit`, and the emulated phones `pixel-7` (Chromium) and `iphone-14` (WebKit) — emulated devices, not real phones. A test tagged `@phone` or `@desktop` (`{ tag: "@phone" }`) runs only on those projects; tag only what can't work on the other, with the reason in the test. `npx playwright test --project=chromium` for a quick local run
 - Playwright serves a production build (`next build` + `next start`, rebuilt every run) and runs 4 workers locally, all cores in CI. `next dev` compiled pages on first request, which made parallel workers time out
 - Parallel-safe by rule: tests never change seed users' data (me1–me5 are read-only), and fresh users get a ZIP outside the seed's 941xx so they don't show up on the seed users' Matches. A test that checks who appears on Matches gives its users a `randomZip()`
+- `accessibility.spec.ts` runs axe (WCAG 2.1 A + AA) on every main page, in light and dark mode (dark is the app's own `theme` setting in localStorage, not the browser's color scheme), on `chromium` and `pixel-7` only: the rules don't depend on the engine. A new page or module gets a line in it. It waits for running animations first: a button caught mid-fade fails contrast
 - Click household nav links with `clickNav(page, testId)` (`utils/nav.ts`): on a phone the links past the first 3 are under "More"
 - Log in through the form with `loginWithForm` (`utils/auth.ts`): it waits for the page to hydrate first, since on WebKit a click before that is a plain form submit that reloads `/login`. Otherwise log in with `loginAs`, which sets the token on `/robots.txt` (on `/login` the page itself could redirect to `/` mid-test)
 - Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests

@@ -7,11 +7,13 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  /* Secondary text, strongest to faintest (Tailwind's gray-700…400) */
+  /* Secondary text, strongest to faintest. Every step is still text, so even
+     faint keeps WCAG AA contrast (4.5:1) on every light surface, the page
+     gradient and the nav included (subtle 5.1:1, faint 4.7:1 at worst). */
   --foreground-soft: var(--color-gray-700);
   --muted: var(--color-gray-600);
-  --subtle: var(--color-gray-500);
-  --faint: var(--color-gray-400);
+  --subtle: oklch(0.495 0.027 264);
+  --faint: oklch(0.515 0.025 262);
   --surface: #ffffff;
   --surface-muted: oklch(0.96 0.02 171);
   --border-subtle: #e5e7eb;
@@ -39,7 +41,7 @@
   --foreground-soft: var(--color-slate-300);
   --muted: var(--color-slate-400);
   --subtle: var(--color-slate-400);
-  --faint: var(--color-slate-500);
+  --faint: oklch(0.635 0.043 257);
   --surface: oklch(0.19 0.04 250);
   --surface-muted: oklch(0.23 0.03 200);
   --border-subtle: oklch(0.3 0.02 250);
@@ -89,9 +91,11 @@
 /* Static tokens — compile-time values that don't need to change with theme */
 @theme {
   /* Brand color — the logo's teal. 600 is the button color (5.2:1 with white
-     text); 700 is for text on light backgrounds, 500 for text on dark ones. */
+     text); 700 is for text on light backgrounds, 400 for text on dark ones
+     (6:1 at worst; 500 fell under 4.5:1 on the dark gradient). */
   --color-primary-50: oklch(0.97 0.02 171);
   --color-primary-100: oklch(0.93 0.045 171);
+  --color-primary-400: oklch(0.69 0.1 171);
   --color-primary-500: oklch(0.59 0.1 171);
   --color-primary-600: oklch(0.52 0.095 171);
   --color-primary-700: oklch(0.45 0.085 171);
