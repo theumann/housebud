@@ -1,14 +1,17 @@
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
+import { loginAs, randomZip, signupFreshUser } from "./utils/users";
 
-test("shortlist add and remove from matches", async ({ page }) => {
+test.use({ storageState: { cookies: [], origins: [] } });
+
+test("shortlist add and remove from matches", async ({ page, request }) => {
+  const zip = randomZip();
+  const candidate = await signupFreshUser(request, "candidate", { zip });
+  const user = await signupFreshUser(request, "shortlister", { zip });
+  await loginAs(page, user.token);
   await gotoAuthed(page, "/matches", { waitForTestId: "matches-page" });
 
-  const firstAdd = page
-    .locator("[data-testid^='shortlist-add-button-']")
-    .first();
-
-  await firstAdd.click();
+  await page.getByTestId(`shortlist-add-button-${candidate.id}`).click();
 
   await page.getByTestId("nav-shortlist").click();
   await expect(page.getByTestId("shortlist-page")).toBeVisible();

@@ -1,7 +1,11 @@
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
+import { loginAs, signupFreshUser } from "./utils/users";
 
-test("save compatibility answers", async ({ page }) => {
+test.use({ storageState: { cookies: [], origins: [] } });
+
+test("save compatibility answers", async ({ page, request }) => {
+  await loginAs(page, (await signupFreshUser(request, "answers")).token);
   await gotoAuthed(page, "/compatibility", {
     waitForTestId: "compatibility-page",
   });

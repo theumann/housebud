@@ -1,12 +1,13 @@
 import { test, expect } from "./utils/test";
-import { gotoAuthed } from "./utils/auth";
 import { loginAs, signupFreshUser } from "./utils/users";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
 // Regression: AuthContext cleared the token on *any* /profile/me failure,
 // including a request cancelled because the user navigated away, which logged
-// them out of the page they were going to (and made e2e tests flaky).
+// them out of the page they were going to (and made e2e tests flaky). Then,
+// with the token kept, the page still sent them to /login because the profile
+// never loaded (found on Firefox); now AuthContext retries it.
 test("a cancelled profile request doesn't log the user out", async ({
   page,
   request,
@@ -30,10 +31,13 @@ test("a cancelled profile request doesn't log the user out", async ({
   await page.goto("/matches");
   await failed;
 
+  // The nav and account menu only show once the profile has loaded.
+  await expect(page.getByTestId("account-menu")).toBeVisible();
+  await expect(page.getByTestId("matches-page")).toBeVisible();
+  await expect(page).toHaveURL(/\/matches$/);
   expect(await page.evaluate(() => localStorage.getItem("bb_token"))).toBe(
     user.token,
   );
-  await gotoAuthed(page, "/household", { waitForTestId: "household-page" });
 });
 
 test("an invalid token still logs the user out", async ({ page }) => {

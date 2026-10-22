@@ -53,6 +53,9 @@ type SignupPayload = {
   signupCode?: string;
 };
 
+// Tries over about 3 seconds before giving up on loading the profile.
+const PROFILE_ATTEMPTS = 3;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -62,28 +65,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const storedToken =
       typeof window !== "undefined" ? localStorage.getItem("bb_token") : null;
-    if (storedToken) {
-      // localStorage only exists after mount; reading it during render would
-      // make the server and client renders disagree.
+    if (!storedToken) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setToken(storedToken);
-      // fetch user profile in background
-      apiFetch<UserProfile>("/profile/me", { token: storedToken })
-        .then((u) => setUser(u))
-        .catch((err) => {
-          // Only a 401 means the token is invalid. Any other failure, including
-          // a request cancelled because the user navigated away, must keep the
-          // token: clearing it logged people out of the page they went to.
+      setLoading(false);
+      return;
+    }
+    // localStorage only exists after mount; reading it during render would
+    // make the server and client renders disagree.
+    setToken(storedToken);
+
+    // Only a 401 means the token is invalid. Any other failure (a dropped or
+    // cancelled request, a server error) keeps the token and is retried, with
+    // `loading` still true so pages wait instead of sending the user to /login.
+    let cancelled = false;
+    const loadUser = async () => {
+      for (let attempt = 1; ; attempt++) {
+        try {
+          const u = await apiFetch<UserProfile>("/profile/me", {
+            token: storedToken,
+          });
+          if (!cancelled) setUser(u);
+          break;
+        } catch (err) {
           if (err instanceof ApiError && err.status === 401) {
             localStorage.removeItem("bb_token");
-            setToken(null);
-            setUser(null);
+            if (!cancelled) {
+              setToken(null);
+              setUser(null);
+            }
+            break;
           }
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+          if (attempt === PROFILE_ATTEMPTS) break;
+          await new Promise((r) => setTimeout(r, attempt * 1000));
+          if (cancelled) return;
+        }
+      }
+      if (!cancelled) setLoading(false);
+    };
+    void loadUser();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const storeSession = (res: AuthResponse) => {

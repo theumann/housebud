@@ -1,6 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
+import { clickNav } from "./utils/nav";
 import { apiPost, loginAs, signupFreshUser } from "./utils/users";
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -27,7 +28,7 @@ test("send a message and see a roommate's reply arrive", async ({
     waitForTestId: "household-view",
   });
 
-  await page.getByTestId("nav-household-chat").click();
+  await clickNav(page, "nav-household-chat");
   await expect(page).toHaveURL(new RegExp(`/household/${householdId}/chat$`));
   await expect(page.getByTestId("message-thread-empty")).toBeVisible();
 
@@ -72,7 +73,7 @@ test("new messages show a badge (one per chat) until you open the chat", async (
   // it moves to the Chat link.
   await expect(page.getByTestId("nav-household-badge")).toHaveCount(0);
 
-  await page.getByTestId("nav-household-chat").click();
+  await clickNav(page, "nav-household-chat");
   await expect(page.getByTestId("message-container")).toContainText(
     "Also the plants",
   );

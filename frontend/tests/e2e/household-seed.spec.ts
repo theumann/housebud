@@ -1,5 +1,6 @@
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
+import { clickNav } from "./utils/nav";
 import { API, loginAs } from "./utils/users";
 
 // Smoke test of the seeded "Seeded Test household" (me4 owner, me5 member;
@@ -31,7 +32,7 @@ test("the seeded household shows its members", async ({ page }) => {
 
 test("the seeded chores show in every state", async ({ page }) => {
   await gotoAuthed(page, "/household", { waitForTestId: "household-view" });
-  await page.getByTestId("nav-household-chores").click();
+  await clickNav(page, "nav-household-chores");
 
   const overdue = page.getByTestId("chores-overdue");
   await expect(overdue).toContainText("Take out trash");
@@ -64,7 +65,7 @@ test("the seeded shopping list shows open and checked items", async ({
   page,
 }) => {
   await gotoAuthed(page, "/household", { waitForTestId: "household-view" });
-  await page.getByTestId("nav-household-shopping").click();
+  await clickNav(page, "nav-household-shopping");
 
   const open = page.getByTestId("shopping-open-items");
   await expect(open.locator("li")).toHaveCount(3);
@@ -81,7 +82,7 @@ test("the seeded shopping list shows open and checked items", async ({
 
 test("the seeded chat shows both members' messages", async ({ page }) => {
   await gotoAuthed(page, "/household", { waitForTestId: "household-view" });
-  await page.getByTestId("nav-household-chat").click();
+  await clickNav(page, "nav-household-chat");
 
   const thread = page.getByTestId("message-container");
   await expect(thread).toContainText("Who's home this weekend?");
@@ -90,7 +91,7 @@ test("the seeded chat shows both members' messages", async ({ page }) => {
 
 test("the seeded expenses show what me5 owes", async ({ page }) => {
   await gotoAuthed(page, "/household", { waitForTestId: "household-view" });
-  await page.getByTestId("nav-household-expenses").click();
+  await clickNav(page, "nav-household-expenses");
 
   const list = page.getByTestId("expenses-list");
   await expect(list).toContainText("Groceries");
@@ -105,7 +106,7 @@ test("the seeded house rules show with a proposal waiting for me5", async ({
   page,
 }) => {
   await gotoAuthed(page, "/household", { waitForTestId: "household-view" });
-  await page.getByTestId("nav-household-rules").click();
+  await clickNav(page, "nav-household-rules");
 
   const rules = page.getByTestId("rules-list");
   await expect(rules).toContainText("Quiet hours after 11pm");
@@ -127,7 +128,7 @@ test("the seeded calendar shows events, away and guests", async ({ page }) => {
   await expect(page.getByTestId("coming-up-overdue")).toHaveText(
     "1 overdue chore",
   );
-  await page.getByTestId("nav-household-calendar").click();
+  await clickNav(page, "nav-household-calendar");
 
   const agenda = page.getByTestId("calendar-agenda");
   await expect(agenda).toContainText("House meeting");

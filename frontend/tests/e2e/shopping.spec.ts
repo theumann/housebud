@@ -1,6 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
+import { clickNav } from "./utils/nav";
 import { apiPost, loginAs, signupFreshUser } from "./utils/users";
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -27,7 +28,7 @@ test("add, check off, clear and remove shopping items", async ({
     waitForTestId: "household-view",
   });
 
-  await page.getByTestId("nav-household-shopping").click();
+  await clickNav(page, "nav-household-shopping");
   await expect(page).toHaveURL(
     new RegExp(`/household/${householdId}/shopping$`),
   );
@@ -74,7 +75,8 @@ test("the owner can turn the shopping list off", async ({ page, request }) => {
   await gotoAuthed(page, `/household/${householdId}`, {
     waitForTestId: "household-view",
   });
-  await expect(page.getByTestId("nav-household-shopping")).toBeVisible();
+  // Attached, not visible: on a phone the link is under "More".
+  await expect(page.getByTestId("nav-household-shopping")).toBeAttached();
 
   await page.getByTestId("module-toggle-shopping").uncheck();
 

@@ -1,4 +1,4 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 import path from "node:path";
 
 const storageStatePath = path.resolve(
@@ -12,9 +12,9 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
-  // The Next dev server compiles each page on first request; parallel workers
-  // overwhelm it and tests time out. Revisit when the suite gets slow.
-  workers: 1,
+  // Specs that change data use fresh users (utils/users.ts), so they can run
+  // side by side; the seed users are only read.
+  workers: process.env.CI ? "100%" : 4,
   // In CI, one retry records a trace and marks the test "flaky" in the HTML
   // report (uploaded as an artifact) instead of failing the run on a fluke.
   retries: process.env.CI ? 1 : 0,
@@ -28,6 +28,36 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
+  // Phones are emulated (viewport, touch, user agent) on the desktop engines:
+  // Chromium for Android, WebKit for iOS. Tests tagged @desktop or @phone run
+  // only on those projects.
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+      grepInvert: /@phone/,
+    },
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+      grepInvert: /@phone/,
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+      grepInvert: /@phone/,
+    },
+    {
+      name: "pixel-7",
+      use: { ...devices["Pixel 7"] },
+      grepInvert: /@desktop/,
+    },
+    {
+      name: "iphone-14",
+      use: { ...devices["iPhone 14"] },
+      grepInvert: /@desktop/,
+    },
+  ],
   webServer: [
     {
       command: "npm run dev:e2e",
@@ -37,11 +67,13 @@ export default defineConfig({
       timeout: 120_000,
     },
     {
-      command: "npm run dev",
+      // A production build: `next dev` compiles each page on its first
+      // request, which made parallel workers time out.
+      command: "npm run build && npm run start -- -p 3000",
       cwd: ".",
       url: "http://localhost:3000/login",
       reuseExistingServer: false,
-      timeout: 120_000,
+      timeout: 240_000,
       env: {
         ...process.env,
         NEXT_PUBLIC_API_BASE_URL: "http://localhost:4002",

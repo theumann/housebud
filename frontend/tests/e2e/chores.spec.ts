@@ -1,6 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
+import { clickNav } from "./utils/nav";
 import { apiPost, loginAs, signupFreshUser } from "./utils/users";
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -34,7 +35,7 @@ test("add a weekly chore and pass the turn by marking it done", async ({
     waitForTestId: "household-view",
   });
 
-  await page.getByTestId("nav-household-chores").click();
+  await clickNav(page, "nav-household-chores");
   await expect(page.getByTestId("chores-empty")).toBeVisible();
 
   await page.getByTestId("chore-add").click();
