@@ -225,7 +225,7 @@ const data = await apiFetch<SomeType>("/endpoint", {
 
 ## Testing
 
-CI (`.github/workflows/ci.yml`, GitHub Actions) runs on every PR and push to `main`: a checks job (Prettier on the whole repo, backend `test:types` + unit tests + `build`, frontend `lint` + `build`), the API tests against a Postgres 16 service, and Playwright against its own Postgres, one job per browser engine (Chromium + Pixel 7, Firefox, WebKit + iPhone 14). CI writes `backend/.env.test` and `.env.e2e` itself (throwaway credentials, no secrets). In CI only, Playwright retries a failed test once (reported as "flaky") and saves an HTML report as an artifact.
+CI (`.github/workflows/ci.yml`, GitHub Actions) runs on every PR and push to `main`: a checks job (Prettier on the whole repo, backend `test:types` + unit tests + `build`, frontend `lint` + `build`), the API tests against a Postgres 16 service (with coverage: the run fails below the thresholds in `vitest.config.ts`, and the job summary shows the numbers), and Playwright against its own Postgres, one job per browser engine (Chromium + Pixel 7, Firefox, WebKit + iPhone 14). CI writes `backend/.env.test` and `.env.e2e` itself (throwaway credentials, no secrets). In CI only, Playwright retries a failed test once (reported as "flaky") and saves an HTML report as an artifact.
 
 ### Backend (Vitest) — run from `backend/`
 
@@ -233,8 +233,10 @@ CI (`.github/workflows/ci.yml`, GitHub Actions) runs on every PR and push to `ma
 npm test                  # all tests
 npm run test:unit         # unit tests only (no database)
 npm run test:api          # API integration tests only
-npm run test:coverage     # with coverage
+npm run test:coverage     # all tests with coverage (HTML report in coverage/)
 ```
+
+Coverage counts `src/` (not `server.ts`, types or the seed scripts) over both projects together. The frontend has none: its behaviour is covered by Playwright, which measures no coverage.
 
 Two Vitest projects (`vitest.config.ts`):
 

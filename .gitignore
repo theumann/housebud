@@ -12,7 +12,7 @@ frontend/.pnp
 !.yarn/versions
 
 # testing
-/coverage
+coverage/
 
 # next.js
 .next
