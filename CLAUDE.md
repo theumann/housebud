@@ -254,6 +254,7 @@ npx playwright test --ui
 - Playwright serves a production build (`next build` + `next start`, rebuilt every run) and runs 4 workers locally, all cores in CI. `next dev` compiled pages on first request, which made parallel workers time out
 - Parallel-safe by rule: tests never change seed users' data (me1–me5 are read-only), and fresh users get a ZIP outside the seed's 941xx so they don't show up on the seed users' Matches. A test that checks who appears on Matches gives its users a `randomZip()`
 - Click household nav links with `clickNav(page, testId)` (`utils/nav.ts`): on a phone the links past the first 3 are under "More"
+- Log in through the form with `loginWithForm` (`utils/auth.ts`): it waits for the page to hydrate first, since on WebKit a click before that is a plain form submit that reloads `/login`. Otherwise log in with `loginAs`, which sets the token on `/robots.txt` (on `/login` the page itself could redirect to `/` mid-test)
 - Auth state is saved to `playwright/.auth/storageState.json` and reused by all tests
 - Tests that need a logged-out state use: `test.use({ storageState: { cookies: [], origins: [] } })`
 - Use `data-testid` attributes for selectors; add them when writing new components that need E2E coverage
