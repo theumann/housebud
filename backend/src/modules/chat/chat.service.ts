@@ -56,6 +56,7 @@ type ChatParticipant = {
   chatRoomId: string;
   role: string;
   status: string;
+  acceptedAt: Date | null;
   createdAt: Date;
 };
 
@@ -226,6 +227,7 @@ export async function createChatRoom(
             userId: ownerUserId,
             role: "owner",
             status: "accepted",
+            acceptedAt: new Date(),
           },
           ...uniqueParticipantIds.map((pid) => ({
             userId: pid,
@@ -332,7 +334,7 @@ export async function inviteToChatRoom(
     // A former owner who left comes back as a plain member.
     prisma.chatRoomParticipant.updateMany({
       where: { chatRoomId: roomId, userId: { in: reinvitedIds } },
-      data: { status: "pending", role: "member" },
+      data: { status: "pending", role: "member", acceptedAt: null },
     }),
   ]);
 }
@@ -375,7 +377,7 @@ export async function respondToInvite(
 
   await prisma.chatRoomParticipant.update({
     where: { id: participant.id },
-    data: { status: "accepted" },
+    data: { status: "accepted", acceptedAt: new Date() },
   });
 }
 
@@ -550,7 +552,8 @@ export async function leaveChatRoom(
     data: { status: "left" },
   });
 
-  // If user was owner, transfer ownership to oldest accepted member
+  // If user was owner, ownership passes to whoever accepted longest ago
+  // (people invited together share an invite time, so it can't be that).
   if (participant.role === "owner") {
     const remainingAccepted = room.participants
       .filter(
@@ -558,7 +561,9 @@ export async function leaveChatRoom(
       )
       .sort(
         (a: ChatParticipant, b: ChatParticipant) =>
-          a.createdAt.getTime() - b.createdAt.getTime(),
+          (a.acceptedAt?.getTime() ?? 0) - (b.acceptedAt?.getTime() ?? 0) ||
+          a.createdAt.getTime() - b.createdAt.getTime() ||
+          a.id.localeCompare(b.id),
       );
 
     if (remainingAccepted.length > 0) {

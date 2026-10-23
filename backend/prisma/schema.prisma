@@ -449,13 +449,16 @@ model ChatRoom {
 }
 
 model ChatRoomParticipant {
-  id         String   @id @default(uuid())
+  id         String    @id @default(uuid())
   chatRoomId String
   userId     String
   status     String // 'pending', 'accepted', 'declined', 'removed', 'left'
   role       String // 'owner', 'member'
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  // When they last accepted (null unless accepted): the longest-standing
+  // accepted participant becomes owner when the owner leaves.
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)

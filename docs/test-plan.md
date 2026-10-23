@@ -41,24 +41,24 @@ Accessibility scans run on `chromium` and `pixel-7` only: axe's rules don't depe
 
 ## 3. Coverage of features
 
-| Feature                                       | Unit | API | E2E | Notes                                                                                          |
-| --------------------------------------------- | ---- | --- | --- | ---------------------------------------------------------------------------------------------- |
-| Sign up, log in, sessions                     |      | ✓   | ✓   | Invite code, demo off, invalid token, dropped profile request                                  |
-| Profile, compatibility                        |      | ✓   | ✓   |                                                                                                |
-| Matches, shortlist                            |      | ✓   | ✓   | Pagination, invites from Matches                                                               |
-| Chat rooms (matching)                         |      | ✓   | ✓   | Invites, re-invites, forming a household; owner handover when the owner leaves has no test yet |
-| Household: create, join, invites, owner tools |      | ✓   | ✓   | In-app and email-token invites, remove, transfer, leave                                        |
-| Chat room → household                         |      | ✓   | ✓   | Owner only, consent of each invitee                                                            |
-| Household chat                                |      | ✓   | ✓   | Join-date visibility, unread counts                                                            |
-| Chores                                        | ✓    | ✓   | ✓   | Repeat rules and turns in unit tests; start, done, undo end to end                             |
-| Shopping list                                 |      | ✓   | ✓   | Turning the module off                                                                         |
-| Expenses                                      | ✓    | ✓   | ✓   | Split and balance maths in unit tests; settle-up end to end                                    |
-| House rules                                   |      | ✓   | ✓   | Proposals, votes, newcomers agreeing                                                           |
-| Calendar                                      | ✓    | ✓   | ✓   | Repeats in unit tests; events, skips, away entries end to end                                  |
-| Navigation (desktop and phone "More" menu)    |      |     | ✓   | Badges included                                                                                |
-| Seeded demo household                         |      |     | ✓   | Read-only smoke test of every module's states                                                  |
-| Demo sandbox (staging)                        |      | ✓   | ✓   | Off in tests, as in production                                                                 |
-| Accessibility                                 |      |     | ✓   | Every main page, both themes                                                                   |
+| Feature                                       | Unit | API | E2E | Notes                                                                                |
+| --------------------------------------------- | ---- | --- | --- | ------------------------------------------------------------------------------------ |
+| Sign up, log in, sessions                     |      | ✓   | ✓   | Invite code, demo off, invalid token, dropped profile request                        |
+| Profile, compatibility                        |      | ✓   | ✓   |                                                                                      |
+| Matches, shortlist                            |      | ✓   | ✓   | Pagination, invites from Matches                                                     |
+| Chat rooms (matching)                         |      | ✓   | ✓   | Invites, re-invites, forming a household, ownership passing on when the owner leaves |
+| Household: create, join, invites, owner tools |      | ✓   | ✓   | In-app and email-token invites, remove, transfer, leave                              |
+| Chat room → household                         |      | ✓   | ✓   | Owner only, consent of each invitee                                                  |
+| Household chat                                |      | ✓   | ✓   | Join-date visibility, unread counts                                                  |
+| Chores                                        | ✓    | ✓   | ✓   | Repeat rules and turns in unit tests; start, done, undo end to end                   |
+| Shopping list                                 |      | ✓   | ✓   | Turning the module off                                                               |
+| Expenses                                      | ✓    | ✓   | ✓   | Split and balance maths in unit tests; settle-up end to end                          |
+| House rules                                   |      | ✓   | ✓   | Proposals, votes, newcomers agreeing                                                 |
+| Calendar                                      | ✓    | ✓   | ✓   | Repeats in unit tests; events, skips, away entries end to end                        |
+| Navigation (desktop and phone "More" menu)    |      |     | ✓   | Badges included                                                                      |
+| Seeded demo household                         |      |     | ✓   | Read-only smoke test of every module's states                                        |
+| Demo sandbox (staging)                        |      | ✓   | ✓   | Off in tests, as in production                                                       |
+| Accessibility                                 |      |     | ✓   | Every main page, both themes                                                         |
 
 **Code coverage** (backend `src/`, unit and API tests together, measured in CI):
 
@@ -143,15 +143,16 @@ In CI, Playwright retries a failed test once and reports it as "flaky" if the re
 
 ## 10. What testing has found so far
 
-| Found by           | Defect                                                                      | Fix                                                                 |
-| ------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| First CI run       | `seed:questions` only worked on Windows                                     | Made the script portable                                            |
-| Firefox E2E        | Dropped profile request bounced users to login                              | `AuthContext` retries non-401 failures                              |
-| WebKit E2E (CI)    | Household pages bounced members to Overview                                 | `useHouseholds` reports loading until loaded with the current login |
-| WebKit E2E         | Test logins raced the login page's own redirect                             | Tests set the token on a static page                                |
-| axe                | Grey text under 4.5:1 contrast in both themes; dark-mode teal text at 4.1:1 | Theme tokens retuned; new text colour for dark mode                 |
-| axe                | Chat list "New" button named "Open chat" for screen readers                 | Name now starts with the visible word                               |
-| Parallel E2E audit | Tests changing shared seed users could break each other                     | Fresh users per test, separate ZIP prefixes                         |
+| Found by                             | Defect                                                                                                                                                                               | Fix                                                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| First CI run                         | `seed:questions` only worked on Windows                                                                                                                                              | Made the script portable                                                                    |
+| Firefox E2E                          | Dropped profile request bounced users to login                                                                                                                                       | `AuthContext` retries non-401 failures                                                      |
+| WebKit E2E (CI)                      | Household pages bounced members to Overview                                                                                                                                          | `useHouseholds` reports loading until loaded with the current login                         |
+| WebKit E2E                           | Test logins raced the login page's own redirect                                                                                                                                      | Tests set the token on a static page                                                        |
+| axe                                  | Grey text under 4.5:1 contrast in both themes; dark-mode teal text at 4.1:1                                                                                                          | Theme tokens retuned; new text colour for dark mode                                         |
+| axe                                  | Chat list "New" button named "Open chat" for screen readers                                                                                                                          | Name now starts with the visible word                                                       |
+| Parallel E2E audit                   | Tests changing shared seed users could break each other                                                                                                                              | Fresh users per test, separate ZIP prefixes                                                 |
+| Writing the chat-room handover tests | When a room's owner left, ownership went to whoever was invited earliest, not who had accepted longest ago; people invited together were ordered by however the database listed them | New `acceptedAt` on room participants; the longest-standing accepted participant takes over |
 
 ## 11. Keeping the plan current
 
