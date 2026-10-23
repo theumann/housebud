@@ -5,6 +5,10 @@ on:
   push:
     branches: [main]
 
+# Every job is pinned to ubuntu-24.04: `ubuntu-latest` moved to 26.04 on
+# 2026-10-23, which Playwright 1.58 can't install browsers on. Move on when
+# Playwright is upgraded (known_bugs_and_improvements.md).
+
 # A newer push to the same branch or PR cancels the run still going.
 concurrency:
   group: ci-${{ github.ref }}
@@ -19,7 +23,7 @@ env:
 jobs:
   checks:
     name: Format, types, lint, build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +58,7 @@ jobs:
 
   api-tests:
     name: API tests (Vitest)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
       postgres:
@@ -115,7 +119,7 @@ jobs:
 
   e2e:
     name: End-to-end tests (${{ matrix.browser }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     # One job per browser engine; the phone profiles run on the engine they
     # emulate (Pixel 7 on Chromium, iPhone 14 on WebKit).
