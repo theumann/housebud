@@ -101,13 +101,13 @@ Testing effort follows what would hurt users most.
 
 ## 6. Environments and test data
 
-| Environment       | Database                                       | Data                                                                    | Used for                               |
-| ----------------- | ---------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------- |
-| Local development | `bunkbuddy` (Docker Postgres)                  | `seed:users`: fake users, the seeded household                          | Manual testing, phone testing over LAN |
-| API tests         | `bunkbuddy_test`, one schema per Vitest worker | Created per test (factory helpers), reset before each test              | Vitest `api` project                   |
-| End-to-end        | `e2e` schema of the dev database               | Reset and re-seeded at the start of every run; tests create fresh users | Playwright                             |
-| CI                | Throwaway Postgres 16 per job                  | As above                                                                | GitHub Actions                         |
-| Staging           | Railway Postgres                               | Demo users (`seed:demo`), visitor sandboxes, invite-only sign-up        | Manual checks, sharing the demo        |
+| Environment                               | Database                                       | Data                                                                    | Used for                               |
+| ----------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------- |
+| Local development                         | `bunkbuddy` (Docker Postgres)                  | `seed:users`: fake users, the seeded household                          | Manual testing, phone testing over LAN |
+| API tests                                 | `bunkbuddy_test`, one schema per Vitest worker | Created per test (factory helpers), reset before each test              | Vitest `api` project                   |
+| End-to-end                                | `e2e` schema of the dev database               | Reset and re-seeded at the start of every run; tests create fresh users | Playwright                             |
+| CI (GitHub Actions, Ubuntu 24.04, pinned) | Throwaway Postgres 16 per job                  | As above                                                                | GitHub Actions                         |
+| Staging                                   | Railway Postgres                               | Demo users (`seed:demo`), visitor sandboxes, invite-only sign-up        | Manual checks, sharing the demo        |
 
 Seed users that tests read: `me1` (one chat room, no household), `me2` (no household), `me3` (at the 3-room limit), and `me4` + `me5` (the seeded household, with every module in every state). Tests never change them.
 
