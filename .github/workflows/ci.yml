@@ -121,6 +121,15 @@ jobs:
     name: End-to-end tests (${{ matrix.browser }})
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    # Playwright's image has its browsers and their system libraries already
+    # installed: `playwright install --with-deps` downloaded WebKit's media
+    # libraries through apt, and a stalled Ubuntu mirror timed the job out.
+    # The tag must match @playwright/test in frontend/package-lock.json.
+    # User 1001 is the runner's: Firefox won't run as root in another user's
+    # home directory.
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.0-noble
+      options: --user 1001
     # One job per browser engine; the phone profiles run on the engine they
     # emulate (Pixel 7 on Chromium, iPhone 14 on WebKit).
     strategy:
@@ -140,7 +149,6 @@ jobs:
           POSTGRES_USER: bunkbuddy
           POSTGRES_PASSWORD: bunkbuddy
           POSTGRES_DB: bunkbuddy
-        ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U bunkbuddy"
           --health-interval 5s
@@ -159,18 +167,17 @@ jobs:
         working-directory: backend
       - run: npx prisma generate
         working-directory: backend
-      # Same shape as a local backend/.env.e2e (see README).
+      # Same shape as a local backend/.env.e2e (see README). Inside the
+      # container, the Postgres service is reached by its name.
       - run: |
           cat > .env.e2e <<'EOF'
-          DATABASE_URL="postgresql://bunkbuddy:bunkbuddy@localhost:5432/bunkbuddy?schema=e2e"
+          DATABASE_URL="postgresql://bunkbuddy:bunkbuddy@postgres:5432/bunkbuddy?schema=e2e"
           JWT_SECRET=ci-e2e-secret
           PORT=4002
           NODE_ENV="test"
           EOF
         working-directory: backend
       - run: npm ci
-        working-directory: frontend
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
         working-directory: frontend
       - run: npx playwright test ${{ matrix.projects }}
         working-directory: frontend
