@@ -239,6 +239,150 @@ describe.sequential("Chat", () => {
     });
   });
 
+  describe("when the owner leaves", () => {
+    const leave = (token: string, roomId: string) =>
+      request(ctx.app)
+        .post(`/chatrooms/${roomId}/leave`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(200);
+
+    const roleOf = async (roomId: string, userId: string) =>
+      (
+        await ctx.prisma.chatRoomParticipant.findFirst({
+          where: { chatRoomId: roomId, userId },
+        })
+      )?.role;
+
+    // first is invited and accepts before second.
+    async function roomWithTwoMembers() {
+      const owner = await signupUser(ctx, { displayName: "owner" });
+      const first = await signupUser(ctx, { displayName: "first" });
+      const second = await signupUser(ctx, { displayName: "second" });
+      const { roomId } = await createRoom(ctx, owner.token, [first.userId]);
+      await respondToInvite(ctx.app, first.token, roomId, "accept");
+      await request(ctx.app)
+        .post(`/chatrooms/${roomId}/invite`)
+        .set("Authorization", `Bearer ${owner.token}`)
+        .send({ participantIds: [second.userId] })
+        .expect(200);
+      await respondToInvite(ctx.app, second.token, roomId, "accept");
+      return { owner, first, second, roomId };
+    }
+
+    it("ownership passes to the longest-standing accepted participant", async () => {
+      const { owner, first, second, roomId } = await roomWithTwoMembers();
+
+      await leave(owner.token, roomId);
+
+      expect(await roleOf(roomId, first.userId)).toBe("owner");
+      expect(await roleOf(roomId, second.userId)).toBe("member");
+      const room = await ctx.prisma.chatRoom.findUnique({
+        where: { id: roomId },
+      });
+      expect(room?.createdByUserId).toBe(first.userId);
+      expect(room?.isActive).toBe(true);
+    });
+
+    it("the new owner can do what only the owner can", async () => {
+      const { owner, first, second, roomId } = await roomWithTwoMembers();
+      await leave(owner.token, roomId);
+
+      await request(ctx.app)
+        .patch(`/chatrooms/${roomId}`)
+        .set("Authorization", `Bearer ${first.token}`)
+        .send({ name: "New name" })
+        .expect(200);
+      await request(ctx.app)
+        .patch(`/chatrooms/${roomId}`)
+        .set("Authorization", `Bearer ${second.token}`)
+        .send({ name: "Not allowed" })
+        .expect(403);
+    });
+
+    it("among people invited together, whoever accepted first takes over", async () => {
+      const owner = await signupUser(ctx, { displayName: "owner" });
+      const early = await signupUser(ctx, { displayName: "early" });
+      const late = await signupUser(ctx, { displayName: "late" });
+      // Invited in one go, so their invites carry the same time; late is
+      // listed first.
+      const { roomId } = await createRoom(ctx, owner.token, [
+        late.userId,
+        early.userId,
+      ]);
+      await respondToInvite(ctx.app, early.token, roomId, "accept");
+      await respondToInvite(ctx.app, late.token, roomId, "accept");
+      // early accepted a day before late.
+      const participant = await ctx.prisma.chatRoomParticipant.findFirstOrThrow(
+        { where: { chatRoomId: roomId, userId: early.userId } },
+      );
+      expect(participant.acceptedAt).not.toBeNull();
+      await ctx.prisma.chatRoomParticipant.update({
+        where: { id: participant.id },
+        data: {
+          acceptedAt: new Date(participant.acceptedAt!.getTime() - 86_400_000),
+        },
+      });
+
+      await leave(owner.token, roomId);
+
+      expect(await roleOf(roomId, early.userId)).toBe("owner");
+      expect(await roleOf(roomId, late.userId)).toBe("member");
+    });
+
+    it("someone who left and came back counts from when they accepted again", async () => {
+      const { owner, first, second, roomId } = await roomWithTwoMembers();
+      await leave(first.token, roomId);
+      await request(ctx.app)
+        .post(`/chatrooms/${roomId}/invite`)
+        .set("Authorization", `Bearer ${owner.token}`)
+        .send({ participantIds: [first.userId] })
+        .expect(200);
+      const reinvited = await ctx.prisma.chatRoomParticipant.findFirst({
+        where: { chatRoomId: roomId, userId: first.userId },
+      });
+      expect(reinvited?.acceptedAt).toBeNull();
+      await respondToInvite(ctx.app, first.token, roomId, "accept");
+
+      await leave(owner.token, roomId);
+
+      expect(await roleOf(roomId, second.userId)).toBe("owner");
+      expect(await roleOf(roomId, first.userId)).toBe("member");
+    });
+
+    it("someone still invited doesn't take over", async () => {
+      const owner = await signupUser(ctx, { displayName: "owner" });
+      const member = await signupUser(ctx, { displayName: "member" });
+      const pending = await signupUser(ctx, { displayName: "pending" });
+      // pending is invited first, but hasn't accepted.
+      const { roomId } = await createRoom(ctx, owner.token, [pending.userId]);
+      await request(ctx.app)
+        .post(`/chatrooms/${roomId}/invite`)
+        .set("Authorization", `Bearer ${owner.token}`)
+        .send({ participantIds: [member.userId] })
+        .expect(200);
+      await respondToInvite(ctx.app, member.token, roomId, "accept");
+
+      await leave(owner.token, roomId);
+
+      expect(await roleOf(roomId, member.userId)).toBe("owner");
+      expect(await roleOf(roomId, pending.userId)).toBe("member");
+    });
+
+    it("with nobody else accepted, nobody takes over and the room closes", async () => {
+      const owner = await signupUser(ctx, { displayName: "owner" });
+      const pending = await signupUser(ctx, { displayName: "pending" });
+      const { roomId } = await createRoom(ctx, owner.token, [pending.userId]);
+
+      await leave(owner.token, roomId);
+
+      expect(await roleOf(roomId, pending.userId)).toBe("member");
+      const room = await ctx.prisma.chatRoom.findUnique({
+        where: { id: roomId },
+      });
+      expect(room?.isActive).toBe(false);
+    });
+  });
+
   describe("forming a household from a room", () => {
     const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 

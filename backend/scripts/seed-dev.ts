@@ -434,11 +434,17 @@ async function seedChatroomsAndMessages(userIds: string[], plan: SeedPlan) {
         isActive: true,
         participants: {
           create: [
-            { userId: ownerId, role: "owner", status: "accepted" },
+            {
+              userId: ownerId,
+              role: "owner",
+              status: "accepted",
+              acceptedAt: new Date(),
+            },
             ...acceptedOthers.map((uid) => ({
               userId: uid,
               role: "member",
               status: "accepted" as const,
+              acceptedAt: new Date(),
             })),
             ...pendingOthers.map((uid) => ({
               userId: uid,
@@ -508,11 +514,17 @@ async function createRoomWithMessages(
       isActive: true,
       participants: {
         create: [
-          { userId: ownerId, role: "owner", status: "accepted" },
+          {
+            userId: ownerId,
+            role: "owner",
+            status: "accepted",
+            acceptedAt: new Date(),
+          },
           ...memberIds.map((userId) => ({
             userId,
             role: "member",
             status: "accepted" as const,
+            acceptedAt: new Date(),
           })),
         ],
       },

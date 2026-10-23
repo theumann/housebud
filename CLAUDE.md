@@ -35,7 +35,7 @@ Known bugs and planned improvements are tracked in `known_bugs_and_improvements.
 
 ### The bridge: chat room → household
 
-1.  In a chat room, the **room owner** clicks **Form household** (owner only; if the owner leaves the room, ownership passes automatically to the longest-standing accepted participant).
+1.  In a chat room, the **room owner** clicks **Form household** (owner only; if the owner leaves the room, ownership passes automatically to the longest-standing accepted participant: whoever accepted longest ago, by `ChatRoomParticipant.acceptedAt`, which a re-invite clears).
 2.  A `Household` is created, linked to the room via optional `Household.sourceChatRoomId` (unique — a room forms at most one household); the creator becomes owner.
 3.  The room's other accepted participants get an **in-app invite** and each accepts or declines — nobody is added without consent.
 4.  The room shows "This group formed _House name_". Landing page depends on state: no household → Matches, has a household → household.
