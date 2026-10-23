@@ -226,6 +226,8 @@ const data = await apiFetch<SomeType>("/endpoint", {
 
 ## Testing
 
+`docs/test-plan.md` is the written test plan (levels, risks, exclusions, entry/exit criteria, defect tracking, what testing has found). Update it in the same change when a test level, environment, exclusion or criterion changes, and add a row to its findings table when a test finds a real bug.
+
 CI (`.github/workflows/ci.yml`, GitHub Actions) runs on every PR and push to `main`: a checks job (Prettier on the whole repo, backend `test:types` + unit tests + `build`, frontend `lint` + `build`), the API tests against a Postgres 16 service (with coverage: the run fails below the thresholds in `vitest.config.ts`, and the job summary shows the numbers), and Playwright against its own Postgres, one job per browser engine (Chromium + Pixel 7, Firefox, WebKit + iPhone 14). CI writes `backend/.env.test` and `.env.e2e` itself (throwaway credentials, no secrets). In CI only, Playwright retries a failed test once (reported as "flaky") and saves an HTML report as an artifact.
 
 ### Backend (Vitest) — run from `backend/`

@@ -97,6 +97,8 @@ The frontend talks to `http://localhost:4000` by default; set `NEXT_PUBLIC_API_B
 
 ## Tests
 
+The [test plan](docs/test-plan.md) covers what is tested at which level, the risks behind it, what is deliberately left out, and what a change must pass before it merges.
+
 ### API tests (Vitest)
 
 They run against a separate `bunkbuddy_test` database, one schema per test worker, wiped before each test.
