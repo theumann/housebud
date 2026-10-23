@@ -8,13 +8,16 @@ import { splitEqually } from "../src/modules/expenses/expenses.service";
 
 // Fake users, chats and messages must never reach production. Checking the
 // host (not just NODE_ENV) also catches a local shell that has production
-// credentials in DATABASE_URL.
+// credentials in DATABASE_URL. CI's e2e jobs run in a container, where the
+// throwaway Postgres service is reached by its name instead of localhost.
 function assertLocalDatabase() {
   const url = process.env.DATABASE_URL;
   const host = url ? new URL(url).hostname : "";
+  const ciService =
+    process.env.GITHUB_ACTIONS === "true" && host === "postgres";
   if (
     process.env.NODE_ENV === "production" ||
-    !["localhost", "127.0.0.1"].includes(host)
+    (!["localhost", "127.0.0.1"].includes(host) && !ciService)
   ) {
     throw new Error(
       `Refusing to seed fake data: database host "${host || "unset"}", NODE_ENV "${process.env.NODE_ENV ?? ""}". seed-dev only runs against a local database.`,
