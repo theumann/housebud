@@ -40,11 +40,12 @@ beforeAll(async () => {
   // 2) Point THIS worker to its schema
   process.env.DATABASE_URL = schemaUrl;
 
-  // 3) Apply migrations (serialized across workers)
+  // 3) Apply migrations. --skip-generate: the client is generated before the
+  // run, and parallel workers regenerating it raced (a file failed to load it)
   execSync(
     process.platform === "win32"
-      ? "npx.cmd prisma db push --force-reset --schema prisma/schema.prisma"
-      : "npx prisma db push --force-reset --schema prisma/schema.prisma",
+      ? "npx.cmd prisma db push --force-reset --skip-generate --schema prisma/schema.prisma"
+      : "npx prisma db push --force-reset --skip-generate --schema prisma/schema.prisma",
     {
       stdio: "inherit",
       cwd: path.resolve(__dirname, ".."),

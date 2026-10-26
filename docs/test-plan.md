@@ -154,6 +154,7 @@ In CI, Playwright retries a failed test once and reports it as "flaky" if the re
 | axe                                  | Chat list "New" button named "Open chat" for screen readers                                                                                                                          | Name now starts with the visible word                                                       |
 | Parallel E2E audit                   | Tests changing shared seed users could break each other                                                                                                                              | Fresh users per test, separate ZIP prefixes                                                 |
 | Writing the chat-room handover tests | When a room's owner left, ownership went to whoever was invited earliest, not who had accepted longest ago; people invited together were ordered by however the database listed them | New `acceptedAt` on room participants; the longest-standing accepted participant takes over |
+| API tests (CI)                       | Parallel test files regenerated the Prisma client at once; one file loaded it mid-rewrite and failed                                                                                 | The test setup pushes the schema with `--skip-generate`                                     |
 
 ## 11. Keeping the plan current
 
