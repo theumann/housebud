@@ -141,7 +141,7 @@ Every test runs on five projects: desktop Chromium, Firefox and WebKit, plus an 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and every push to `main`, in three parallel jobs:
 
 - **Checks**: Prettier, backend type-check, unit tests and build, frontend lint and build.
-- **API tests**: Vitest against a Postgres 16 service container, with backend coverage. The run fails if coverage drops below the thresholds in `backend/vitest.config.ts`; the job summary shows the numbers, and the HTML report is the `backend-coverage` artifact.
+- **API tests**: Vitest against a Postgres 16 service container, with backend coverage. The run fails if coverage drops below the thresholds in `backend/vitest.config.mts`; the job summary shows the numbers, and the HTML report is the `backend-coverage` artifact.
 - **End-to-end tests**: Playwright against its own Postgres, backend and frontend, one job per browser engine: Chromium (desktop + Pixel 7), Firefox, and WebKit (desktop + iPhone 14). These jobs run inside Playwright's Docker image, which has the browsers and their system libraries preinstalled. Failing tests are retried once, so a flaky test shows up as "flaky" rather than failing the run. The HTML report is kept as the `playwright-report` artifact of each job (`playwright-report-chromium`, …), along with traces, screenshots and videos (`playwright-test-results-…`) when something fails.
 
 ## Code formatting

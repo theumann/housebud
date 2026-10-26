@@ -15,8 +15,8 @@ Tick each box as it's done. Once production is live, update "Deployment" in `CLA
 Same settings as the staging backend:
 
 - [ ] Source: this repo, root directory `backend`.
-- [ ] Build `npm run build`, start `npm start`.
-- [ ] Pre-deploy command `npx prisma migrate deploy` (never `migrate dev` or `db push`). `prisma` is a devDependency: check the first deploy's log shows the migrations applied, not "prisma: not found".
+- [ ] Build `npm run build` (it runs `prisma generate`, then `tsc`), start `npm start`.
+- [ ] Pre-deploy command `npx prisma migrate deploy` (never `migrate dev` or `db push`). `prisma` is a devDependency and both the build and the pre-deploy command need it: check the first deploy's log shows the client generated and the migrations applied, not "prisma: not found".
 - [ ] Health check path `/health`.
 
 Variables:

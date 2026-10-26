@@ -5,9 +5,10 @@ on:
   push:
     branches: [main]
 
-# Every job is pinned to ubuntu-24.04: `ubuntu-latest` moved to 26.04 on
-# 2026-10-23, which Playwright 1.58 can't install browsers on. Move on when
-# Playwright is upgraded (known_bugs_and_improvements.md).
+# Every job is pinned to ubuntu-24.04, so a new runner image arrives as a
+# change of ours: `ubuntu-latest` moved to 26.04 on 2026-10-23 and broke the
+# Playwright 1.58 browser install. The e2e jobs bring their own OS in the
+# Playwright image, so moving the pin mostly affects the other jobs.
 
 # A newer push to the same branch or PR cancels the run still going.
 concurrency:
@@ -96,7 +97,7 @@ jobs:
           EOF
       # Both projects, so the report counts what the unit and API tests
       # cover together. Fails if coverage drops below the thresholds in
-      # vitest.config.ts.
+      # vitest.config.mts.
       - run: npm run test:coverage
       - name: Coverage summary
         if: ${{ !cancelled() }}
@@ -128,7 +129,7 @@ jobs:
     # User 1001 is the runner's: Firefox won't run as root in another user's
     # home directory.
     container:
-      image: mcr.microsoft.com/playwright:v1.58.0-noble
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
       options: --user 1001
     # One job per browser engine; the phone profiles run on the engine they
     # emulate (Pixel 7 on Chromium, iPhone 14 on WebKit).
