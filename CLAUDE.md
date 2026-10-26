@@ -29,7 +29,7 @@ Known bugs and planned improvements are tracked in `known_bugs_and_improvements.
 
 - `backend/src/modules/household/` — create/list/get/rename, module toggles (`HouseholdSettings`: chat, chores, shopping, house rules + calendar on by default, expenses off), join code, email invites (token, 14-day expiry), leave, remove member, transfer ownership. Guards: `requireActiveMember`, `requireOwner`, `requireEnabledModule` (for upcoming modules).
 - `backend/src/errors/http.error.ts` — `HttpError` + `badRequest`/`forbidden`/`notFound`/`conflict`; `errorHandler` reads `statusCode`.
-- `FEATURE_MATCHING` env flag gates the compatibility/matches/chatrooms routers. Matching is **not** being turned off — keep the flag only as an emergency off switch (or drop it) and fix the comment in `env.ts`.
+- `FEATURE_MATCHING` env flag gates the compatibility/matches/chatrooms routers. Matching is **not** being turned off: the flag is only an emergency off switch, and the frontend doesn't read it (with it off, those pages show errors instead of disappearing). Leave it unset in every environment.
 - Frontend matching pages moved into the `(matching)` route group (URLs unchanged).
 - Migrations: `add_households`, `add_invite_declined_at`.
 
@@ -168,6 +168,7 @@ export async function fooHandler(
 - Middleware extracts `userId` from a `Bearer <token>` header and attaches it to `req.userId`
 - JWT payload shape: `{ userId: string }`, 7-day expiry
 - Passwords hashed with bcrypt, 10 rounds
+- `POST /auth/password` (logged in; `currentPassword` + `newPassword`, at least 8 characters) changes the password from the Profile page. A wrong current password is a 403, not a 401, so the frontend doesn't read it as an expired session
 
 ### Types
 
@@ -305,12 +306,13 @@ The address can change after a router or PC restart; update `.env.local` and res
 
 ## Deployment (Railway — not yet deployed)
 
-Everything (Postgres, backend, frontend) goes on Railway.
+Everything (Postgres, backend, frontend) goes on Railway. Setting up production, step by step: `docs/production-setup.md`.
 
 - Backend: build with `npm run build`, start with `npm start` (`node dist/server.js`), with `npx prisma migrate deploy` as the pre-deploy command so each deploy applies pending migrations before starting.
 - `migrate deploy` applies only migrations missing from the database's `_prisma_migrations` table — on a fresh database that is all of them, in order. Never use `migrate dev` or `db push` against production.
 - `prisma` is a devDependency: confirm the CLI is available at deploy time.
 - Seed data in production: run `seed:questions` once after the first deploy (matching needs the compatibility questions). It uses `createMany` with `skipDuplicates`, so re-running only **adds** questions with new codes — edits to an existing question in the CSV are silently ignored and need a separate update. To run it against a deployed database, put that database's **public** URL in a gitignored env file (e.g. `backend/.env.staging` with `DATABASE_URL=…`; on Railway it's in the Postgres service's Connect → Public Network, which needs its TCP proxy on) and run `$env:DOTENV_CONFIG_PATH=".env.staging"; npm run seed:questions` from `backend/`. `seed:users` (`seed-dev.ts`: fake users, chats, messages) must never run in production; it refuses unless `DATABASE_URL` points at localhost (or at the `postgres` service inside CI's e2e container, only when `GITHUB_ACTIONS=true`) and `NODE_ENV` isn't `production`.
+- Forgotten passwords: the app has no reset and sends no email, so `npm run reset-password -- <email or username>` (`scripts/reset-password.ts`) sets a random password, after a `y`, and prints it once to pass on privately. It runs against a deployed database the same way as `seed:questions`. Existing sessions stay logged in.
 - Demo users on staging: `seed:demo` (`scripts/seed-demo.ts`) replaces the staging demo users with 50 Faker users in San Francisco (941xx ZIPs, since Matches only shows people whose target ZIP shares the first three digits) with compatibility answers, and a photo on about 60% (Faker's portrait set, hand-picked student-age ones in `scripts/portraits.ts`, shared with `seed-dev`, matched to the name's sex, loaded from jsDelivr — never `faker.image.avatar()`, which mixes in real GitHub users' pictures); `npm run seed:demo -- --remove` only removes them. Both ask for a `y` first when demo sandboxes are active (created in the last 24 hours), since those visitors would lose their housemates; `-- --yes` skips the question. They're the users whose email ends in `@demo.example.com`; nobody can log in as one. Removing them also removes their chat participations, shortlist entries and answers (cascade). It runs the same way as `seed:questions` against the staging database, and only on a database whose Postgres comment is `housebud:staging` (and never with `NODE_ENV=production`). Mark the staging database once, never production: `echo "COMMENT ON DATABASE railway IS 'housebud:staging';" | npx dotenv -e .env.staging '--' npx prisma db execute --stdin --schema prisma/schema.prisma` from `backend/` (quote the `--`: Windows PowerShell drops a bare one before calling the program).
 - Nothing is in production yet, so migrations could be squashed into a single `init` before the first deploy. Not worth it unless the list grows; it forces a reset of every dev/e2e database.
 

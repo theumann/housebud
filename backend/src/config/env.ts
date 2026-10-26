@@ -17,8 +17,10 @@ export const env = {
   // Staging only: "Try the demo" creates a throwaway account in a sample
   // household (POST /demo/sandbox). Never set it in production.
   DEMO_SANDBOX: process.env.DEMO_SANDBOX === "true",
-  // Matching (matches, shortlist, compatibility, chat) is built and tested but
-  // not part of the product yet. Set to "false" in production to unmount it.
+  // Emergency off switch for matching (compatibility, matches, chat rooms):
+  // "false" unmounts those routes. Matching is part of the product and stays
+  // on. The frontend doesn't read this flag, so with it off those pages show
+  // errors instead of disappearing.
   FEATURE_MATCHING: process.env.FEATURE_MATCHING !== "false",
 };
 
