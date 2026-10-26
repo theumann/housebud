@@ -204,6 +204,68 @@ describe.sequential("Auth + Profile (smoke)", () => {
     }
   });
 
+  describe("POST /auth/password", () => {
+    const changePassword = (token: string | undefined, body: object) => {
+      const req = request(ctx.app).post("/auth/password");
+      if (token) req.set("Authorization", `Bearer ${token}`);
+      return req.send(body);
+    };
+    const login = (password: string) =>
+      request(ctx.app)
+        .post("/auth/login")
+        .send({ identifier: "samlee", password });
+
+    it("changes the password: the new one logs in, the old one doesn't", async () => {
+      const signup = await request(ctx.app)
+        .post("/auth/signup")
+        .send(signupBody())
+        .expect(201);
+
+      await changePassword(signup.body.token, {
+        currentPassword: "Password123!",
+        newPassword: "NewPassword456!",
+      }).expect(204);
+
+      await login("Password123!").expect(401);
+      await login("NewPassword456!").expect(200);
+    });
+
+    it("refuses a wrong current password with 403 (not 401: the session is fine)", async () => {
+      const signup = await request(ctx.app)
+        .post("/auth/signup")
+        .send(signupBody())
+        .expect(201);
+
+      const res = await changePassword(signup.body.token, {
+        currentPassword: "not-the-password",
+        newPassword: "NewPassword456!",
+      });
+      expect(res.status).toBe(403);
+      expect(res.body.error).toBe("Current password is incorrect");
+      await login("Password123!").expect(200);
+    });
+
+    it("needs a new password of at least 8 characters, and a login", async () => {
+      const signup = await request(ctx.app)
+        .post("/auth/signup")
+        .send(signupBody())
+        .expect(201);
+
+      const short = await changePassword(signup.body.token, {
+        currentPassword: "Password123!",
+        newPassword: "short",
+      });
+      expect(short.status).toBe(400);
+      expect(short.body.error).toMatch(/^newPassword/);
+
+      await changePassword(undefined, {
+        currentPassword: "Password123!",
+        newPassword: "NewPassword456!",
+      }).expect(401);
+      await login("Password123!").expect(200);
+    });
+  });
+
   it("protected routes reject a missing, made-up, foreign or expired token", async () => {
     const signup = await request(ctx.app)
       .post("/auth/signup")

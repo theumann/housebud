@@ -1,5 +1,5 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
-import { SignupInput, LoginInput } from "./auth.types";
+import { SignupInput, LoginInput, ChangePasswordInput } from "./auth.types";
 import bcrypt from "bcrypt";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { env } from "../../config/env";
@@ -98,4 +98,22 @@ export async function login(prisma: PrismaClient, input: LoginInput) {
     throw new AuthError("Invalid credentials");
   }
   return issueAuthResponse(user);
+}
+
+// 403, not 401, for a wrong current password: the user is logged in, and a
+// 401 would read as an expired session.
+export async function changePassword(
+  prisma: PrismaClient,
+  userId: string,
+  input: ChangePasswordInput,
+) {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const ok = await bcrypt.compare(input.currentPassword, user.passwordHash);
+  if (!ok) {
+    throw forbidden("Current password is incorrect");
+  }
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash: await bcrypt.hash(input.newPassword, 10) },
+  });
 }

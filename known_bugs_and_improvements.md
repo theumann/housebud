@@ -62,6 +62,9 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 - **Signup has no rate limit, CAPTCHA or email confirmation.** With `SIGNUP_CODE` set (staging), only people with the code get that far; without it, nothing slows down automated signups and nothing checks that an email is real. Add a rate limit on `/auth/signup` and `/auth/login`, and email confirmation once the app sends email.
 
+- **No password reset in the app.** A forgotten password is reset by hand with `npm run reset-password` (see CLAUDE.md → Deployment), and the user then changes it on the Profile page. Add a reset by email once the app sends email.
+- **Changing or resetting a password doesn't log out other sessions.** Tokens can't be revoked: one stays valid for its 7 days whatever happens to the password. Fix: a `tokenVersion` (or `passwordChangedAt`) on `User`, put in the token and checked by `authMiddleware`.
+
 - **Demo sandbox: matching Chat is empty.** The household chat is seeded, but sandbox visitors get no matching chat room: the housemates are seeded demo users who can't log in or accept invites, and putting them in rooms would count toward their 3-room limit and hide them from Matches. A pre-written conversation would need rooms excluded from that limit.
 
 ### Look and feel

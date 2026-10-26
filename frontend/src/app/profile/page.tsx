@@ -9,6 +9,7 @@ import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getUserDisplayName } from "../../lib/displayName";
 import { Input, Select, Textarea } from "@/components/ui/Input";
+import { ChangePassword } from "@/components/profile/ChangePassword";
 
 type ProfilePayload = {
   firstName: string;
@@ -402,6 +403,8 @@ export default function ProfilePage() {
           </CardFooter>
         </form>
       </Card>
+
+      <ChangePassword />
     </PageContainer>
   );
 }
