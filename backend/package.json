@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "dev:e2e": "cross-env DOTENV_CONFIG_PATH=.env.e2e node -r dotenv/config --import tsx src/server.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/server.js",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
@@ -31,7 +31,8 @@
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/client": "^6.19.0",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "csv-parse": "^7.0.3",
@@ -51,7 +52,7 @@
     "@vitest/coverage-v8": "^4.1.12",
     "cross-env": "^10.1.0",
     "dotenv-cli": "^11.0.0",
-    "prisma": "^6.19.0",
+    "prisma": "^7.10.1",
     "supertest": "^7.1.4",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",

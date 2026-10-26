@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "../src/generated/prisma/client";
 import bcrypt from "bcrypt";
 import { randomUUID } from "node:crypto";
 import { portraitPicker, type Sex } from "./portraits";

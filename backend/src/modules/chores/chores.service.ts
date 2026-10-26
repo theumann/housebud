@@ -1,4 +1,4 @@
-import type { Chore, PrismaClient } from "@prisma/client";
+import type { Chore, PrismaClient } from "../../generated/prisma/client";
 import {
   badRequest,
   conflict,

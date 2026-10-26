@@ -1,4 +1,7 @@
-import type { CalendarEvent, PrismaClient } from "@prisma/client";
+import type {
+  CalendarEvent,
+  PrismaClient,
+} from "../../generated/prisma/client";
 import { badRequest, forbidden, notFound } from "../../errors/http.error";
 import {
   requireActiveMember,

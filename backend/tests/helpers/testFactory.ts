@@ -1,5 +1,5 @@
 import request from "supertest";
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../../src/generated/prisma/client";
 import type { Express } from "express";
 import { createApp } from "../../src/app";
 import { createPrisma } from "../../src/config/prisma";

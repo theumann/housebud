@@ -52,3 +52,5 @@ dist
 
 /knownBugs.md
 /.claude/
+# generated Prisma client (prisma generate)
+backend/src/generated/

@@ -1,6 +1,6 @@
 // src/modules/compatibility/compatibility.service.ts
 
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../../generated/prisma/client";
 import { CompatibilityAnswersUpdateInput } from "./compatibility.types";
 
 type QuestionWithOptions = {

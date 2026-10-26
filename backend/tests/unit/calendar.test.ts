@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { CalendarEvent } from "@prisma/client";
+import type { CalendarEvent } from "../../src/generated/prisma/client";
 import { eventDays } from "../../src/modules/calendar/calendar.service";
 
 const day = (s: string) => new Date(`${s}T00:00:00.000Z`);

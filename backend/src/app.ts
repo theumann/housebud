@@ -16,7 +16,7 @@ import demoRoutes from "./modules/demo/demo.routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { env } from "./config/env";
 
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "./generated/prisma/client";
 
 //export const app = express();
 

@@ -5,10 +5,10 @@ export default defineConfig({
     environment: "node",
     coverage: {
       provider: "v8",
-      // The app's code; server.ts only starts it, and the seed scripts
-      // aren't part of what's served.
+      // The app's code; server.ts only starts it, the seed scripts aren't
+      // part of what's served, and the Prisma client is generated.
       include: ["src/**/*.ts"],
-      exclude: ["src/server.ts", "src/types/**"],
+      exclude: ["src/server.ts", "src/types/**", "src/generated/**"],
       reporter: ["text-summary", "html", "json-summary"],
       // A few points under the coverage when they were set (2026-10-22:
       // statements 89.5, branches 81.9, functions 96.6, lines 90.7), so

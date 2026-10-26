@@ -57,8 +57,8 @@ export default async function globalSetup() {
   // schema in .env.e2e is touched.
   run(
     process.platform === "win32"
-      ? "npx.cmd dotenv -e .env.e2e -- npx.cmd prisma migrate reset --force --skip-seed --schema prisma/schema.prisma"
-      : "npx dotenv -e .env.e2e -- prisma migrate reset --force --skip-seed --schema prisma/schema.prisma",
+      ? "npx.cmd dotenv -e .env.e2e -- npx.cmd prisma migrate reset --force --schema prisma/schema.prisma"
+      : "npx dotenv -e .env.e2e -- prisma migrate reset --force --schema prisma/schema.prisma",
   );
 
   // 2) Seed e2e data

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { createPrisma } from "../src/config/prisma";
 import { faker } from "@faker-js/faker";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../src/generated/prisma/client";
 import bcrypt from "bcrypt";
 import { portraitPicker, type Sex } from "./portraits";
 import { splitEqually } from "../src/modules/expenses/expenses.service";

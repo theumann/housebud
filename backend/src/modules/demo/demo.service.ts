@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../../generated/prisma/client";
 import bcrypt from "bcrypt";
 import { randomBytes, randomUUID } from "node:crypto";
 import { env } from "../../config/env";

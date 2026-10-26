@@ -1,8 +1,8 @@
 import path from "path";
 import dotenv from "dotenv";
 import { beforeAll, afterEach } from "vitest";
-import { PrismaClient } from "@prisma/client";
 import { execSync } from "node:child_process";
+import { createPrisma } from "../src/config/prisma";
 import { createTestContext } from "./helpers/testFactory";
 import { setTestContext, getTestContext } from "./helpers/testContext";
 
@@ -33,19 +33,18 @@ beforeAll(async () => {
 
   // 1) Create schema (admin connection)
   const adminUrl = withSchema(baseUrl, "public");
-  const admin = new PrismaClient({ datasources: { db: { url: adminUrl } } });
+  const admin = createPrisma(adminUrl);
   await admin.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
   await admin.$disconnect();
 
   // 2) Point THIS worker to its schema
   process.env.DATABASE_URL = schemaUrl;
 
-  // 3) Apply migrations. --skip-generate: the client is generated before the
-  // run, and parallel workers regenerating it raced (a file failed to load it)
+  // 3) Apply migrations (db push no longer regenerates the client)
   execSync(
     process.platform === "win32"
-      ? "npx.cmd prisma db push --force-reset --skip-generate --schema prisma/schema.prisma"
-      : "npx prisma db push --force-reset --skip-generate --schema prisma/schema.prisma",
+      ? "npx.cmd prisma db push --force-reset --schema prisma/schema.prisma"
+      : "npx prisma db push --force-reset --schema prisma/schema.prisma",
     {
       stdio: "inherit",
       cwd: path.resolve(__dirname, ".."),
