@@ -230,7 +230,7 @@ const data = await apiFetch<SomeType>("/endpoint", {
 
 `docs/test-plan.md` is the written test plan (levels, risks, exclusions, entry/exit criteria, defect tracking, what testing has found). Update it in the same change when a test level, environment, exclusion or criterion changes, and add a row to its findings table when a test finds a real bug.
 
-CI (`.github/workflows/ci.yml`, GitHub Actions) runs on every PR and push to `main`: a checks job (Prettier on the whole repo, backend `test:types` + unit tests + `build`, frontend `lint` + `build`), the API tests against a Postgres 16 service (with coverage: the run fails below the thresholds in `vitest.config.ts`, and the job summary shows the numbers), and Playwright against its own Postgres, one job per browser engine (Chromium + Pixel 7, Firefox, WebKit + iPhone 14), inside Playwright's Docker image (`mcr.microsoft.com/playwright`, browsers and system libraries preinstalled; its tag must match `@playwright/test` in `frontend/package-lock.json`). Every job runs on `ubuntu-24.04`, pinned. CI writes `backend/.env.test` and `.env.e2e` itself (throwaway credentials, no secrets). In CI only, Playwright retries a failed test once (reported as "flaky") and saves an HTML report as an artifact.
+CI (`.github/workflows/ci.yml`, GitHub Actions) runs on every PR and push to `main`: a checks job (Prettier on the whole repo, backend `test:types` + unit tests + `build`, frontend `lint` + `build`), the API tests against a Postgres 16 service (with coverage: the run fails below the thresholds in `vitest.config.mts`, and the job summary shows the numbers), and Playwright against its own Postgres, one job per browser engine (Chromium + Pixel 7, Firefox, WebKit + iPhone 14), inside Playwright's Docker image (`mcr.microsoft.com/playwright`, browsers and system libraries preinstalled; its tag must match `@playwright/test` in `frontend/package-lock.json`). Every job runs on `ubuntu-24.04`, pinned. CI writes `backend/.env.test` and `.env.e2e` itself (throwaway credentials, no secrets). In CI only, Playwright retries a failed test once (reported as "flaky") and saves an HTML report as an artifact.
 
 ### Backend (Vitest) — run from `backend/`
 
@@ -243,7 +243,7 @@ npm run test:coverage     # all tests with coverage (HTML report in coverage/)
 
 Coverage counts `src/` (not `server.ts`, types, the generated Prisma client or the seed scripts) over both projects together. The frontend has none: its behaviour is covered by Playwright, which measures no coverage.
 
-Two Vitest projects (`vitest.config.ts`):
+Two Vitest projects (`vitest.config.mts`):
 
 - **unit** (`tests/unit/`): pure functions with rules worth pinning down — chore repeat steps and next due dates, rotation turn order, calendar repeats (`eventDays`), equal splits, balances and suggested transfers. No database and no setup, so they run in seconds and Claude can run them. Export a function from its service to test it; when a rule lives inside a database call, pull the pure part out first
 - **api** (`tests/api/`, `tests/scripts/`): the endpoints against Postgres
