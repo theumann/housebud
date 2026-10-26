@@ -88,16 +88,17 @@ Testing effort follows what would hurt users most.
 
 ## 5. Not tested (and why)
 
-| Area                                   | Why                                                                                                                                    |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Real iOS/macOS devices                 | None available; WebKit emulation in CI is the stand-in                                                                                 |
-| Load and performance                   | Student households are small; polling every 30 s is the known cost. A load test (e.g. k6) is on the roadmap                            |
-| Security testing beyond access control | Permissions are tested (401/403/404) and the demo sandbox's rate limit (429), but there's no penetration test or dependency audit gate |
-| Email                                  | The app sends no email yet; seed addresses are on domains that can't receive real mail                                                 |
-| Visual regression                      | Layout and look are checked by hand; screenshot comparison is optional future work                                                     |
-| Frontend components in isolation       | Behaviour is covered end to end instead; there are no React component tests                                                            |
-| Seed and demo scripts                  | Development tools, not part of what's served; only `seed:demo`'s user generation has tests                                             |
-| Production deployment                  | Not deployed yet; staging on Railway is checked by hand                                                                                |
+| Area                                   | Why                                                                                                                                                       |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Real iOS/macOS devices                 | None available; WebKit emulation in CI is the stand-in                                                                                                    |
+| Load and performance                   | Student households are small; polling every 30 s is the known cost. A load test (e.g. k6) is on the roadmap                                               |
+| Security testing beyond access control | Permissions are tested (401/403/404) and the demo sandbox's rate limit (429), but there's no penetration test or dependency audit gate                    |
+| Email                                  | The app sends no email yet; seed addresses are on domains that can't receive real mail                                                                    |
+| Visual regression                      | Layout and look are checked by hand; screenshot comparison is optional future work                                                                        |
+| Accessibility beyond automated checks  | axe catches only part of the problems; focus order, keyboard reach and screen-reader flows need a manual pass (NVDA, TalkBack), which isn't scheduled yet |
+| Frontend components in isolation       | Behaviour is covered end to end instead; there are no React component tests                                                                               |
+| Seed and demo scripts                  | Development tools, not part of what's served; only `seed:demo`'s user generation has tests                                                                |
+| Production deployment                  | Not deployed yet; staging on Railway is checked by hand                                                                                                   |
 
 ## 6. Environments and test data
 
