@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../../middleware/authMiddleware";
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../../generated/prisma/client";
 import { CompatibilityAnswersUpdateSchema } from "./compatibility.types";
 import {
   getActiveQuestions,

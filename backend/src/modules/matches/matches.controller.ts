@@ -1,7 +1,7 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../../middleware/authMiddleware";
 import { getMatchesForUser } from "./matches.service";
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../../generated/prisma/client";
 
 export async function getMatchesHandler(
   req: AuthRequest,

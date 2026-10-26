@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import type { User } from "@prisma/client";
+import type { User } from "../../generated/prisma/client";
 import { env } from "../../config/env";
 
 export function issueAuthResponse(

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Chore } from "@prisma/client";
+import type { Chore } from "../../src/generated/prisma/client";
 import {
   nextDueDate,
   repeatOf,

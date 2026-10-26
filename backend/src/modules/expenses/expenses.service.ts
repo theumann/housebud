@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "../../generated/prisma/client";
 import { badRequest, forbidden, notFound } from "../../errors/http.error";
 import {
   requireActiveMember,

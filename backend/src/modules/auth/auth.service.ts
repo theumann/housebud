@@ -1,4 +1,4 @@
-import { Prisma, type PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "../../generated/prisma/client";
 import { SignupInput, LoginInput, ChangePasswordInput } from "./auth.types";
 import bcrypt from "bcrypt";
 import { createHash, timingSafeEqual } from "node:crypto";
@@ -69,9 +69,14 @@ export async function signup(prisma: PrismaClient, input: SignupInput) {
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === "P2002"
     ) {
-      const fields = String(err.meta?.target ?? "");
+      // Which one: asked of the database, since err.meta's shape changes
+      // between Prisma versions (Prisma 7 dropped meta.target)
+      const usernameTaken = await prisma.user.findUnique({
+        where: { username },
+        select: { id: true },
+      });
       throw conflict(
-        fields.includes("username")
+        usernameTaken
           ? "That username is taken"
           : "An account with this email already exists",
       );

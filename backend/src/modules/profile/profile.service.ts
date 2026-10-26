@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../../generated/prisma/client";
 import { ProfileUpdateInput } from "./profile.types";
 
 export async function getMyProfile(prisma: PrismaClient, userId: string) {

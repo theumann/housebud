@@ -1,10 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parse } from "csv-parse/sync";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { Prisma } from "../src/generated/prisma/client";
+import { createPrisma } from "../src/config/prisma";
 import "dotenv/config";
 
-const prisma = new PrismaClient();
+const prisma = createPrisma();
 
 type Row = {
   code: string;

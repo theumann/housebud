@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../../generated/prisma/client";
 import { SANDBOX_EMAIL_DOMAIN } from "../demo/demo.types";
 
 type MatchCandidate = {

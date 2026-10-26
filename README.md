@@ -79,6 +79,7 @@ cd backend
 npm install
 cp .env.example .env      # then set JWT_SECRET to a long random string
 npx prisma migrate dev    # creates the tables
+npx prisma generate       # the database client (after every schema change too)
 npm run seed:all:dev      # optional: resets the database and adds demo data
 npm run dev               # http://localhost:4000
 ```
