@@ -62,14 +62,14 @@ The app has no reset and sends no email. With the URL in `.env.production` as fo
 
 Variables:
 
-| Variable           | Value                                                                                                                                                                              |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`     | Reference to the production Postgres's private URL, by its service name (`${{prod-postgres.DATABASE_URL}}`; pick it from the reference dropdown)                                   |
-| `JWT_SECRET`       | New random value, never staging's: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`. A shared secret would let staging tokens log in to production |
-| `SIGNUP_CODE`      | New code, different from staging's (the staging one has been handed out with the demo)                                                                                             |
-| `NODE_ENV`         | `production` (the seed scripts refuse to run with it)                                                                                                                              |
-| `DEMO_SANDBOX`     | **Not set.** Never `true` in production                                                                                                                                            |
-| `FEATURE_MATCHING` | **Not set.** The frontend doesn't read it, so `false` would break the Matches, Shortlist and Chat pages instead of hiding them                                                     |
+| Variable           | Value                                                                                                                                                                               |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`     | Reference to the production Postgres's private URL, by its service name (`${{prod-postgres.DATABASE_URL}}`; pick it from the reference dropdown)                                    |
+| `JWT_SECRET`       | New random value, never staging's: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`. A shared secret would let staging tokens log in to production  |
+| `SIGNUP_CODE`      | New code, different from staging's (the staging one has been handed out with the demo)                                                                                              |
+| `NODE_ENV`         | `production` (the seed scripts refuse to run with it)                                                                                                                               |
+| `DEMO_SANDBOX`     | **Not set.** Never `true` in production                                                                                                                                             |
+| `FEATURE_MATCHING` | `false` while matching is closed in production (planned to open toward the end of the school year). Pair it with the frontend's `NEXT_PUBLIC_FEATURE_MATCHING`; set both or neither |
 
 `PORT` is provided by Railway.
 
@@ -78,6 +78,7 @@ Variables:
 - [x] Source: this repo, branch `production`, root directory `frontend`. Build `npm run build`, start `npm start`.
 - [x] `NEXT_PUBLIC_API_BASE_URL` = the backend's full public URL **including `https://`** and without a trailing `/`, set before the first build: Next bakes it into the bundle, so changing it needs a redeploy. Without the scheme the build fails with `TypeError: Invalid URL` from `next.config.ts`.
 - [x] Public domains for both services (`*.up.railway.app` for now; a custom domain later).
+- [ ] `NEXT_PUBLIC_FEATURE_MATCHING=false` while matching is closed, with the backend's `FEATURE_MATCHING=false`. Baked in at build time: changing it needs a redeploy. With it off, the matching pages redirect to `/household`.
 - [ ] Optional: health check path `/login`, so a new deploy only takes traffic once a page loads.
 
 ### 4. Deploy trigger

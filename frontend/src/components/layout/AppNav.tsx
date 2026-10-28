@@ -10,6 +10,7 @@ import { useHouseholdInvites } from "@/context/HouseholdInvitesContext";
 import { useOptionalCurrentHousehold } from "@/context/CurrentHouseholdContext";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { useMenuDismiss } from "@/hooks/useMenuDismiss";
+import { matchingEnabled } from "@/lib/features";
 
 function NavBadge({ count, testId }: { count: number; testId?: string }) {
   if (count <= 0) return null;
@@ -193,14 +194,18 @@ export function AppNav() {
   const inHousehold = pathname.startsWith("/household");
 
   const sections: (NavLink & { active: boolean })[] = [
-    {
-      href: "/matches",
-      label: "Find Roommates",
-      testId: "nav-find-roommates",
-      // Inside the section the Chat link carries the same count.
-      badge: inMatching ? 0 : totalBadgeCount,
-      active: inMatching,
-    },
+    ...(matchingEnabled
+      ? [
+          {
+            href: "/matches",
+            label: "Find Roommates",
+            testId: "nav-find-roommates",
+            // Inside the section the Chat link carries the same count.
+            badge: inMatching ? 0 : totalBadgeCount,
+            active: inMatching,
+          },
+        ]
+      : []),
     {
       href: "/household",
       label: "Household",

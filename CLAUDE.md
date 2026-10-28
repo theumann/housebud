@@ -29,7 +29,7 @@ Known bugs and planned improvements are tracked in `known_bugs_and_improvements.
 
 - `backend/src/modules/household/` — create/list/get/rename, module toggles (`HouseholdSettings`: chat, chores, shopping, house rules + calendar on by default, expenses off), join code, email invites (token, 14-day expiry), leave, remove member, transfer ownership. Guards: `requireActiveMember`, `requireOwner`, `requireEnabledModule` (for upcoming modules).
 - `backend/src/errors/http.error.ts` — `HttpError` + `badRequest`/`forbidden`/`notFound`/`conflict`; `errorHandler` reads `statusCode`.
-- `FEATURE_MATCHING` env flag gates the compatibility/matches/chatrooms routers. Matching is **not** being turned off: the flag is only an emergency off switch, and the frontend doesn't read it (with it off, those pages show errors instead of disappearing). Leave it unset in every environment.
+- Matching can be switched off per environment: `FEATURE_MATCHING=false` (backend) removes the compatibility/matches/chatrooms routers, and `NEXT_PUBLIC_FEATURE_MATCHING=false` (frontend, baked in at build time; read through `src/lib/features.ts`) hides the "Find Roommates" section, stops polling chat rooms, sends people without a household to `/household` after login and signup, and redirects the matching pages to `/household` (`next.config.ts`). Set both or neither. Both are off in production until matching opens there (planned toward the end of the school year); staging, local development and the tests keep matching on.
 - Frontend matching pages moved into the `(matching)` route group (URLs unchanged).
 - Migrations: `add_households`, `add_invite_declined_at`.
 
@@ -290,6 +290,8 @@ npx playwright test --ui
 Required backend vars: `DATABASE_URL`, `JWT_SECRET`, `PORT`
 
 Optional: `SIGNUP_CODE` — when set, `POST /auth/signup` requires it (403 otherwise, checked before anything else) and the signup page shows an "Invite code" field (`GET /auth/signup-options`). `/signup?code=…` fills it in, so an invite can be a link. Trimmed and case-insensitive. Unset in local dev and tests; set on staging.
+
+Optional: `FEATURE_MATCHING=false` (with `NEXT_PUBLIC_FEATURE_MATCHING=false` on the frontend) turns matching off — see Done so far. Set in production only.
 
 Optional, **staging only — never production**: `DEMO_SANDBOX=true` turns on "Try the demo". `POST /demo/sandbox` (404 when off) creates a throwaway visitor (`@sandbox.example.com`) who owns "Maple Street House" with two of the `seed:demo` users as housemates (503 if they don't exist), chores in every state, a shopping list, a short household chat, expenses (the visitor owes a housemate), house rules (a proposal waiting for the visitor) and calendar entries (a weekly house meeting, events, a housemate away, the visitor's guest), and returns a 24-hour login. Sandboxes older than 24 hours are deleted whenever a new one is created (no scheduled job), at most 60 are created per hour (429), and Matches never shows sandbox users. The frontend's `/demo` page starts one and lands on the household; login and signup link to it when it's on (`demoAvailable` in `GET /auth/signup-options`). Link to `https://<frontend>/demo` from outside the app. `frontend/public/robots.txt` disallows `/demo`: crawlers that run JavaScript (Google's does) would otherwise create a sandbox on every visit.
 

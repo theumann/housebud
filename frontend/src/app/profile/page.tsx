@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { getUserDisplayName } from "../../lib/displayName";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { ChangePassword } from "@/components/profile/ChangePassword";
+import { matchingEnabled } from "@/lib/features";
 
 type ProfilePayload = {
   firstName: string;
@@ -185,8 +186,9 @@ export default function ProfilePage() {
       <header className="mb-4">
         <h1>{getUserDisplayName(user)}</h1>
         <p className="mt-1 text-sm text-muted">
-          This information is used for matching and how you appear to others in
-          the app.
+          {matchingEnabled
+            ? "This information is used for matching and how you appear to others in the app."
+            : "This is how you appear to your housemates in the app."}
         </p>
       </header>
 
@@ -388,8 +390,9 @@ export default function ProfilePage() {
 
           <CardFooter className="flex items-center justify-between">
             <p className="text-xs text-subtle">
-              Your display name and school help others recognize you. Location
-              is used to filter and sort matches.
+              Your display name and school help others recognize you.
+              {matchingEnabled &&
+                " Location is used to filter and sort matches."}
             </p>
             <Button
               data-testid="save-profile-button"
