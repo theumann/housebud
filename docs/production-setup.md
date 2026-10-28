@@ -108,7 +108,7 @@ A console error "A listener indicated an asynchronous response by returning true
 ### 8. Before inviting the household
 
 - [ ] Know how to reset a forgotten password (above).
-- [ ] A short notice for testers: it's a test, what is stored (profile, birth date, answers, household data, chat), who sees it, that you delete their data on request, and how to reach you.
-- [ ] Check the testers are adults; signup has no minimum age yet.
+- [ ] Send the tester notice (`docs/tester-notice.md`, fill in the brackets), with the parent or guardian agreement for anyone under 18.
+- [ ] Check each tester's age; signup has no minimum age yet. Under 18: the parent or guardian agreement in the notice, household features only, and matching closed or limited to people you invited (see "Minimum age" in `CLAUDE.md`).
 - [ ] Tell them how to join: the join code, or an invite to the exact email they sign up with (invites only appear in the app's inbox; nothing is mailed). Sessions last 7 days, then they log in again.
 - [ ] Decide where feedback goes.
