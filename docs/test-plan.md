@@ -2,7 +2,7 @@
 
 How HouseBud is tested: what is covered and by which kind of test, what deliberately isn't, which risks drive the choices, and what a change has to pass before it ships.
 
-Last updated: 2026-10-22.
+Last updated: 2026-10-27.
 
 ## 1. Scope
 
@@ -11,7 +11,7 @@ HouseBud helps students find roommates and then run the household they form. One
 - **Finding roommates:** sign up and log in, profile, compatibility questions, matches, shortlist, chat rooms with invites.
 - **Running a household:** creating one from a chat room or from scratch, joining by code or invite, owner management, and six modules: chat, chores, shopping list, expenses, house rules and calendar.
 
-This plan covers that application as it runs in development, CI and the staging environment on Railway. Nothing is in production yet.
+This plan covers that application as it runs in development, CI and on Railway: staging, and production, which hosts an invite-only test household since 2026-10-26.
 
 ## 2. Test levels
 
@@ -98,17 +98,18 @@ Testing effort follows what would hurt users most.
 | Accessibility beyond automated checks  | axe catches only part of the problems; focus order, keyboard reach and screen-reader flows need a manual pass (NVDA, TalkBack), which isn't scheduled yet |
 | Frontend components in isolation       | Behaviour is covered end to end instead; there are no React component tests                                                                               |
 | Seed and demo scripts                  | Development tools, not part of what's served; only `seed:demo`'s user generation has tests                                                                |
-| Production deployment                  | Not deployed yet; staging on Railway is checked by hand                                                                                                   |
+| Production deployment                  | Checked by hand after each release (`docs/production-setup.md`, smoke check); no automated tests run against production                                   |
 
 ## 6. Environments and test data
 
-| Environment                                                                 | Database                                       | Data                                                                    | Used for                               |
-| --------------------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------- |
-| Local development                                                           | `bunkbuddy` (Docker Postgres)                  | `seed:users`: fake users, the seeded household                          | Manual testing, phone testing over LAN |
-| API tests                                                                   | `bunkbuddy_test`, one schema per Vitest worker | Created per test (factory helpers), reset before each test              | Vitest `api` project                   |
-| End-to-end                                                                  | `e2e` schema of the dev database               | Reset and re-seeded at the start of every run; tests create fresh users | Playwright                             |
-| CI (GitHub Actions, Ubuntu 24.04, pinned; e2e in Playwright's Docker image) | Throwaway Postgres 16 per job                  | As above                                                                | GitHub Actions                         |
-| Staging                                                                     | Railway Postgres                               | Demo users (`seed:demo`), visitor sandboxes, invite-only sign-up        | Manual checks, sharing the demo        |
+| Environment                                                                 | Database                                       | Data                                                                    | Used for                                |
+| --------------------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------- |
+| Local development                                                           | `bunkbuddy` (Docker Postgres)                  | `seed:users`: fake users, the seeded household                          | Manual testing, phone testing over LAN  |
+| API tests                                                                   | `bunkbuddy_test`, one schema per Vitest worker | Created per test (factory helpers), reset before each test              | Vitest `api` project                    |
+| End-to-end                                                                  | `e2e` schema of the dev database               | Reset and re-seeded at the start of every run; tests create fresh users | Playwright                              |
+| CI (GitHub Actions, Ubuntu 24.04, pinned; e2e in Playwright's Docker image) | Throwaway Postgres 16 per job                  | As above                                                                | GitHub Actions                          |
+| Staging                                                                     | Railway Postgres                               | Demo users (`seed:demo`), visitor sandboxes, invite-only sign-up        | Manual checks, sharing the demo         |
+| Production                                                                  | Railway Postgres (`prod-postgres`)             | Real users only: compatibility questions, no seeded people              | The test household; smoke check by hand |
 
 Seed users that tests read: `me1` (one chat room, no household), `me2` (no household), `me3` (at the 3-room limit), and `me4` + `me5` (the seeded household, with every module in every state). Tests never change them.
 

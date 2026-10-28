@@ -6,7 +6,7 @@
 
 HouseBud helps students find compatible roommates and then manage the shared household they form: chores, a shared shopping list, and more to come. Matching and household management are one app: people meet through matching, talk it over in a chat room, and form a household from that room.
 
-> **Status: in development.** Not in production yet; the public app will live at [housebud.app](https://housebud.app). A staging version runs at [frontend-staging-971b.up.railway.app](https://frontend-staging-971b.up.railway.app/).
+> **Status: in development.** Production runs for an invite-only test household; the public app will live at [housebud.app](https://housebud.app). A staging version runs at [frontend-staging-971b.up.railway.app](https://frontend-staging-971b.up.railway.app/).
 >
 > The local database and Docker container still use the project's working name, `bunkbuddy` (see below).
 

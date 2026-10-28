@@ -76,7 +76,7 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ### Deployment
 
-- **Migration upgrade test before the first deploy.** Every test run starts from an empty database (all migrations, then seed with current code), so nothing checks that a migration works on data written under the previous schema (a new required column without a default, a rename, a type change). Add a CI job: check out `main`, migrate and seed, switch to the branch, `prisma migrate deploy`, then run the smoke checks (e.g. `household-seed.spec.ts`).
+- **Migration upgrade test, before the next release with a migration.** Production has real data since 2026-10-26. Every test run starts from an empty database (all migrations, then seed with current code), so nothing checks that a migration works on data written under the previous schema (a new required column without a default, a rename, a type change). Add a CI job: check out `main`, migrate and seed, switch to the branch, `prisma migrate deploy`, then run the smoke checks (e.g. `household-seed.spec.ts`).
 
 ### Code health
 
