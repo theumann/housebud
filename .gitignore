@@ -51,6 +51,7 @@ backend/dist
 dist
 
 /knownBugs.md
+/legal-notes.md
 /.claude/
 # generated Prisma client (prisma generate)
 backend/src/generated/
