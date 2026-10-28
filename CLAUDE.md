@@ -305,9 +305,12 @@ The address can change after a router or PC restart; update `.env.local` and res
 
 ---
 
-## Deployment (Railway — not yet deployed)
+## Deployment (Railway)
 
-Everything (Postgres, backend, frontend) goes on Railway. Setting up production, step by step: `docs/production-setup.md`.
+Everything (Postgres, backend, frontend) runs on Railway, in two environments of one project:
+
+- **Staging** (`backend`, `frontend`, `Postgres`) deploys every merge to `main`: demo users, "Try the demo", invite-only signup.
+- **Production** (`prod-backend`, `prod-frontend`, `prod-postgres`, live since 2026-10-26 for a first test household) deploys the `production` branch only. Release a commit that has run on staging with `git push origin main:production`. Its addresses, the release and backup routines (manual `pg_dump` for now, before every release with a migration) and what's left before inviting testers: `docs/production-setup.md`.
 
 - Backend: build with `npm run build`, start with `npm start` (`node dist/server.js`), with `npx prisma migrate deploy` as the pre-deploy command so each deploy applies pending migrations before starting.
 - `migrate deploy` applies only migrations missing from the database's `_prisma_migrations` table — on a fresh database that is all of them, in order. Never use `migrate dev` or `db push` against production.
@@ -315,7 +318,7 @@ Everything (Postgres, backend, frontend) goes on Railway. Setting up production,
 - Seed data in production: run `seed:questions` once after the first deploy (matching needs the compatibility questions). It uses `createMany` with `skipDuplicates`, so re-running only **adds** questions with new codes — edits to an existing question in the CSV are silently ignored and need a separate update. To run it against a deployed database, put that database's **public** URL in a gitignored env file (e.g. `backend/.env.staging` with `DATABASE_URL=…`; on Railway it's in the Postgres service's Connect → Public Network, which needs its TCP proxy on) and run `$env:DOTENV_CONFIG_PATH=".env.staging"; npm run seed:questions` from `backend/`. `seed:users` (`seed-dev.ts`: fake users, chats, messages) must never run in production; it refuses unless `DATABASE_URL` points at localhost (or at the `postgres` service inside CI's e2e container, only when `GITHUB_ACTIONS=true`) and `NODE_ENV` isn't `production`.
 - Forgotten passwords: the app has no reset and sends no email, so `npm run reset-password -- <email or username>` (`scripts/reset-password.ts`) sets a random password, after a `y`, and prints it once to pass on privately. It runs against a deployed database the same way as `seed:questions`. Existing sessions stay logged in.
 - Demo users on staging: `seed:demo` (`scripts/seed-demo.ts`) replaces the staging demo users with 50 Faker users in San Francisco (941xx ZIPs, since Matches only shows people whose target ZIP shares the first three digits) with compatibility answers, and a photo on about 60% (Faker's portrait set, hand-picked student-age ones in `scripts/portraits.ts`, shared with `seed-dev`, matched to the name's sex, loaded from jsDelivr — never `faker.image.avatar()`, which mixes in real GitHub users' pictures); `npm run seed:demo -- --remove` only removes them. Both ask for a `y` first when demo sandboxes are active (created in the last 24 hours), since those visitors would lose their housemates; `-- --yes` skips the question. They're the users whose email ends in `@demo.example.com`; nobody can log in as one. Removing them also removes their chat participations, shortlist entries and answers (cascade). It runs the same way as `seed:questions` against the staging database, and only on a database whose Postgres comment is `housebud:staging` (and never with `NODE_ENV=production`). Mark the staging database once, never production: `echo "COMMENT ON DATABASE railway IS 'housebud:staging';" | npx dotenv -e .env.staging '--' npx prisma db execute --stdin` from `backend/` (quote the `--`: Windows PowerShell drops a bare one before calling the program).
-- Nothing is in production yet, so migrations could be squashed into a single `init` before the first deploy. Not worth it unless the list grows; it forces a reset of every dev/e2e database.
+- Migrations can no longer be squashed: production has applied them all, so each migration from now on must work on its existing data.
 
 ### Before the app sends any real email
 
@@ -326,6 +329,8 @@ The app sends no email today, so seed and test addresses never need to exist. Be
 - Dev and e2e databases must never point at a real mail transport; use a sandbox/catcher in development.
 
 ### Before going live
+
+Production already hosts an invite-only test household; these are for the public launch.
 
 Terms and a privacy policy are deliberately not written yet: the policy has to describe what the app actually does with data at launch (email provider, hosting region, expenses, analytics), and some of what it must promise doesn't exist yet. Build them on their own branch close to launch, and check off:
 
