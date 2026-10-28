@@ -11,6 +11,7 @@ import React, {
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { getLastSeen } from "@/lib/unread";
+import { matchingEnabled } from "@/lib/features";
 
 export type RoomSummary = {
   id: string;
@@ -57,7 +58,7 @@ export function ChatroomsFeedProvider({
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!token) return;
+    if (!token || !matchingEnabled) return;
     setFetching(true);
     setError(null);
     try {
@@ -84,6 +85,8 @@ export function ChatroomsFeedProvider({
       return;
     }
 
+    // With matching off there are no chat rooms to poll for.
+    if (!matchingEnabled) return;
     refresh();
     const id = window.setInterval(refresh, pollMs);
     return () => window.clearInterval(id);

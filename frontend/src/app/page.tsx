@@ -5,9 +5,13 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { matchingEnabled } from "@/lib/features";
 
 // "/" is the app's landing logic; login and the nav logo send people here.
-// Members of a household land on it; everyone else lands on Matches.
+// Members of a household land on it; everyone else lands on Matches, or on
+// /household (create or join one) while matching is off.
+const noHouseholdPath = matchingEnabled ? "/matches" : "/household";
+
 async function landingPath(token: string) {
   try {
     const households = await apiFetch<{ id: string }[]>("/households", {
@@ -15,9 +19,9 @@ async function landingPath(token: string) {
     });
     return households.length > 0
       ? `/household/${households[0].id}`
-      : "/matches";
+      : noHouseholdPath;
   } catch {
-    return "/matches";
+    return noHouseholdPath;
   }
 }
 

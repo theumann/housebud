@@ -9,6 +9,7 @@ import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
 import { ApiError } from "@/lib/api";
+import { matchingEnabled } from "@/lib/features";
 import { useSignupOptions } from "@/hooks/useSignupOptions";
 
 type SignupField = {
@@ -126,7 +127,8 @@ function SignupForm() {
     setSubmitting(true);
     try {
       await signup(form);
-      router.replace("/matches");
+      // A new user has no household yet.
+      router.replace(matchingEnabled ? "/matches" : "/household");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
       if (err instanceof ApiError && err.status === 403) setCodeRefused(true);
