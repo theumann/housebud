@@ -7,7 +7,7 @@ How production was set up (2026-10-26), how to release to it and back it up, and
 | Service       | Railway name    | Address                                                                                                     |
 | ------------- | --------------- | ----------------------------------------------------------------------------------------------------------- |
 | Frontend      | `prod-frontend` | [housebud.app](https://housebud.app) (`www.` redirects there; also housebud-production-ecd6.up.railway.app) |
-| Backend       | `prod-backend`  | [housebud-production.up.railway.app](https://housebud-production.up.railway.app)                            |
+| Backend       | `prod-backend`  | [api.housebud.app](https://api.housebud.app) (also housebud-production.up.railway.app)                      |
 | Postgres (18) | `prod-postgres` | Private only: `postgres-frit.railway.internal` (keeps the name it was created with). TCP proxy normally off |
 
 All three are in the Railway project's `production` environment. Service names are unique across the project's environments, hence the `prod-` prefix (staging has `backend`, `frontend`, `Postgres`). Both apps deploy the `production` branch.
@@ -79,7 +79,7 @@ Variables:
 - [x] `NEXT_PUBLIC_API_BASE_URL` = the backend's full public URL **including `https://`** and without a trailing `/`, set before the first build: Next bakes it into the bundle, so changing it needs a redeploy. Without the scheme the build fails with `TypeError: Invalid URL` from `next.config.ts`.
 - [x] Public domains for both services (`*.up.railway.app`).
 - [x] Custom domain `housebud.app` (and `www.housebud.app`) on prod-frontend, port 8080, DNS at Namecheap: an ALIAS record for `@` (the root can't be a CNAME), a CNAME for `www`, and Railway's `_railway-verify` TXT record, which stays. Railway issues and renews the certificate. `next.config.ts` redirects any `www.` address to the bare domain, since the login token is stored per address.
-- [ ] `api.housebud.app` on prod-backend (CNAME `api`), then `NEXT_PUBLIC_API_BASE_URL=https://api.housebud.app` on prod-frontend and a redeploy.
+- [x] `api.housebud.app` on prod-backend (CNAME `api`), then `NEXT_PUBLIC_API_BASE_URL=https://api.housebud.app` on prod-frontend and a redeploy.
 - [x] `NEXT_PUBLIC_FEATURE_MATCHING=false` while matching is closed, with the backend's `FEATURE_MATCHING=false`. Baked in at build time: changing it needs a redeploy. With it off, the matching pages redirect to `/household`.
 - [ ] Optional: health check path `/login`, so a new deploy only takes traffic once a page loads.
 
