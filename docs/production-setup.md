@@ -6,11 +6,11 @@ How production was set up (2026-10-26), how to release to it and back it up, and
 
 | Service       | Railway name    | Address                                                                                                     |
 | ------------- | --------------- | ----------------------------------------------------------------------------------------------------------- |
-| Frontend      | `prod-frontend` | [housebud-production-ecd6.up.railway.app](https://housebud-production-ecd6.up.railway.app)                  |
+| Frontend      | `prod-frontend` | [housebud.app](https://housebud.app) (`www.` redirects there; also housebud-production-ecd6.up.railway.app) |
 | Backend       | `prod-backend`  | [housebud-production.up.railway.app](https://housebud-production.up.railway.app)                            |
 | Postgres (18) | `prod-postgres` | Private only: `postgres-frit.railway.internal` (keeps the name it was created with). TCP proxy normally off |
 
-All three are in the Railway project's `production` environment. Service names are unique across the project's environments, hence the `prod-` prefix (staging has `backend`, `frontend`, `Postgres`). Both apps deploy the `production` branch, with "Wait for CI" on.
+All three are in the Railway project's `production` environment. Service names are unique across the project's environments, hence the `prod-` prefix (staging has `backend`, `frontend`, `Postgres`). Both apps deploy the `production` branch.
 
 ## Releasing
 
@@ -20,7 +20,7 @@ Staging deploys every merge to `main`; production only moves when you push the `
 git push origin main:production        # or <commit>:production
 ```
 
-The `main` ruleset doesn't cover this branch, so no PR is needed. If the release includes a migration, take a backup first (below), then watch `prod-backend`'s deploy log for the migrations being applied.
+The `main` ruleset doesn't cover this branch, so no PR is needed. The "Prod" ruleset guards it instead: GitHub refuses the push unless the commit passed all five CI checks (on `main`), and it blocks force pushes and deleting the branch. Railway's "Wait for CI" doesn't hold production deploys back, since no workflow runs on `production` pushes, so the ruleset is the real guard. Follow a deploy in GitHub's deployments (environment "HouseBud / production") or Railway's deploy log. If the release includes a migration, take a backup first (below), then watch `prod-backend`'s deploy log for the migrations being applied.
 
 ## Backups
 
@@ -39,7 +39,7 @@ The current Railway plan has no Postgres backups (scheduled backups need Pro), s
    ```
 4. Turn the proxy off again and empty the URL in the file. The proxy address changes every time it's turned on.
 
-**Restore**: test it into a scratch local database (`createdb housebud_restore_test`, then `pg_restore --no-owner --dbname <local url>/housebud_restore_test <file>`) before you ever need it on production. On production, `pg_restore --clean --if-exists --no-owner --dbname $url <file>` replaces the current data: take a fresh dump first, and do it while nobody is using the app.
+**Restore**: test it into a scratch local database (`createdb housebud_restore_test`, then `pg_restore --no-owner --dbname <local url>/housebud_restore_test <file>`) before you ever need it on production. Use a local PostgreSQL 18 (`pg_restore` must be at least the dump's version), not the Docker dev database on port 5433 (Postgres 16); drop the scratch database afterwards. On production, `pg_restore --clean --if-exists --no-owner --dbname $url <file>` replaces the current data: take a fresh dump first, and do it while nobody is using the app.
 
 ## Forgotten passwords
 
@@ -77,14 +77,17 @@ Variables:
 
 - [x] Source: this repo, branch `production`, root directory `frontend`. Build `npm run build`, start `npm start`.
 - [x] `NEXT_PUBLIC_API_BASE_URL` = the backend's full public URL **including `https://`** and without a trailing `/`, set before the first build: Next bakes it into the bundle, so changing it needs a redeploy. Without the scheme the build fails with `TypeError: Invalid URL` from `next.config.ts`.
-- [x] Public domains for both services (`*.up.railway.app` for now; a custom domain later).
-- [ ] `NEXT_PUBLIC_FEATURE_MATCHING=false` while matching is closed, with the backend's `FEATURE_MATCHING=false`. Baked in at build time: changing it needs a redeploy. With it off, the matching pages redirect to `/household`.
+- [x] Public domains for both services (`*.up.railway.app`).
+- [x] Custom domain `housebud.app` (and `www.housebud.app`) on prod-frontend, port 8080, DNS at Namecheap: an ALIAS record for `@` (the root can't be a CNAME), a CNAME for `www`, and Railway's `_railway-verify` TXT record, which stays. Railway issues and renews the certificate. `next.config.ts` redirects any `www.` address to the bare domain, since the login token is stored per address.
+- [ ] `api.housebud.app` on prod-backend (CNAME `api`), then `NEXT_PUBLIC_API_BASE_URL=https://api.housebud.app` on prod-frontend and a redeploy.
+- [x] `NEXT_PUBLIC_FEATURE_MATCHING=false` while matching is closed, with the backend's `FEATURE_MATCHING=false`. Baked in at build time: changing it needs a redeploy. With it off, the matching pages redirect to `/household`.
 - [ ] Optional: health check path `/login`, so a new deploy only takes traffic once a page loads.
 
 ### 4. Deploy trigger
 
 - [x] A `production` branch, connected to both apps (service Settings → Source → branch).
-- [x] "Wait for CI" on, so a red build never deploys.
+- [x] Ruleset "Prod" on `production`: the five CI checks must have passed on the commit; no force push, no deletion.
+- [x] "Wait for CI" on as well, though it doesn't hold these deploys (no workflow runs on `production` pushes).
 
 ### 5. Data
 
@@ -93,7 +96,7 @@ Variables:
 
 ### 6. Backups
 
-- [ ] First manual backup, and one test restore into a local scratch database (see Backups above).
+- [x] First manual backup, and one test restore into a local scratch database (see Backups above).
 - [ ] Later: a Railway plan with scheduled backups.
 
 ### 7. Smoke check after the first deploy
