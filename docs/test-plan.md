@@ -58,6 +58,7 @@ Accessibility scans run on `chromium` and `pixel-7` only: axe's rules don't depe
 | Navigation (desktop and phone "More" menu)    |      |     | ✓   | Badges included                                                                      |
 | Seeded demo household                         |      |     | ✓   | Read-only smoke test of every module's states                                        |
 | Demo sandbox (staging)                        |      | ✓   | ✓   | Off in tests, as in production                                                       |
+| Report a problem (feedback)                   |      | ✓   | ✓   | Screenshot on every engine, the hourly limit, the body limit, the reading script     |
 | Accessibility                                 |      |     | ✓   | Every main page, both themes                                                         |
 
 **Code coverage** (backend `src/`, unit and API tests together, measured in CI):

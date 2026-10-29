@@ -45,6 +45,10 @@ The current Railway plan has no Postgres backups (scheduled backups need Pro), s
 
 The app has no reset and sends no email. With the URL in `.env.production` as for a backup, from `backend/`: `$env:DOTENV_CONFIG_PATH=".env.production"; npm run reset-password -- <email or username>` sets a random password and prints it once. Send it privately; they change it on their Profile page.
 
+## Reading feedback
+
+"Report a problem" (the bug icon in the nav) stores reports in the database. With the URL in `.env.production` as for a backup, from `backend/`: `$env:DOTENV_CONFIG_PATH=".env.production"; npm run feedback` prints the 20 newest and saves their screenshots to `~/HouseBud-feedback` (`npm run feedback -- --all` for every report). Screenshots show what was on the tester's screen, housemates' messages included: keep that folder private and delete old ones.
+
 ## Setup checklist
 
 ### 1. Environment and database

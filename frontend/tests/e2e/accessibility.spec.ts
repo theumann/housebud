@@ -87,6 +87,18 @@ for (const theme of ["light", "dark"] as const) {
           await expectNoViolations(page, testInfo);
         });
       }
+
+      // Opening it sends nothing.
+      test("report a problem", async ({ page }, testInfo) => {
+        await gotoAuthed(page, "/profile", {
+          waitForTestId: "profile-edit-page",
+        });
+        await page.getByTestId("feedback-button").click();
+        await expect(
+          page.getByTestId("feedback-screenshot-preview"),
+        ).toBeVisible();
+        await expectNoViolations(page, testInfo);
+      });
     });
 
     // me4's seeded household has every module on and data in every state.

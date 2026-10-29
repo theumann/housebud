@@ -120,4 +120,9 @@
   input[type="radio"] {
     accent-color: var(--color-primary-600);
   }
+
+  /* Tailwind 4 leaves buttons with the arrow cursor; links show the hand. */
+  button:not(:disabled) {
+    cursor: pointer;
+  }
 }

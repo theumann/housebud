@@ -54,6 +54,7 @@ model User {
   ruleVotes             RuleVote[]
   calendarEventsCreated CalendarEvent[]    @relation("CalendarEventCreator")
   calendarEntries       CalendarEvent[]    @relation("CalendarEventAbout")
+  feedback              Feedback[]
 
   @@index([username])
 }
@@ -504,4 +505,24 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([token])
+}
+
+// "Report a problem" from the nav. Read with `npm run feedback`; there is no
+// screen for it in the app.
+model Feedback {
+  id             String   @id @default(uuid())
+  userId         String
+  message        String
+  page           String
+  viewport       String?
+  userAgent      String?
+  appVersion     String?
+  screenshot     Bytes?
+  screenshotType String?
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
 }
