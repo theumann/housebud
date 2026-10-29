@@ -9,6 +9,7 @@ import { useChatroomsFeed } from "@/context/ChatroomsFeedContext";
 import { useHouseholdInvites } from "@/context/HouseholdInvitesContext";
 import { useOptionalCurrentHousehold } from "@/context/CurrentHouseholdContext";
 import { AccountMenu } from "@/components/layout/AccountMenu";
+import { FeedbackButton } from "@/components/layout/FeedbackButton";
 import { useMenuDismiss } from "@/hooks/useMenuDismiss";
 import { matchingEnabled } from "@/lib/features";
 
@@ -295,7 +296,10 @@ export function AppNav() {
           ))}
         </div>
 
-        <AccountMenu />
+        <div className="flex items-center gap-1 sm:gap-2">
+          <FeedbackButton />
+          <AccountMenu />
+        </div>
       </div>
 
       {/* Pages of the current section */}

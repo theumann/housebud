@@ -21,6 +21,9 @@ export const env = {
   // routes, as in production until matching opens there. Pair it with
   // NEXT_PUBLIC_FEATURE_MATCHING=false on the frontend, which hides the pages.
   FEATURE_MATCHING: process.env.FEATURE_MATCHING !== "false",
+  // The deployed commit, which Railway provides; stored with each feedback
+  // report. Unset locally.
+  APP_VERSION: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) || null,
 };
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;

@@ -13,6 +13,7 @@ import expensesRoutes from "./modules/expenses/expenses.routes";
 import rulesRoutes from "./modules/rules/rules.routes";
 import calendarRoutes from "./modules/calendar/calendar.routes";
 import demoRoutes from "./modules/demo/demo.routes";
+import feedbackRoutes from "./modules/feedback/feedback.routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { env } from "./config/env";
 
@@ -23,6 +24,9 @@ import type { PrismaClient } from "./generated/prisma/client";
 export function createApp(prisma: PrismaClient) {
   const app = express();
 
+  // Feedback carries a screenshot; everything else keeps the 100 kB default.
+  // The parser that runs first wins, so this one comes before the global one.
+  app.use("/feedback", express.json({ limit: "5mb" }));
   app.use(express.json());
 
   // Make prisma available to routes
@@ -44,6 +48,7 @@ export function createApp(prisma: PrismaClient) {
   app.use("/households/:householdId/calendar", calendarRoutes);
   app.use("/households", householdRoutes);
   app.use("/demo", demoRoutes);
+  app.use("/feedback", feedbackRoutes);
 
   if (env.FEATURE_MATCHING) {
     app.use("/compatibility", compatibilityRoutes);

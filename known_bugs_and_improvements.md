@@ -27,6 +27,13 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ## Improvements
 
+### Report a problem
+
+- **Reports are kept forever.** Screenshots show housemates' data, and nothing deletes them: `npm run feedback` only reads. Add a `--delete-before <date>` (or mark reports handled and delete those) before there are many testers; the privacy policy will have to say how long they're kept.
+- **The screenshot is a redraw, not a photo of the screen.** A page scrolled down shows no nav (it's sticky, and the redraw puts it at the top of the page), and pictures from other sites (avatar URLs) can come out blank.
+- **Logged out, there's no button**, so a problem with login or signup can't be reported in the app.
+- **No notification**: the app sends no email, so new reports wait until someone runs the script.
+
 ### Chat
 
 - **Invite from the chat room page.** Today invites are only sent from Matches and Shortlist cards. Still to decide: any accepted member (what the backend allows) or the owner only.
