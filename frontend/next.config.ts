@@ -16,18 +16,32 @@ const matchingPages = [
   "/chatrooms",
 ];
 
+// www.housebud.app goes to housebud.app: the login token is stored per
+// address, so serving both would log people out when they switch.
+const wwwRedirect = {
+  source: "/:path*",
+  has: [{ type: "host" as const, value: "www\\.(?<domain>.+)" }],
+  destination: "https://:domain/:path*",
+  permanent: true,
+};
+
 const nextConfig: NextConfig = {
   reactCompiler: true,
   allowedDevOrigins: apiHost === "localhost" ? [] : [apiHost],
   async redirects() {
-    if (process.env.NEXT_PUBLIC_FEATURE_MATCHING !== "false") return [];
-    return matchingPages.flatMap((page) =>
-      [page, `${page}/:path*`].map((source) => ({
-        source,
-        destination: "/household",
-        permanent: false,
-      })),
-    );
+    if (process.env.NEXT_PUBLIC_FEATURE_MATCHING !== "false") {
+      return [wwwRedirect];
+    }
+    return [
+      wwwRedirect,
+      ...matchingPages.flatMap((page) =>
+        [page, `${page}/:path*`].map((source) => ({
+          source,
+          destination: "/household",
+          permanent: false,
+        })),
+      ),
+    ];
   },
 };
 
