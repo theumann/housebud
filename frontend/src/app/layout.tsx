@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Figtree } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
@@ -11,6 +11,16 @@ const appFont = Figtree({ subsets: ["latin"], variable: "--font-app" });
 export const metadata: Metadata = {
   title: "HouseBud",
   description: "Find roommates, then run the household together",
+  appleWebApp: { capable: true, title: "HouseBud", statusBarStyle: "default" },
+};
+
+// The phone's status bar takes the nav's color (the system's light or dark
+// mode, not the app's own theme setting, which the browser can't see).
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#cbf2e4" },
+    { media: "(prefers-color-scheme: dark)", color: "#06233d" },
+  ],
 };
 
 export default function RootLayout({

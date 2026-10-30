@@ -61,6 +61,7 @@ Accessibility scans run on `chromium` and `pixel-7` only: axe's rules don't depe
 | Report a problem (feedback)                   |      | ✓   | ✓   | Screenshot on every engine, the hourly limit, the body limit, the reading script     |
 | Admin scripts: reset password, delete user    |      | ✓   |     | Deleting or anonymizing, handing over ownership, balances unchanged                  |
 | Accessibility                                 |      |     | ✓   | Every main page, both themes                                                         |
+| Installing on a phone                         |      |     | ✓   | Manifest, icons and theme color are served; the install itself is checked by hand    |
 
 **Code coverage** (backend `src/`, unit and API tests together, measured in CI):
 
@@ -101,6 +102,7 @@ Testing effort follows what would hurt users most.
 | Frontend components in isolation       | Behaviour is covered end to end instead; there are no React component tests                                                                                                                |
 | Seed and demo scripts                  | Development tools, not part of what's served; only `seed:demo`'s user generation has tests                                                                                                 |
 | Production deployment                  | Checked by hand after each release (`docs/production-setup.md`, smoke check); no automated tests run against production                                                                    |
+| Installing the app                     | Browsers offer "Install app" on their own terms and no test tool can press it; `install.spec.ts` checks what they need, and installing is tried by hand on Android                         |
 | Matching switched off (production)     | E2E runs with matching on; the off switch has an API test (endpoints gone, households kept), and the frontend side is checked by hand on a build with `NEXT_PUBLIC_FEATURE_MATCHING=false` |
 
 ## 6. Environments and test data
