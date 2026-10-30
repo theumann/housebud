@@ -27,6 +27,12 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ## Improvements
 
+### Deleting accounts
+
+- **Only by hand** (`npm run delete-user`). An in-app "Delete my account" and a data export are needed before launch (`CLAUDE.md` → Before going live).
+- **The person's session keeps working until it expires** (up to 7 days): tokens can't be revoked yet (see changing passwords). A deleted account's requests fail; an anonymized one could still create a new household.
+- **Matching chat rooms aren't handed over**: if the person owned a room, it's left without an owner. Matching is off in production; handle it before it opens.
+
 ### Report a problem
 
 - **Reports are kept forever.** Screenshots show housemates' data, and nothing deletes them: `npm run feedback` only reads. Add a `--delete-before <date>` (or mark reports handled and delete those) before there are many testers; the privacy policy will have to say how long they're kept.

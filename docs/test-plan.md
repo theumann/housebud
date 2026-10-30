@@ -59,6 +59,7 @@ Accessibility scans run on `chromium` and `pixel-7` only: axe's rules don't depe
 | Seeded demo household                         |      |     | ✓   | Read-only smoke test of every module's states                                        |
 | Demo sandbox (staging)                        |      | ✓   | ✓   | Off in tests, as in production                                                       |
 | Report a problem (feedback)                   |      | ✓   | ✓   | Screenshot on every engine, the hourly limit, the body limit, the reading script     |
+| Admin scripts: reset password, delete user    |      | ✓   |     | Deleting or anonymizing, handing over ownership, balances unchanged                  |
 | Accessibility                                 |      |     | ✓   | Every main page, both themes                                                         |
 
 **Code coverage** (backend `src/`, unit and API tests together, measured in CI):

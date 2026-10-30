@@ -45,6 +45,10 @@ The current Railway plan has no Postgres backups (scheduled backups need Pro), s
 
 The app has no reset and sends no email. With the URL in `.env.production` as for a backup, from `backend/`: `$env:DOTENV_CONFIG_PATH=".env.production"; npm run reset-password -- <email or username>` sets a random password and prints it once. Send it privately; they change it on their Profile page.
 
+## Deleting an account
+
+On request (the tester notice promises it), take a backup, then with the URL in `.env.production`, from `backend/`: `$env:DOTENV_CONFIG_PATH=".env.production"; npm run delete-user -- <email or username>`. It prints what will happen (households deleted or handed over, delete or anonymize) and asks for a `y`. Someone with expenses or payments shared with housemates is anonymized, so the others' balances don't change. Confirm to the person when it's done, and delete their screenshots from `~/HouseBud-feedback`.
+
 ## Reading feedback
 
 "Report a problem" (the bug icon in the nav) stores reports in the database. With the URL in `.env.production` as for a backup, from `backend/`: `$env:DOTENV_CONFIG_PATH=".env.production"; npm run feedback` prints the 20 newest and saves their screenshots to `~/HouseBud-feedback` (`npm run feedback -- --all` for every report). Screenshots show what was on the tester's screen, housemates' messages included: keep that folder private and delete old ones.
@@ -116,7 +120,7 @@ A console error "A listener indicated an asynchronous response by returning true
 ### 8. Before inviting the household
 
 - [ ] Know how to reset a forgotten password (above).
-- [ ] Send the tester notice (`docs/tester-notice.md`, fill in the brackets), with the parent or guardian agreement for anyone under 18.
+- [ ] Send the tester notice, with the parent or guardian agreement for anyone under 18. The copy sent is kept outside the repo; before each new tester, check it against `docs/tester-notice.md` (the reference, updated with the app) and bring it up to date.
 - [ ] Check each tester's age; signup has no minimum age yet. Under 18: the parent or guardian agreement in the notice, household features only, and matching closed or limited to people you invited (see "Minimum age" in `CLAUDE.md`).
 - [ ] Tell them how to join: the join code, or an invite to the exact email they sign up with (invites only appear in the app's inbox; nothing is mailed). Sessions last 7 days, then they log in again.
 - [ ] Decide where feedback goes.
