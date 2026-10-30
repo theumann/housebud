@@ -18,7 +18,7 @@ function NavBadge({ count, testId }: { count: number; testId?: string }) {
   return (
     <span
       data-testid={testId}
-      className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white"
+      className="inline-flex min-w-4.5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white"
     >
       {count > 9 ? "9+" : count}
     </span>

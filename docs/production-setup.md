@@ -12,6 +12,8 @@ How production was set up (2026-10-26), how to release to it and back it up, and
 
 All three are in the Railway project's `production` environment. Service names are unique across the project's environments, hence the `prod-` prefix (staging has `backend`, `frontend`, `Postgres`). Both apps deploy the `production` branch.
 
+Staging's frontend is at [demo.housebud.app](https://demo.housebud.app) (CNAME `demo` at Namecheap, on the staging `frontend` service; frontend-staging-971b.up.railway.app still works). Link to `https://demo.housebud.app/demo` for "Try the demo".
+
 ## Releasing
 
 Staging deploys every merge to `main`; production only moves when you push the `production` branch, to a commit that has already run on staging:
@@ -89,7 +91,7 @@ Variables:
 - [x] Custom domain `housebud.app` (and `www.housebud.app`) on prod-frontend, port 8080, DNS at Namecheap: an ALIAS record for `@` (the root can't be a CNAME), a CNAME for `www`, and Railway's `_railway-verify` TXT record, which stays. Railway issues and renews the certificate. `next.config.ts` redirects any `www.` address to the bare domain, since the login token is stored per address.
 - [x] `api.housebud.app` on prod-backend (CNAME `api`), then `NEXT_PUBLIC_API_BASE_URL=https://api.housebud.app` on prod-frontend and a redeploy.
 - [x] `NEXT_PUBLIC_FEATURE_MATCHING=false` while matching is closed, with the backend's `FEATURE_MATCHING=false`. Baked in at build time: changing it needs a redeploy. With it off, the matching pages redirect to `/household`.
-- [ ] Optional: health check path `/login`, so a new deploy only takes traffic once a page loads.
+- [x] Health check path `/login` (2026-10-30), so a new deploy only takes traffic once a page loads.
 
 ### 4. Deploy trigger
 
@@ -123,4 +125,4 @@ A console error "A listener indicated an asynchronous response by returning true
 - [ ] Send the tester notice, with the parent or guardian agreement for anyone under 18. The copy sent is kept outside the repo; before each new tester, check it against `docs/tester-notice.md` (the reference, updated with the app) and bring it up to date.
 - [ ] Check each tester's age; signup has no minimum age yet. Under 18: the parent or guardian agreement in the notice, household features only, and matching closed or limited to people you invited (see "Minimum age" in `CLAUDE.md`).
 - [ ] Tell them how to join: the join code, or an invite to the exact email they sign up with (invites only appear in the app's inbox; nothing is mailed). Sessions last 7 days, then they log in again.
-- [ ] Decide where feedback goes.
+- [x] Decide where feedback goes: the bug icon in the app ("Report a problem", read with `npm run feedback`, see above), and the contact address in the notice for anyone who can't log in.
