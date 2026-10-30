@@ -38,6 +38,8 @@ Thanks for trying HouseBud. It's an app for running a shared home: chores, a sho
 
 **Joining:** sign up at https://housebud.app/signup?code=[code] (the link fills in the invite code). Then either enter your household's join code (the owner finds it on the household page), or have the owner invite the exact email address you signed up with: the invitation appears in the app (no email is sent). You stay logged in for 7 days, then log in again.
 
+**As an app on your phone (optional):** on an iPhone, open housebud.app in Safari, tap Share (the square with an arrow; on newer iPhones it may be under ⋯), then **Add to Home Screen**. Open HouseBud from the new icon and log in once more: it keeps its own login, separate from Safari. On Android, open it in Chrome and tap **Install app** (or ⋮ → Add to Home screen).
+
 **Feedback and questions:** use the bug icon at the top of every page. Describe what happened; a screenshot of the page goes with it unless you untick "Include screenshot". If you can't log in or the app won't load, contact me instead: contact@housebud.app.
 
 **You must be 18 or over**, or have a parent's or guardian's agreement (below).

@@ -313,7 +313,7 @@ The address can change after a router or PC restart; update `.env.local` and res
 
 Everything (Postgres, backend, frontend) runs on Railway, in two environments of one project:
 
-- **Staging** (`backend`, `frontend`, `Postgres`) deploys every merge to `main`: demo users, "Try the demo", invite-only signup.
+- **Staging** (`backend`, `frontend`, `Postgres`; the frontend at `demo.housebud.app`) deploys every merge to `main`: demo users, "Try the demo", invite-only signup.
 - **Production** (`prod-backend`, `prod-frontend`, `prod-postgres`, live since 2026-10-26 for a first test household) deploys the `production` branch only. Release a commit that has run on staging with `git push origin main:production`. Its addresses, the release and backup routines (manual `pg_dump` for now, before every release with a migration) and what's left before inviting testers: `docs/production-setup.md`.
 
 - Backend: build with `npm run build`, start with `npm start` (`node dist/server.js`), with `npx prisma migrate deploy` as the pre-deploy command so each deploy applies pending migrations before starting.
