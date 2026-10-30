@@ -80,6 +80,12 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 - **Demo sandbox: matching Chat is empty.** The household chat is seeded, but sandbox visitors get no matching chat room: the housemates are seeded demo users who can't log in or accept invites, and putting them in rooms would count toward their 3-room limit and hide them from Matches. A pre-written conversation would need rooms excluded from that limit.
 
+### Installed app
+
+- **No push notifications.** New chat messages, invites and proposals only show as badges while the app is open. Push needs a service worker, a backend that sends them and a permission prompt; on iPhone it only works once the app is on the home screen. Would also cover "no notification" for problem reports.
+- **Staging installs under the same name.** `demo.housebud.app` uses the same manifest, so an installed demo is also called "HouseBud". If that confuses anyone, build staging with a different name (e.g. from an env var).
+- **The status bar follows the phone's light/dark mode**, not the app's own theme setting (the browser can't see it), so a dark app on a light phone has a light status bar.
+
 ### Look and feel
 
 - **Icons for the nav items** (Matches, Shortlist, Compatibility, Chat, Overview, the household modules). Would also free up room on phones (see "App name in the nav on phones" below).
