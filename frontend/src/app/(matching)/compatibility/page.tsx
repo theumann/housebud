@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
@@ -175,14 +176,11 @@ export default function CompatibilityPage() {
 
   return (
     <PageContainer data-testid="compatibility-page">
-      <header className="mb-4">
-        <h1 className="text-2xl font-bold">Compatibility profile</h1>
-        <p className="mt-1 text-sm text-muted">
-          Answer a few questions so we can propose roommates whose lifestyle is
-          closer to yours. For the MVP, these answers are used only for match
-          scoring.
-        </p>
-      </header>
+      <PageHeader
+        className="mb-4"
+        title="Compatibility profile"
+        description="Answer a few questions so we can propose roommates whose lifestyle is closer to yours. For the MVP, these answers are used only for match scoring."
+      />
 
       <div className="mb-4 grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         {/* Summary card */}

@@ -9,6 +9,7 @@ import { useMyRooms } from "@/hooks/useMyRooms";
 import { RoomActionButton } from "@/components/RoomActionButton";
 import { roomNameError } from "@/lib/rooms";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import {
@@ -217,24 +218,20 @@ export default function MatchesPage() {
 
   return (
     <PageContainer data-testid="matches-page">
-      <header className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Your Matches</h1>
-          <p className="text-sm text-muted">
-            Potential roommates near your target location, sorted by
-            compatibility.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 text-sm">
+      <PageHeader
+        className="mb-4"
+        title="Your Matches"
+        description="Potential roommates near your target location, sorted by compatibility."
+        action={
           <a
             href="/compatibility"
             data-testid="improve-compatibility-link"
-            className="text-primary-700 underline dark:text-primary-400"
+            className="shrink-0 text-sm text-primary-700 underline dark:text-primary-400"
           >
             Improve compatibility
           </a>
-        </div>
-      </header>
+        }
+      />
 
       {error && (
         <div className="mb-4 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -307,13 +304,11 @@ export default function MatchesPage() {
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-subtle">Compat coverage</p>
+                      <p className="text-subtle">Questions answered</p>
                       <p className="text-xs">
                         {compatPercent}%{" "}
                         {!m.hasMinCompatData && (
-                          <span className="text-yellow-700">
-                            (low response rate)
-                          </span>
+                          <span className="text-yellow-700">(few answers)</span>
                         )}
                       </p>
                     </div>

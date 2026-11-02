@@ -7,8 +7,9 @@ import { type ShoppingItem, useShoppingList } from "@/hooks/useShoppingList";
 import { ModuleOff } from "@/components/household/ModuleOff";
 import { ExpenseForm } from "@/components/household/ExpenseForm";
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardHeader, CardBody } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardBody } from "@/components/ui/Card";
+import { AddButton, Button } from "@/components/ui/Button";
 import { getUserDisplayName } from "@/lib/displayName";
 import { Input } from "@/components/ui/Input";
 
@@ -73,12 +74,23 @@ function ItemRow({
         data-testid={`shopping-item-remove-${item.id}`}
         variant="ghost"
         size="sm"
-        className="text-red-600 hover:bg-red-50"
+        className="px-2 text-subtle! hover:text-red-700! dark:hover:text-red-400!"
         disabled={disabled}
         onClick={onRemove}
         aria-label={`Remove ${item.name}`}
       >
-        Remove
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <path d="M4 4l8 8M12 4l-8 8" />
+        </svg>
       </Button>
     </li>
   );
@@ -153,135 +165,136 @@ export function ShoppingList({ household }: { household: Household }) {
     ));
 
   return (
-    <Card data-testid="shopping-list">
-      <CardHeader>
-        <h2 className="text-xl font-semibold">Shopping list</h2>
-        <p className="mt-1 text-sm text-muted">
-          Shared with everyone in {household.name}.
-        </p>
-      </CardHeader>
-      <CardBody className="flex flex-col gap-4">
-        <form onSubmit={handleAdd} className="flex flex-col gap-2 sm:flex-row">
-          <Input
-            data-testid="shopping-add-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Add an item, e.g. Milk"
-            aria-label="Item"
-            maxLength={100}
-            className="w-full sm:flex-1"
-          />
-          <Input
-            data-testid="shopping-add-quantity"
-            type="text"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            placeholder="Qty (optional)"
-            aria-label="Quantity"
-            maxLength={30}
-            className="w-full sm:w-36"
-          />
-          <Button
-            data-testid="shopping-add-submit"
-            type="submit"
-            disabled={adding || !name.trim()}
-          >
-            {adding ? "Adding…" : "Add"}
-          </Button>
-        </form>
+    <div className="flex flex-col gap-4">
+      <PageHeader
+        title="Shopping list"
+        description={`Shared with everyone in ${household.name}.`}
+      />
+      <Card data-testid="shopping-list">
+        <CardBody className="flex flex-col gap-4 pt-4">
+          <form onSubmit={handleAdd} className="flex gap-2">
+            <Input
+              data-testid="shopping-add-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Add an item, e.g. Milk"
+              aria-label="Item"
+              maxLength={100}
+              className="min-w-0 flex-1"
+            />
+            <Input
+              data-testid="shopping-add-quantity"
+              type="text"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              placeholder="Qty"
+              aria-label="Quantity (optional)"
+              maxLength={30}
+              className="w-20 sm:w-36"
+            />
+            <AddButton
+              data-testid="shopping-add-submit"
+              type="submit"
+              label="Add"
+              disabled={adding || !name.trim()}
+            />
+          </form>
 
-        <ErrorNote error={actionError ?? list.error} />
+          <ErrorNote error={actionError ?? list.error} />
 
-        {list.loading && list.items.length === 0 ? (
-          <p className="text-sm text-muted">Loading...</p>
-        ) : (
-          <>
-            <section>
-              <h3 className="text-sm font-semibold">To buy ({open.length})</h3>
-              {open.length === 0 ? (
-                <p
-                  data-testid="shopping-empty"
-                  className="py-2 text-sm text-subtle"
-                >
-                  Nothing on the list.
-                </p>
-              ) : (
-                <ul
-                  data-testid="shopping-open-items"
-                  className="divide-y divide-border-subtle"
-                >
-                  {renderItems(open)}
-                </ul>
-              )}
-            </section>
-
-            {done.length > 0 && (
+          {list.loading && list.items.length === 0 ? (
+            <p className="text-sm text-muted">Loading...</p>
+          ) : (
+            <>
               <section>
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-sm font-semibold">
-                    Done ({done.length})
-                  </h3>
-                  <Button
-                    data-testid="shopping-clear-checked"
-                    variant="secondary"
-                    size="sm"
-                    disabled={busy}
-                    onClick={() => run(list.clearChecked)}
+                <h3 className="text-sm font-semibold">
+                  To buy ({open.length})
+                </h3>
+                {open.length === 0 ? (
+                  <p
+                    data-testid="shopping-empty"
+                    className="py-2 text-sm text-subtle"
                   >
-                    Clear checked
-                  </Button>
-                </div>
-                {household.settings.expensesEnabled &&
-                  (buying ? (
-                    <div className="my-2 rounded border border-border-subtle p-3">
-                      <p className="mb-2 text-sm text-muted">
-                        Add the receipt total for what you bought; it&apos;s
-                        split like any other expense.
-                      </p>
-                      <ExpenseForm
-                        household={household}
-                        currency={household.settings.currency}
-                        initialDescription={myUnpaid
-                          .map((i) => i.name)
-                          .join(", ")
-                          .slice(0, 200)}
-                        submitLabel="Add expense"
-                        onSubmit={async (input) => {
-                          await list.recordPurchase({
-                            ...input,
-                            shoppingItemIds: myUnpaid.map((i) => i.id),
-                          });
-                          setBuying(false);
-                        }}
-                        onCancel={() => setBuying(false)}
-                      />
-                    </div>
-                  ) : (
-                    myUnpaid.length > 0 && (
-                      <Button
-                        data-testid="shopping-bought"
-                        variant="ghost"
-                        size="sm"
-                        className="my-1"
-                        disabled={busy}
-                        onClick={() => setBuying(true)}
-                      >
-                        I bought these ({myUnpaid.length}) → add expense
-                      </Button>
-                    )
-                  ))}
-                <ul
-                  data-testid="shopping-done-items"
-                  className="divide-y divide-border-subtle"
-                >
-                  {renderItems(done)}
-                </ul>
+                    Nothing on the list.
+                  </p>
+                ) : (
+                  <ul
+                    data-testid="shopping-open-items"
+                    className="divide-y divide-border-subtle"
+                  >
+                    {renderItems(open)}
+                  </ul>
+                )}
               </section>
-            )}
-          </>
-        )}
-      </CardBody>
-    </Card>
+
+              {done.length > 0 && (
+                <section>
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold">
+                      Done ({done.length})
+                    </h3>
+                    <Button
+                      data-testid="shopping-clear-checked"
+                      variant="secondary"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => run(list.clearChecked)}
+                    >
+                      Clear checked
+                    </Button>
+                  </div>
+                  {household.settings.expensesEnabled &&
+                    (buying ? (
+                      <div className="my-2 rounded border border-border-subtle p-3">
+                        <p className="mb-2 text-sm text-muted">
+                          Add the receipt total for what you bought; it&apos;s
+                          split like any other expense.
+                        </p>
+                        <ExpenseForm
+                          household={household}
+                          currency={household.settings.currency}
+                          initialDescription={myUnpaid
+                            .map((i) => i.name)
+                            .join(", ")
+                            .slice(0, 200)}
+                          submitLabel="Add expense"
+                          onSubmit={async (input) => {
+                            await list.recordPurchase({
+                              ...input,
+                              shoppingItemIds: myUnpaid.map((i) => i.id),
+                            });
+                            setBuying(false);
+                          }}
+                          onCancel={() => setBuying(false)}
+                        />
+                      </div>
+                    ) : (
+                      myUnpaid.length > 0 && (
+                        <Button
+                          data-testid="shopping-bought"
+                          variant="outline"
+                          size="sm"
+                          className="my-1"
+                          disabled={busy}
+                          onClick={() => setBuying(true)}
+                        >
+                          I bought these ({myUnpaid.length}) → add expense
+                        </Button>
+                      )
+                    ))}
+                  <ul
+                    data-testid="shopping-done-items"
+                    className="divide-y divide-border-subtle"
+                  >
+                    {renderItems(done)}
+                  </ul>
+                </section>
+              )}
+            </>
+          )}
+        </CardBody>
+      </Card>
+    </div>
   );
 }

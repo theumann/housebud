@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useHouseholds } from "@/hooks/useHouseholds";
 import { InviteInbox } from "@/components/household/InviteInbox";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -126,12 +127,11 @@ export default function HouseholdPage() {
 
   return (
     <PageContainer data-testid="household-page">
-      <header className="mb-4">
-        <h1 className="text-2xl font-bold">Household</h1>
-        <p className="text-sm text-muted">
-          The people you live with, in one place.
-        </p>
-      </header>
+      <PageHeader
+        className="mb-4"
+        title="Household"
+        description="The people you live with, in one place."
+      />
 
       {householdsError && (
         <div className="mb-4 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">

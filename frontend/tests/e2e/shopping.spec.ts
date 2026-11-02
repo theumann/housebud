@@ -78,6 +78,7 @@ test("the owner can turn the shopping list off", async ({ page, request }) => {
   // Attached, not visible: on a phone the link is under "More".
   await expect(page.getByTestId("nav-household-shopping")).toBeAttached();
 
+  await page.getByTestId("household-settings-toggle").click();
   await page.getByTestId("module-toggle-shopping").uncheck();
 
   await expect(page.getByTestId("nav-household-shopping")).toHaveCount(0);

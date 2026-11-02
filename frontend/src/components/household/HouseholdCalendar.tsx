@@ -14,8 +14,10 @@ import {
 } from "@/hooks/useCalendar";
 import { ModuleOff } from "@/components/household/ModuleOff";
 import { CalendarEntryForm } from "@/components/household/CalendarEntryForm";
-import { Card, CardHeader, CardBody } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardBody } from "@/components/ui/Card";
+import { AddButton, Button } from "@/components/ui/Button";
+import { RowMenu } from "@/components/ui/RowMenu";
 import { getUserDisplayName } from "@/lib/displayName";
 
 const AGENDA_DAYS = 28;
@@ -180,40 +182,32 @@ function OccurrenceRow({
             {o.notes}
           </p>
         )}
-        {o.canEdit && !brief && (
-          <div className="mt-1 flex flex-wrap gap-1">
-            <Button
-              data-testid="calendar-entry-edit"
-              variant="ghost"
-              size="sm"
-              disabled={busy}
-              onClick={onEdit}
-            >
-              Edit
-            </Button>
-            {o.repeat && (
-              <Button
-                data-testid="calendar-entry-skip"
-                variant="ghost"
-                size="sm"
-                disabled={busy}
-                onClick={onSkip}
-              >
-                Skip this one
-              </Button>
-            )}
-            <Button
-              data-testid="calendar-entry-delete"
-              variant="ghost"
-              size="sm"
-              disabled={busy}
-              onClick={onDelete}
-            >
-              Delete
-            </Button>
-          </div>
-        )}
       </div>
+      {o.canEdit && !brief && (
+        <RowMenu
+          testId="calendar-entry-menu"
+          label={`More actions for ${title}`}
+          disabled={busy}
+          items={[
+            { label: "Edit", testId: "calendar-entry-edit", onSelect: onEdit },
+            ...(o.repeat
+              ? [
+                  {
+                    label: "Skip this one",
+                    testId: "calendar-entry-skip",
+                    onSelect: onSkip,
+                  },
+                ]
+              : []),
+            {
+              label: o.repeat ? "Delete every one" : "Delete",
+              testId: "calendar-entry-delete",
+              danger: true,
+              onSelect: onDelete,
+            },
+          ]}
+        />
+      )}
     </li>
   );
 }
@@ -320,246 +314,248 @@ export function HouseholdCalendar({ household }: { household: Household }) {
   };
 
   return (
-    <Card data-testid="calendar">
-      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Calendar</h2>
-          <p className="mt-1 text-sm text-muted">
-            What&apos;s on in {household.name}, who&apos;s away, and when chores
-            are due.
-          </p>
-        </div>
-        {form === null && (
-          <Button
-            data-testid="calendar-add"
-            className="shrink-0 self-start"
-            onClick={() =>
-              setForm({ day: view === "month" ? selectedDay : today })
-            }
-          >
-            Add
-          </Button>
-        )}
-      </CardHeader>
-      <CardBody className="flex flex-col gap-4">
-        {form && (
-          <CalendarEntryForm
-            key={form.entry ? `${form.entry.id}-${form.day}` : form.day}
-            household={household}
-            day={form.day}
-            entry={form.entry}
-            onSubmit={async (input) => {
-              if (form.entry) await calendar.update(form.entry.id, input);
-              else await calendar.create(input);
-              setForm(null);
-            }}
-            onCancel={() => setForm(null)}
-          />
-        )}
-
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div
-            className="flex rounded-full border border-border-strong p-0.5 text-xs"
-            role="tablist"
-          >
-            {(["agenda", "month"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                role="tab"
-                aria-selected={view === v}
-                data-testid={`calendar-view-${v}`}
-                onClick={() => setView(v)}
-                className={clsx(
-                  "rounded-full px-3 py-1",
-                  view === v
-                    ? "bg-primary-100 font-semibold text-primary-700 dark:bg-primary-600/20 dark:text-primary-100"
-                    : "text-muted",
-                )}
-              >
-                {v === "agenda" ? "Agenda" : "Month"}
-              </button>
-            ))}
-          </div>
-          {view === "month" ? (
-            <div className="flex items-center gap-1 text-sm">
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-label="Previous month"
-                data-testid="calendar-prev"
-                onClick={() => shiftMonth(-1)}
-              >
-                ‹
-              </Button>
-              <span data-testid="calendar-month" className="font-medium">
-                {monthName}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-label="Next month"
-                data-testid="calendar-next"
-                onClick={() => shiftMonth(1)}
-              >
-                ›
-              </Button>
-            </div>
-          ) : (
-            agendaFrom !== today && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setAgendaFrom(today)}
-              >
-                Back to today
-              </Button>
-            )
+    <div className="flex flex-col gap-4">
+      <PageHeader
+        title="Calendar"
+        description={`What's on in ${household.name}, who's away, and when chores are due.`}
+        action={
+          form === null && (
+            <AddButton
+              data-testid="calendar-add"
+              label="Add to calendar"
+              onClick={() =>
+                setForm({ day: view === "month" ? selectedDay : today })
+              }
+            />
+          )
+        }
+      />
+      <Card data-testid="calendar">
+        <CardBody className="flex flex-col gap-4 pt-4">
+          {form && (
+            <CalendarEntryForm
+              key={form.entry ? `${form.entry.id}-${form.day}` : form.day}
+              household={household}
+              day={form.day}
+              entry={form.entry}
+              onSubmit={async (input) => {
+                if (form.entry) await calendar.update(form.entry.id, input);
+                else await calendar.create(input);
+                setForm(null);
+              }}
+              onCancel={() => setForm(null)}
+            />
           )}
-        </div>
 
-        {actionError || calendar.error ? (
-          <div className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {actionError ?? calendar.error}
-          </div>
-        ) : null}
-
-        {view === "agenda" ? (
-          <>
-            <Button
-              data-testid="calendar-earlier"
-              variant="ghost"
-              size="sm"
-              className="self-start"
-              onClick={() => setAgendaFrom(addDays(agendaFrom, -AGENDA_DAYS))}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div
+              className="flex rounded-full border border-border-strong p-0.5 text-xs"
+              role="tablist"
             >
-              ↑ Earlier
-            </Button>
-            {calendar.loading ? (
-              <p className="text-sm text-muted">Loading...</p>
-            ) : byDay.size === 0 ? (
-              <p
-                data-testid="calendar-empty"
-                className="rounded-lg border border-dashed border-border-strong px-4 py-6 text-center text-sm text-muted"
-              >
-                Nothing on between {shortDay(from)} and {shortDay(to)}.
-              </p>
-            ) : (
-              <div
-                data-testid="calendar-agenda"
-                className="flex flex-col gap-3"
-              >
-                {[...byDay].map(([day, items]) => (
-                  <section key={day} data-testid={`calendar-day-${day}`}>
-                    <h3
-                      className={clsx(
-                        "text-xs font-semibold uppercase tracking-wide",
-                        day === today
-                          ? "text-primary-700 dark:text-primary-400"
-                          : "text-subtle",
-                      )}
-                    >
-                      {dayLabel(day, today)}
-                    </h3>
-                    {dayList(day, items)}
-                  </section>
-                ))}
-              </div>
-            )}
-            <Button
-              data-testid="calendar-later"
-              variant="ghost"
-              size="sm"
-              className="self-start"
-              onClick={() => setAgendaFrom(addDays(agendaFrom, AGENDA_DAYS))}
-            >
-              ↓ Later
-            </Button>
-          </>
-        ) : (
-          <>
-            <div data-testid="calendar-grid" className="grid grid-cols-7 gap-1">
-              {WEEKDAYS.map((d, i) => (
-                <span
-                  key={i}
-                  className="text-center text-[11px] font-semibold text-subtle"
+              {(["agenda", "month"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  role="tab"
+                  aria-selected={view === v}
+                  data-testid={`calendar-view-${v}`}
+                  onClick={() => setView(v)}
+                  className={clsx(
+                    "rounded-full px-3 py-1",
+                    view === v
+                      ? "bg-primary-100 font-semibold text-primary-700 dark:bg-primary-600/20 dark:text-primary-100"
+                      : "text-muted",
+                  )}
                 >
-                  {d}
+                  {v === "agenda" ? "Agenda" : "Month"}
+                </button>
+              ))}
+            </div>
+            {view === "month" ? (
+              <div className="flex items-center gap-1 text-sm">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Previous month"
+                  data-testid="calendar-prev"
+                  onClick={() => shiftMonth(-1)}
+                >
+                  ‹
+                </Button>
+                <span data-testid="calendar-month" className="font-medium">
+                  {monthName}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Next month"
+                  data-testid="calendar-next"
+                  onClick={() => shiftMonth(1)}
+                >
+                  ›
+                </Button>
+              </div>
+            ) : (
+              agendaFrom !== today && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAgendaFrom(today)}
+                >
+                  Back to today
+                </Button>
+              )
+            )}
+          </div>
+
+          {actionError || calendar.error ? (
+            <div className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {actionError ?? calendar.error}
+            </div>
+          ) : null}
+
+          {view === "agenda" ? (
+            <>
+              <Button
+                data-testid="calendar-earlier"
+                variant="secondary"
+                size="sm"
+                className="self-start"
+                onClick={() => setAgendaFrom(addDays(agendaFrom, -AGENDA_DAYS))}
+              >
+                ↑ Earlier
+              </Button>
+              {calendar.loading ? (
+                <p className="text-sm text-muted">Loading...</p>
+              ) : byDay.size === 0 ? (
+                <p
+                  data-testid="calendar-empty"
+                  className="rounded-lg border border-dashed border-border-strong px-4 py-6 text-center text-sm text-muted"
+                >
+                  Nothing on between {shortDay(from)} and {shortDay(to)}.
+                </p>
+              ) : (
+                <div
+                  data-testid="calendar-agenda"
+                  className="flex flex-col gap-3"
+                >
+                  {[...byDay].map(([day, items]) => (
+                    <section key={day} data-testid={`calendar-day-${day}`}>
+                      <h3
+                        className={clsx(
+                          "text-xs font-semibold uppercase tracking-wide",
+                          day === today
+                            ? "text-primary-700 dark:text-primary-400"
+                            : "text-subtle",
+                        )}
+                      >
+                        {dayLabel(day, today)}
+                      </h3>
+                      {dayList(day, items)}
+                    </section>
+                  ))}
+                </div>
+              )}
+              <Button
+                data-testid="calendar-later"
+                variant="secondary"
+                size="sm"
+                className="self-start"
+                onClick={() => setAgendaFrom(addDays(agendaFrom, AGENDA_DAYS))}
+              >
+                ↓ Later
+              </Button>
+            </>
+          ) : (
+            <>
+              <div
+                data-testid="calendar-grid"
+                className="grid grid-cols-7 gap-1"
+              >
+                {WEEKDAYS.map((d, i) => (
+                  <span
+                    key={i}
+                    className="text-center text-[11px] font-semibold text-subtle"
+                  >
+                    {d}
+                  </span>
+                ))}
+                {Array.from({ length: 42 }, (_, i) => addDays(gridFrom, i)).map(
+                  (day) => {
+                    const kinds = [
+                      ...new Set((byDay.get(day) ?? []).map((o) => o.kind)),
+                    ];
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        data-testid={`calendar-cell-${day}`}
+                        aria-pressed={day === selectedDay}
+                        onClick={() => setSelectedDay(day)}
+                        className={clsx(
+                          "flex aspect-square flex-col items-center justify-center gap-1 rounded-md text-sm sm:aspect-auto sm:h-16",
+                          day.slice(0, 7) !== month && "text-faint",
+                          day === selectedDay
+                            ? "bg-primary-100 font-semibold text-primary-700 dark:bg-primary-600/20 dark:text-primary-100"
+                            : "hover:bg-surface-muted",
+                          day === today &&
+                            day !== selectedDay &&
+                            "ring-1 ring-primary-600",
+                        )}
+                      >
+                        {Number(day.slice(8))}
+                        <span className="flex h-1.5 gap-0.5">
+                          {kinds.map((k) => (
+                            <span
+                              key={k}
+                              className={clsx(
+                                "h-1.5 w-1.5 rounded-full",
+                                KIND_DOT[k],
+                              )}
+                            />
+                          ))}
+                        </span>
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+              <section data-testid="calendar-selected-day">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-subtle">
+                  {dayLabel(selectedDay, today)}
+                </h3>
+                {calendar.loading ? (
+                  <p className="py-2 text-sm text-muted">Loading...</p>
+                ) : (byDay.get(selectedDay) ?? []).length === 0 ? (
+                  <p className="py-2 text-sm text-subtle">Nothing on.</p>
+                ) : (
+                  dayList(selectedDay, byDay.get(selectedDay)!)
+                )}
+              </section>
+            </>
+          )}
+
+          <p className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-subtle">
+            {(
+              [
+                ["event", "Events"],
+                ["away", "Away"],
+                ["guest", "Guests"],
+                ["chore", "Chores"],
+              ] as const
+            )
+              .filter(
+                ([k]) => k !== "chore" || household.settings.choresEnabled,
+              )
+              .map(([k, label]) => (
+                <span key={k} className="inline-flex items-center gap-1.5">
+                  <span className={clsx("h-2 w-2 rounded-full", KIND_DOT[k])} />
+                  {label}
                 </span>
               ))}
-              {Array.from({ length: 42 }, (_, i) => addDays(gridFrom, i)).map(
-                (day) => {
-                  const kinds = [
-                    ...new Set((byDay.get(day) ?? []).map((o) => o.kind)),
-                  ];
-                  return (
-                    <button
-                      key={day}
-                      type="button"
-                      data-testid={`calendar-cell-${day}`}
-                      aria-pressed={day === selectedDay}
-                      onClick={() => setSelectedDay(day)}
-                      className={clsx(
-                        "flex aspect-square flex-col items-center justify-center gap-1 rounded-md text-sm sm:aspect-auto sm:h-16",
-                        day.slice(0, 7) !== month && "text-faint",
-                        day === selectedDay
-                          ? "bg-primary-100 font-semibold text-primary-700 dark:bg-primary-600/20 dark:text-primary-100"
-                          : "hover:bg-surface-muted",
-                        day === today &&
-                          day !== selectedDay &&
-                          "ring-1 ring-primary-600",
-                      )}
-                    >
-                      {Number(day.slice(8))}
-                      <span className="flex h-1.5 gap-0.5">
-                        {kinds.map((k) => (
-                          <span
-                            key={k}
-                            className={clsx(
-                              "h-1.5 w-1.5 rounded-full",
-                              KIND_DOT[k],
-                            )}
-                          />
-                        ))}
-                      </span>
-                    </button>
-                  );
-                },
-              )}
-            </div>
-            <section data-testid="calendar-selected-day">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-subtle">
-                {dayLabel(selectedDay, today)}
-              </h3>
-              {calendar.loading ? (
-                <p className="py-2 text-sm text-muted">Loading...</p>
-              ) : (byDay.get(selectedDay) ?? []).length === 0 ? (
-                <p className="py-2 text-sm text-subtle">Nothing on.</p>
-              ) : (
-                dayList(selectedDay, byDay.get(selectedDay)!)
-              )}
-            </section>
-          </>
-        )}
-
-        <p className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-subtle">
-          {(
-            [
-              ["event", "Events"],
-              ["away", "Away"],
-              ["guest", "Guests"],
-              ["chore", "Chores"],
-            ] as const
-          )
-            .filter(([k]) => k !== "chore" || household.settings.choresEnabled)
-            .map(([k, label]) => (
-              <span key={k} className="inline-flex items-center gap-1.5">
-                <span className={clsx("h-2 w-2 rounded-full", KIND_DOT[k])} />
-                {label}
-              </span>
-            ))}
-        </p>
-      </CardBody>
-    </Card>
+          </p>
+        </CardBody>
+      </Card>
+    </div>
   );
 }

@@ -80,13 +80,16 @@ test("an overdue chore can be edited and deleted", async ({
   await expect(overdue).toContainText("Bathroom");
   await expect(overdue).toContainText("Overdue");
 
-  await overdue.getByRole("button", { name: "Edit" }).click();
+  // Edit and Delete are under the row's "⋯" menu.
+  await overdue.getByRole("button", { name: /^More actions for/ }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
   await page.getByTestId("chore-form-name").fill("Bathroom deep clean");
   await page.getByTestId("chore-form-submit").click();
   await expect(overdue).toContainText("Bathroom deep clean");
 
   page.once("dialog", (dialog) => dialog.accept());
-  await overdue.getByRole("button", { name: "Delete" }).click();
+  await overdue.getByRole("button", { name: /^More actions for/ }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
   await expect(page.getByTestId("chores-empty")).toBeVisible();
 });
 

@@ -26,6 +26,8 @@ test("owner renames the household", async ({ page, request }) => {
   const { owner } = await householdWithMember(request);
   await openHousehold(page, owner.token);
 
+  // Settings are collapsed until opened.
+  await page.getByTestId("household-settings-toggle").click();
   await page.getByTestId("rename-household-input").fill("Renamed House");
   await page.getByTestId("rename-household-submit").click();
 
@@ -86,11 +88,14 @@ test("owner removes a member, and cancelling the confirmation keeps them", async
   const members = page.getByTestId("household-members").locator("li");
   await expect(members).toHaveCount(2);
 
+  // Make owner and Remove are under the member's "⋯" menu.
   page.once("dialog", (dialog) => dialog.dismiss());
+  await page.getByTestId(`member-menu-${member.id}`).click();
   await page.getByTestId(`remove-member-${member.id}`).click();
   await expect(members).toHaveCount(2);
 
   page.once("dialog", (dialog) => dialog.accept());
+  await page.getByTestId(`member-menu-${member.id}`).click();
   await page.getByTestId(`remove-member-${member.id}`).click();
   await expect(members).toHaveCount(1);
   expect(await apiGet(request, member.token, "/households")).toEqual([]);
@@ -105,6 +110,7 @@ test("owner hands over ownership, then can leave", async ({
   await expect(page.getByTestId("leave-household")).toHaveCount(0);
 
   page.once("dialog", (dialog) => dialog.accept());
+  await page.getByTestId(`member-menu-${member.id}`).click();
   await page.getByTestId(`make-owner-${member.id}`).click();
 
   await expect(page.getByTestId("household-my-role")).toHaveText("Member");
@@ -126,7 +132,7 @@ test("a member sees no owner controls", async ({ page, request }) => {
   await expect(page.getByTestId("household-my-role")).toHaveText("Member");
   await expect(page.getByTestId("household-owner-tools")).toHaveCount(0);
   await expect(page.getByTestId("regenerate-join-code")).toHaveCount(0);
-  await expect(page.getByTestId(`remove-member-${owner.id}`)).toHaveCount(0);
-  await expect(page.getByTestId(`make-owner-${owner.id}`)).toHaveCount(0);
+  await expect(page.getByTestId(`member-menu-${owner.id}`)).toHaveCount(0);
+  await expect(page.getByTestId("invite-email-input")).toHaveCount(0);
   await expect(page.getByTestId("leave-household")).toBeVisible();
 });

@@ -50,8 +50,9 @@ test("add a weekly event, skip one, and say you're away", async ({
   // No meeting next week.
   await page
     .getByTestId(`calendar-day-${day(7)}`)
-    .getByTestId("calendar-entry-skip")
+    .getByTestId("calendar-entry-menu")
     .click();
+  await page.getByTestId("calendar-entry-skip").click();
   await expect(page.getByTestId(`calendar-day-${day(7)}`)).toHaveCount(0);
   await expect(agenda.getByText("House meeting")).toHaveCount(3);
 
@@ -77,7 +78,7 @@ test("add a weekly event, skip one, and say you're away", async ({
     page
       .getByTestId(`calendar-day-${day(2)}`)
       .getByTestId("calendar-entry-away")
-      .getByTestId("calendar-entry-edit"),
+      .getByTestId("calendar-entry-menu"),
   ).toHaveCount(0);
 
   // The month view marks the days and lists the one picked.
@@ -97,5 +98,5 @@ test("add a weekly event, skip one, and say you're away", async ({
   await expect(comingUp).toContainText("away");
   await clickNav(page, "nav-household-calendar");
   await expect(page.getByTestId("calendar-agenda")).toBeVisible();
-  await expect(page.getByTestId("calendar-entry-edit")).toHaveCount(0);
+  await expect(page.getByTestId("calendar-entry-menu")).toHaveCount(0);
 });

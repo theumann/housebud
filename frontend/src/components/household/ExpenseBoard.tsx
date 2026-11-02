@@ -14,8 +14,10 @@ import {
 } from "@/hooks/useExpenses";
 import { ModuleOff } from "@/components/household/ModuleOff";
 import { ExpenseForm } from "@/components/household/ExpenseForm";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { AddButton, Button } from "@/components/ui/Button";
+import { RowMenu } from "@/components/ui/RowMenu";
 import { Input, Select } from "@/components/ui/Input";
 import { getUserDisplayName } from "@/lib/displayName";
 
@@ -200,6 +202,35 @@ export function ExpenseBoard({ household }: { household: Household }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <PageHeader
+        title="Expenses"
+        description={`Who paid for what in ${household.name}, and who owes whom.`}
+        action={
+          editing !== "new" && (
+            <AddButton
+              data-testid="expense-new"
+              label="Add expense"
+              onClick={() => setEditing("new")}
+            />
+          )
+        }
+      />
+      {editing === "new" && (
+        <Card>
+          <CardBody className="pt-4">
+            <ExpenseForm
+              household={household}
+              currency={currency}
+              submitLabel="Add expense"
+              onSubmit={async (input) => {
+                await data.addExpense(input);
+                setEditing(null);
+              }}
+              onCancel={() => setEditing(null)}
+            />
+          </CardBody>
+        </Card>
+      )}
       <Card data-testid="expenses-dues">
         <CardHeader>
           <h2 className="text-xl font-semibold">Dues</h2>
@@ -266,6 +297,7 @@ export function ExpenseBoard({ household }: { household: Household }) {
                           data-testid="transfer-mark-paid"
                           variant="secondary"
                           size="sm"
+                          className="shrink-0"
                           disabled={busy || justPaid}
                           onClick={() => markPaid(t)}
                         >
@@ -291,7 +323,7 @@ export function ExpenseBoard({ household }: { household: Household }) {
                 <div>
                   <Button
                     data-testid="payment-new"
-                    variant="ghost"
+                    variant="secondary"
                     size="sm"
                     onClick={() => setEditing("payment")}
                   >
@@ -306,28 +338,10 @@ export function ExpenseBoard({ household }: { household: Household }) {
       </Card>
 
       <Card data-testid="expenses-list">
-        <CardHeader className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">Expenses</h2>
-          {editing !== "new" && (
-            <Button data-testid="expense-new" onClick={() => setEditing("new")}>
-              Add expense
-            </Button>
-          )}
+        <CardHeader>
+          <h2 className="text-xl font-semibold">All expenses</h2>
         </CardHeader>
         <CardBody className="flex flex-col gap-4">
-          {editing === "new" && (
-            <ExpenseForm
-              household={household}
-              currency={currency}
-              submitLabel="Add expense"
-              onSubmit={async (input) => {
-                await data.addExpense(input);
-                setEditing(null);
-              }}
-              onCancel={() => setEditing(null)}
-            />
-          )}
-
           {!data.loading && data.expenses.length === 0 && editing !== "new" && (
             <p data-testid="expenses-empty" className="text-sm text-subtle">
               No expenses yet.
@@ -381,7 +395,7 @@ export function ExpenseBoard({ household }: { household: Household }) {
                       </p>
                     )}
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1">
+                  <div className="flex shrink-0 items-center gap-1">
                     <span
                       data-testid="expense-amount-shown"
                       className="font-semibold"
@@ -389,32 +403,28 @@ export function ExpenseBoard({ household }: { household: Household }) {
                       {money(e.amountCents)}
                     </span>
                     {e.canEdit && (
-                      <div className="flex gap-1">
-                        <Button
-                          data-testid={`expense-edit-${e.id}`}
-                          variant="ghost"
-                          size="sm"
-                          disabled={busy || editing !== null}
-                          onClick={() => setEditing(e.id)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          data-testid={`expense-delete-${e.id}`}
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:bg-red-50"
-                          disabled={busy}
-                          onClick={() =>
-                            confirmDelete(
-                              `"${e.description}" (${money(e.amountCents)})`,
-                              () => data.deleteExpense(e.id),
-                            )
-                          }
-                        >
-                          Delete
-                        </Button>
-                      </div>
+                      <RowMenu
+                        testId={`expense-menu-${e.id}`}
+                        label={`More actions for ${e.description}`}
+                        disabled={busy || editing !== null}
+                        items={[
+                          {
+                            label: "Edit",
+                            testId: `expense-edit-${e.id}`,
+                            onSelect: () => setEditing(e.id),
+                          },
+                          {
+                            label: "Delete",
+                            testId: `expense-delete-${e.id}`,
+                            danger: true,
+                            onSelect: () =>
+                              confirmDelete(
+                                `"${e.description}" (${money(e.amountCents)})`,
+                                () => data.deleteExpense(e.id),
+                              ),
+                          },
+                        ]}
+                      />
                     )}
                   </div>
                 </li>
@@ -446,21 +456,23 @@ export function ExpenseBoard({ household }: { household: Household }) {
                     </span>
                   </span>
                   {s.canEdit && (
-                    <Button
-                      data-testid={`payment-delete-${s.id}`}
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600 hover:bg-red-50"
+                    <RowMenu
+                      testId={`payment-menu-${s.id}`}
+                      label={`More actions for the payment of ${money(s.amountCents)}`}
                       disabled={busy}
-                      onClick={() =>
-                        confirmDelete(
-                          `the payment of ${money(s.amountCents)} from ${nameMid(s.from)} to ${nameMid(s.to)}`,
-                          () => data.deleteSettlement(s.id),
-                        )
-                      }
-                    >
-                      Delete
-                    </Button>
+                      items={[
+                        {
+                          label: "Delete",
+                          testId: `payment-delete-${s.id}`,
+                          danger: true,
+                          onSelect: () =>
+                            confirmDelete(
+                              `the payment of ${money(s.amountCents)} from ${nameMid(s.from)} to ${nameMid(s.to)}`,
+                              () => data.deleteSettlement(s.id),
+                            ),
+                        },
+                      ]}
+                    />
                   )}
                 </li>
               ))}
