@@ -203,7 +203,7 @@ const data = await apiFetch<SomeType>("/endpoint", {
 
 - All pages use `"use client"` — there are no Server Components currently
 - Components are PascalCase, hooks are camelCase with a `use` prefix
-- Styling is Tailwind only — no CSS modules or inline style objects
+- Styling is Tailwind only — no CSS modules or inline style objects. The one exception is a measured value Tailwind can't express: the chats' height from `useFillViewport`
 - Colors come from the theme tokens in `src/app/globals.css`, which switch for dark mode — not raw Tailwind palette classes:
   - Text: `text-foreground`, `text-foreground-soft`, `text-muted`, `text-subtle`, `text-faint` (strongest to faintest) instead of `text-gray-*`
   - Brand: `primary-*` (the logo's teal) instead of `blue-*`. Buttons use `bg-primary-600`; teal text uses `text-primary-700 dark:text-primary-400`
@@ -213,6 +213,8 @@ const data = await apiFetch<SomeType>("/endpoint", {
 - Form fields use `Input`, `Select` and `Textarea` from `src/components/ui/Input.tsx` (they set no width — pass `w-full` etc.); checkboxes and radios stay plain `<input>` and get the brand color from `globals.css`
 - Brand: `Logo` (`src/components/Logo.tsx`) is the icon (`public/logo-mark.svg`) plus the "HouseBud" wordmark in Nunito. The UI font is Figtree, loaded in `src/app/layout.tsx` as `--font-app`
 - UI primitives live in `src/components/ui/` (Button, Card, Input, Avatar, etc.). Show people with `Avatar` (photo, or their initial on a color fixed by user id)
+- Buttons: `Button` variants are `primary` (the main action), `secondary` (other actions, Cancel included), `ghost` (borderless: icons, Undo), `outline` (teal, stands out without being the main action), `danger` (confirming something destructive) and `danger-subtle` (Leave, Remove in a list); size `sm` in list rows, `md` elsewhere. The "Add …" action at the top of a card is an `AddButton`, which shrinks to a "+" below `sm`. A list row shows only its main action; Edit, Delete and the like go in a `RowMenu` ("⋯"), whose items keep their `data-testid`s (open the menu first in tests)
+- Every page starts with a `PageHeader` (`components/layout/PageHeader.tsx`) above its cards: the `h1`, an optional description, and the page's main action on the right (usually an `AddButton`). Cards keep `h2` titles of their own when they need one. On the household Overview, the owner's settings are in a collapsed "Household settings" card (`household-settings-toggle` opens it in tests)
 - Reusable UI components wrap HTML elements with `forwardRef` and extend the relevant HTML attribute interface
 
 ### State & data fetching

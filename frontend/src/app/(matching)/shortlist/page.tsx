@@ -9,6 +9,7 @@ import { useMyRooms, inviteStatusLabel, canInvite } from "@/hooks/useMyRooms";
 import { RoomActionButton } from "@/components/RoomActionButton";
 import { roomDisplayName, roomNameError } from "@/lib/rooms";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import {
@@ -178,30 +179,27 @@ export default function ShortlistPage() {
 
   return (
     <PageContainer data-testid="shortlist-page">
-      <header className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Shortlist</h1>
-          <p className="text-sm text-muted">
-            Keep track of promising roommates and start or extend chats from
-            here.
-          </p>
-        </div>
-        {hasShortlist && (
-          <Button
-            data-testid="clear-shortlist-button"
-            variant="ghost"
-            size="sm"
-            className="text-red-600 hover:bg-red-50"
-            onClick={() => {
-              clear();
-              setSelectedIds([]);
-              setError(null);
-            }}
-          >
-            Clear all
-          </Button>
-        )}
-      </header>
+      <PageHeader
+        className="mb-4"
+        title="Shortlist"
+        description="Keep track of promising roommates and start or extend chats from here."
+        action={
+          hasShortlist && (
+            <Button
+              data-testid="clear-shortlist-button"
+              variant="danger-subtle"
+              size="sm"
+              onClick={() => {
+                clear();
+                setSelectedIds([]);
+                setError(null);
+              }}
+            >
+              Clear all
+            </Button>
+          )
+        }
+      />
 
       {error && (
         <div className="mb-4 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -275,9 +273,8 @@ export default function ShortlistPage() {
                     <div className="flex items-center justify-between text-xs">
                       <Button
                         data-testid={`shortlist-remove-button-${u.userId}`}
-                        variant="ghost"
+                        variant="danger-subtle"
                         size="sm"
-                        className="text-red-600 hover:bg-red-50 px-0"
                         onClick={() => remove(u.userId)}
                       >
                         Remove
@@ -338,12 +335,12 @@ export default function ShortlistPage() {
 
                     {ownedRoom && (
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         size="sm"
                         onClick={handleInviteSelectedToOwnedRoom}
                         disabled={inviting}
                         title={`Invite to ${roomDisplayName(ownedRoom)}`}
-                        className="min-w-0 max-w-xs border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-600/20"
+                        className="min-w-0 max-w-xs"
                       >
                         <span className="truncate">
                           {inviting
@@ -376,12 +373,12 @@ export default function ShortlistPage() {
             {ownedRoom && (
               <Button
                 data-testid="invite-selected-to-owned-room-button"
-                variant="secondary"
+                variant="outline"
                 size="sm"
                 onClick={handleInviteSelectedToOwnedRoom}
                 disabled={inviting || selectedIds.length === 0}
                 title={`Invite selected to ${roomDisplayName(ownedRoom)}`}
-                className="min-w-0 border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-600/20"
+                className="min-w-0"
               >
                 <span className="truncate">
                   {inviting

@@ -286,7 +286,7 @@ export function AppNav() {
         </div>
 
         {/* Sections */}
-        <div className="flex gap-1 text-xs sm:gap-2">
+        <div className="flex gap-1 text-[13px] sm:gap-2 sm:text-sm">
           {sections.map((section) => (
             <NavPill
               key={section.href}
@@ -308,7 +308,7 @@ export function AppNav() {
           data-testid="nav-section-links"
           className="border-t border-border-subtle bg-linear-to-r from-theme-from to-theme-to"
         >
-          <div className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-2 text-[11px] sm:gap-2 sm:text-xs">
+          <div className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-2 text-xs sm:gap-2 sm:text-sm">
             <div className="flex min-w-0 gap-1 overflow-x-auto sm:gap-2">
               {subLinks.map((link, i) => (
                 <NavPill

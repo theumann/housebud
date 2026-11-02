@@ -33,10 +33,10 @@ export function RoomActionButton({
     return (
       <Button
         data-testid={`chat-in-room-button-${userId}`}
-        variant="ghost"
+        variant="outline"
         size="sm"
         title={label}
-        className="mt-1 w-full min-w-0 border border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-600/20"
+        className="mt-1 w-full min-w-0"
         onClick={() => router.push(`/chatrooms/${shared.id}`)}
       >
         <span className="truncate">{label}</span>
@@ -60,10 +60,10 @@ export function RoomActionButton({
   return (
     <Button
       data-testid={`invite-to-room-button-${userId}`}
-      variant="ghost"
+      variant="outline"
       size="sm"
       title={label}
-      className="mt-1 w-full min-w-0 border border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-600/20"
+      className="mt-1 w-full min-w-0"
       disabled={!invitable || inviting}
       onClick={() => onInvite(userId)}
     >

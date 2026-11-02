@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { getUserDisplayName } from "../../lib/displayName";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { ChangePassword } from "@/components/profile/ChangePassword";
 import { matchingEnabled } from "@/lib/features";
@@ -183,14 +183,15 @@ export default function ProfilePage() {
 
   return (
     <PageContainer data-testid="profile-edit-page">
-      <header className="mb-4">
-        <h1>{getUserDisplayName(user)}</h1>
-        <p className="mt-1 text-sm text-muted">
-          {matchingEnabled
+      <PageHeader
+        className="mb-4"
+        title="Profile"
+        description={
+          matchingEnabled
             ? "This information is used for matching and how you appear to others in the app."
-            : "This is how you appear to your housemates in the app."}
-        </p>
-      </header>
+            : "This is how you appear to your housemates in the app."
+        }
+      />
 
       <Card>
         <CardHeader>

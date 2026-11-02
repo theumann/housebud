@@ -14,6 +14,7 @@ import {
   chatMessageSenderToUserLike,
 } from "@/lib/displayName";
 import { MessageThread } from "@/components/chat/MessageThread";
+import { useFillViewport } from "@/hooks/useFillViewport";
 
 type ChatMessage = {
   id: string;
@@ -45,6 +46,7 @@ export default function ChatRoomPage() {
   const roomId = params.roomId;
   const router = useRouter();
   const { user, token, loading } = useAuth();
+  const [measureChat, chatHeight] = useFillViewport<HTMLDivElement>(24);
 
   const [roomInfo, setRoomInfo] = useState<ChatRoomInfo | null>(null);
   const [roomError, setRoomError] = useState<string | null>(null);
@@ -243,7 +245,11 @@ export default function ChatRoomPage() {
 
   return (
     <PageContainer data-testid="chatroom-page">
-      <div className="flex flex-col h-[calc(100dvh-120px)]">
+      <div
+        ref={measureChat}
+        style={{ height: chatHeight }}
+        className="flex flex-col"
+      >
         {/* Header */}
         <header className="mb-3 flex items-center justify-between gap-3">
           <div>
@@ -287,7 +293,7 @@ export default function ChatRoomPage() {
           </div>
           <Button
             data-testid="back-to-room-list-button"
-            variant="ghost"
+            variant="secondary"
             size="sm"
             onClick={() => router.push("/chatrooms")}
           >

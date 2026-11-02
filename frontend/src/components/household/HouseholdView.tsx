@@ -7,6 +7,7 @@ import { useHouseholdAdmin } from "@/hooks/useHouseholdAdmin";
 import { formatMoney } from "@/hooks/useExpenses";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { RowMenu } from "@/components/ui/RowMenu";
 import { getUserDisplayName } from "@/lib/displayName";
 import { Input, Select } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
@@ -159,26 +160,25 @@ function MemberRow({
           <span className="text-xs text-subtle">Owner</span>
         )}
         {canManage && (
-          <div className="ml-auto flex gap-2">
-            <Button
-              data-testid={`make-owner-${member.userId}`}
-              variant="secondary"
-              size="sm"
+          <div className="ml-auto">
+            <RowMenu
+              testId={`member-menu-${member.userId}`}
+              label={`More actions for ${name}`}
               disabled={busy !== null}
-              onClick={handleMakeOwner}
-            >
-              Make owner
-            </Button>
-            <Button
-              data-testid={`remove-member-${member.userId}`}
-              variant="ghost"
-              size="sm"
-              className="text-red-600 hover:bg-red-50"
-              disabled={busy !== null}
-              onClick={handleRemove}
-            >
-              Remove
-            </Button>
+              items={[
+                {
+                  label: "Make owner",
+                  testId: `make-owner-${member.userId}`,
+                  onSelect: handleMakeOwner,
+                },
+                {
+                  label: "Remove from household",
+                  testId: `remove-member-${member.userId}`,
+                  danger: true,
+                  onSelect: handleRemove,
+                },
+              ]}
+            />
           </div>
         )}
       </div>
@@ -267,7 +267,8 @@ function ModuleSettings({
   );
 }
 
-function OwnerTools({
+// Owner only, and collapsed until opened: it's long and rarely changed.
+function HouseholdSettings({
   household,
   admin,
 }: {
@@ -275,10 +276,7 @@ function OwnerTools({
   admin: Admin;
 }) {
   const [name, setName] = useState(household.name);
-  const [email, setEmail] = useState("");
   const rename = useAction();
-  const invite = useAction();
-  const revoke = useAction();
 
   const handleRename = (e: FormEvent) => {
     e.preventDefault();
@@ -286,6 +284,78 @@ function OwnerTools({
     if (!trimmed || trimmed === household.name) return;
     rename.run("rename", () => admin.rename(trimmed));
   };
+
+  return (
+    <Card data-testid="household-owner-tools">
+      <details className="group">
+        <summary
+          data-testid="household-settings-toggle"
+          className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-card p-4 [&::-webkit-details-marker]:hidden"
+        >
+          <span>
+            <span className="block text-lg font-semibold">
+              Household settings
+            </span>
+            <span className="block text-sm text-muted">
+              Name, features and currency
+            </span>
+          </span>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className="shrink-0 text-muted transition group-open:rotate-180"
+          >
+            <path d="M4 6l4 4 4-4" />
+          </svg>
+        </summary>
+        <div className="flex flex-col gap-4 px-4 pb-4">
+          <form onSubmit={handleRename} className="flex flex-col gap-2">
+            <label className="text-sm">
+              <span className="mb-1 block">Household name</span>
+              <div className="flex gap-2">
+                <Input
+                  data-testid="rename-household-input"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={80}
+                  className="min-w-0 flex-1"
+                />
+                <Button
+                  data-testid="rename-household-submit"
+                  type="submit"
+                  variant="secondary"
+                  disabled={
+                    rename.busy !== null ||
+                    !name.trim() ||
+                    name.trim() === household.name
+                  }
+                >
+                  {rename.busy ? "Saving…" : "Save"}
+                </Button>
+              </div>
+            </label>
+            <ErrorNote error={rename.error} />
+          </form>
+
+          <ModuleSettings household={household} admin={admin} />
+        </div>
+      </details>
+    </Card>
+  );
+}
+
+function InviteByEmail({ admin }: { admin: Admin }) {
+  const [email, setEmail] = useState("");
+  const invite = useAction();
+  const revoke = useAction();
 
   const handleInvite = (e: FormEvent) => {
     e.preventDefault();
@@ -298,46 +368,10 @@ function OwnerTools({
   };
 
   return (
-    <section
-      data-testid="household-owner-tools"
-      className="flex flex-col gap-4 border-t border-border-subtle pt-4"
-    >
-      <h3 className="text-sm font-semibold">Owner settings</h3>
-
-      <form onSubmit={handleRename} className="flex flex-col gap-2">
-        <label className="text-sm">
-          <span className="mb-1 block">Household name</span>
-          <div className="flex gap-2">
-            <Input
-              data-testid="rename-household-input"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={80}
-              className="w-full"
-            />
-            <Button
-              data-testid="rename-household-submit"
-              type="submit"
-              variant="secondary"
-              disabled={
-                rename.busy !== null ||
-                !name.trim() ||
-                name.trim() === household.name
-              }
-            >
-              {rename.busy ? "Saving…" : "Save"}
-            </Button>
-          </div>
-        </label>
-        <ErrorNote error={rename.error} />
-      </form>
-
-      <ModuleSettings household={household} admin={admin} />
-
+    <>
       <form onSubmit={handleInvite} className="flex flex-col gap-2">
         <label className="text-sm">
-          <span className="mb-1 block">Invite by email</span>
+          <span className="mb-1 block">Or invite by email</span>
           <div className="flex gap-2">
             <Input
               data-testid="invite-email-input"
@@ -345,11 +379,12 @@ function OwnerTools({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="roommate@example.com"
-              className="w-full"
+              className="min-w-0 flex-1"
             />
             <Button
               data-testid="invite-email-submit"
               type="submit"
+              variant="secondary"
               disabled={invite.busy !== null || !email.trim()}
             >
               {invite.busy ? "Inviting…" : "Invite"}
@@ -381,9 +416,8 @@ function OwnerTools({
                 <span className="min-w-0 truncate">{invite.email}</span>
                 <Button
                   data-testid={`revoke-invite-${invite.id}`}
-                  variant="ghost"
+                  variant="danger-subtle"
                   size="sm"
-                  className="text-red-600 hover:bg-red-50"
                   disabled={revoke.busy !== null}
                   onClick={() =>
                     revoke.run(invite.id, () => admin.revokeInvite(invite.id))
@@ -397,7 +431,7 @@ function OwnerTools({
           <ErrorNote error={revoke.error} />
         </div>
       )}
-    </section>
+    </>
   );
 }
 
@@ -448,9 +482,9 @@ You're still owed ${money}. Payments to you can still be recorded after you leav
     <div className="flex flex-col gap-2">
       <Button
         data-testid="leave-household"
-        variant="ghost"
+        variant="danger-subtle"
         size="sm"
-        className="self-start text-red-600 hover:bg-red-50"
+        className="self-start"
         disabled={busy !== null}
         onClick={handleLeave}
       >
@@ -461,6 +495,8 @@ You're still owed ${money}. Payments to you can still be recorded after you leav
   );
 }
 
+// The Overview below "Coming up": members and how to invite more, then the
+// owner's settings.
 export function HouseholdView({
   household,
   onChanged,
@@ -473,27 +509,14 @@ export function HouseholdView({
   const isOwner = household.myRole === "owner";
 
   return (
-    <Card data-testid="household-view">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <h2 data-testid="household-name" className="text-xl font-semibold">
-            {household.name}
-          </h2>
-          <span
-            data-testid="household-my-role"
-            className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-600/20 dark:text-primary-100"
-          >
-            {isOwner ? "Owner" : "Member"}
-          </span>
-        </div>
-      </CardHeader>
-      <CardBody className="flex flex-col gap-4">
-        <JoinCode code={household.joinCode} isOwner={isOwner} admin={admin} />
-
-        <section>
-          <h3 className="mb-2 text-sm font-semibold">
+    <div data-testid="household-view" className="flex flex-col gap-4">
+      <Card>
+        <CardHeader>
+          <h2 className="text-lg font-semibold">
             Members ({household.members.length})
-          </h3>
+          </h2>
+        </CardHeader>
+        <CardBody className="flex flex-col gap-4">
           <ul data-testid="household-members" className="flex flex-col gap-2">
             {household.members.map((m) => (
               <MemberRow
@@ -505,14 +528,30 @@ export function HouseholdView({
               />
             ))}
           </ul>
-        </section>
 
-        {isOwner && (
-          <OwnerTools key={household.id} household={household} admin={admin} />
-        )}
+          <section className="flex flex-col gap-3 border-t border-border-subtle pt-4">
+            <h3 className="text-sm font-semibold">Invite housemates</h3>
+            <JoinCode
+              code={household.joinCode}
+              isOwner={isOwner}
+              admin={admin}
+            />
+            {isOwner && <InviteByEmail admin={admin} />}
+          </section>
 
-        <LeaveHousehold household={household} admin={admin} />
-      </CardBody>
-    </Card>
+          <div className="border-t border-border-subtle pt-4">
+            <LeaveHousehold household={household} admin={admin} />
+          </div>
+        </CardBody>
+      </Card>
+
+      {isOwner && (
+        <HouseholdSettings
+          key={household.id}
+          household={household}
+          admin={admin}
+        />
+      )}
+    </div>
   );
 }

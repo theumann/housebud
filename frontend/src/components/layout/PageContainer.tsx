@@ -19,8 +19,10 @@ export function PageContainer({
 
   // A real wrapper element (not a fragment) keeps the nav and <main> under a
   // parent only React touches, so the nav is always inserted above <main>.
+  // <main> fills what's left of the screen below the nav, so a short page
+  // doesn't scroll.
   return (
-    <div>
+    <div className="flex min-h-dvh flex-col">
       {user && <AppNav />}
       {user?.email.endsWith(SANDBOX_EMAIL_SUFFIX) && (
         <p
@@ -31,10 +33,7 @@ export function PageContainer({
           resets after a day.
         </p>
       )}
-      <main
-        {...props}
-        className={clsx("min-h-screen bg-surface-muted", className)}
-      >
+      <main {...props} className={clsx("flex-1 bg-surface-muted", className)}>
         <section className="max-w-5xl mx-auto px-4 py-6">{children}</section>
       </main>
     </div>

@@ -86,7 +86,7 @@ export function MessageThread({
           const isMine = msg.senderUserId === currentUserId;
           const timeLabel = new Date(msg.createdAt).toLocaleTimeString(
             undefined,
-            { hour: "2-digit", minute: "2-digit" },
+            { hour: "numeric", minute: "2-digit" },
           );
 
           const prev = index > 0 ? messages[index - 1] : null;
@@ -142,7 +142,7 @@ export function MessageThread({
       <form
         data-testid="send-message-form"
         onSubmit={handleSubmit}
-        className="border-t border-border-subtle px-3 py-2 flex items-end gap-2"
+        className="border-t border-border-subtle px-3 py-2 flex items-center gap-2"
       >
         <Textarea
           data-testid="message-input"
@@ -156,7 +156,6 @@ export function MessageThread({
           data-testid="send-message-button"
           type="submit"
           variant="primary"
-          size="sm"
           disabled={sending || !newMessage.trim()}
         >
           {sending ? "Sending…" : "Send"}

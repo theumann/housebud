@@ -13,8 +13,10 @@ import {
   type ProposalDraft,
   RuleProposalForm,
 } from "@/components/household/RuleProposalForm";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { AddButton, Button } from "@/components/ui/Button";
+import { RowMenu } from "@/components/ui/RowMenu";
 import { Input } from "@/components/ui/Input";
 import { getUserDisplayName } from "@/lib/displayName";
 
@@ -164,6 +166,19 @@ export function HouseRules({ household }: { household: Household }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <PageHeader
+        title="House rules"
+        description={`Rules everyone in ${household.name} has agreed to. Adding or changing one needs everyone's agreement.`}
+        action={
+          draft === null && (
+            <AddButton
+              data-testid="rule-propose"
+              label="Propose a rule"
+              onClick={() => setDraft({ kind: "add" })}
+            />
+          )
+        }
+      />
       {data.needsMyAgreement && (
         <Card
           data-testid="rules-agreement"
@@ -327,23 +342,8 @@ export function HouseRules({ household }: { household: Household }) {
       )}
 
       <Card data-testid="rules-list">
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="text-xl font-semibold">House rules</h2>
-            <p className="mt-1 text-sm text-muted">
-              Rules everyone in {household.name} has agreed to. Adding or
-              changing one needs everyone&apos;s agreement.
-            </p>
-          </div>
-          {draft === null && (
-            <Button
-              data-testid="rule-propose"
-              className="shrink-0 self-start"
-              onClick={() => setDraft({ kind: "add" })}
-            >
-              Propose a rule
-            </Button>
-          )}
+        <CardHeader>
+          <h2 className="text-xl font-semibold">Current rules</h2>
         </CardHeader>
         <CardBody className="flex flex-col gap-4">
           {draft?.kind === "add" && form}
@@ -384,28 +384,24 @@ export function HouseRules({ household }: { household: Household }) {
                         )}
                       </div>
                       {!pending && draft === null && (
-                        <div className="flex shrink-0 gap-1">
-                          <Button
-                            data-testid={`rule-change-${r.id}`}
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              setDraft({ kind: "change", rule: r })
-                            }
-                          >
-                            Change
-                          </Button>
-                          <Button
-                            data-testid={`rule-remove-${r.id}`}
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              setDraft({ kind: "remove", rule: r })
-                            }
-                          >
-                            Remove
-                          </Button>
-                        </div>
+                        <RowMenu
+                          testId={`rule-menu-${r.id}`}
+                          label={`More actions for ${r.title}`}
+                          items={[
+                            {
+                              label: "Propose a change",
+                              testId: `rule-change-${r.id}`,
+                              onSelect: () =>
+                                setDraft({ kind: "change", rule: r }),
+                            },
+                            {
+                              label: "Propose removing it",
+                              testId: `rule-remove-${r.id}`,
+                              onSelect: () =>
+                                setDraft({ kind: "remove", rule: r }),
+                            },
+                          ]}
+                        />
                       )}
                     </div>
                     {draft?.kind !== "add" && draft?.rule.id === r.id && form}

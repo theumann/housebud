@@ -13,8 +13,10 @@ import {
   useChores,
 } from "@/hooks/useChores";
 import { ModuleOff } from "@/components/household/ModuleOff";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { AddButton, Button } from "@/components/ui/Button";
+import { RowMenu } from "@/components/ui/RowMenu";
 import { getUserDisplayName } from "@/lib/displayName";
 import { Input, Select } from "@/components/ui/Input";
 
@@ -250,7 +252,7 @@ function ChoreForm({
         >
           {submitting ? "Saving…" : chore ? "Save" : "Add chore"}
         </Button>
-        <Button variant="ghost" onClick={onCancel} disabled={submitting}>
+        <Button variant="secondary" onClick={onCancel} disabled={submitting}>
           Cancel
         </Button>
       </div>
@@ -288,7 +290,7 @@ function ChoreRow({
   return (
     <li
       data-testid={`chore-${chore.id}`}
-      className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center"
+      className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-3"
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{chore.name}</p>
@@ -341,7 +343,7 @@ function ChoreRow({
           </p>
         )}
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex items-center gap-2">
         {!chore.startedByUserId && (
           <Button
             data-testid={`chore-start-${chore.id}`}
@@ -372,25 +374,27 @@ function ChoreRow({
         >
           Done
         </Button>
-        <Button
-          data-testid={`chore-edit-${chore.id}`}
-          variant="secondary"
-          size="sm"
-          disabled={busy}
-          onClick={onEdit}
-        >
-          Edit
-        </Button>
-        <Button
-          data-testid={`chore-delete-${chore.id}`}
-          variant="ghost"
-          size="sm"
-          className="text-red-600 hover:bg-red-50"
-          disabled={busy}
-          onClick={onDelete}
-        >
-          Delete
-        </Button>
+        {/* On a phone the buttons go under the chore, with ⋯ at the far right. */}
+        <div className="ml-auto sm:ml-0">
+          <RowMenu
+            testId={`chore-menu-${chore.id}`}
+            label={`More actions for ${chore.name}`}
+            disabled={busy}
+            items={[
+              {
+                label: "Edit",
+                testId: `chore-edit-${chore.id}`,
+                onSelect: onEdit,
+              },
+              {
+                label: "Delete",
+                testId: `chore-delete-${chore.id}`,
+                danger: true,
+                onSelect: onDelete,
+              },
+            ]}
+          />
+        </div>
       </div>
     </li>
   );
@@ -459,27 +463,33 @@ export function ChoreBoard({ household }: { household: Household }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <PageHeader
+        title="Chores"
+        description={`Who does what in ${household.name}, and whose turn is next.`}
+        action={
+          editing !== "new" && (
+            <AddButton
+              data-testid="chore-add"
+              label="Add chore"
+              onClick={() => setEditing("new")}
+            />
+          )
+        }
+      />
+      {chores.chores.length > 0 && (
+        <label className="flex items-center gap-2 self-start text-sm">
+          <input
+            data-testid="chores-only-mine"
+            type="checkbox"
+            checked={onlyMine}
+            onChange={(e) => setOnlyMine(e.target.checked)}
+            className="h-4 w-4 cursor-pointer"
+          />
+          Only my turns
+        </label>
+      )}
       <Card data-testid="chore-board">
-        <CardHeader>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-semibold">Chores</h2>
-              <p className="mt-1 text-sm text-muted">
-                Who does what in {household.name}, and whose turn is next.
-              </p>
-            </div>
-            {editing !== "new" && (
-              <Button
-                data-testid="chore-add"
-                size="sm"
-                onClick={() => setEditing("new")}
-              >
-                Add chore
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4">
+        <CardBody className="flex flex-col gap-4 pt-4">
           {editing === "new" && (
             <ChoreForm
               household={household}
@@ -492,19 +502,6 @@ export function ChoreBoard({ household }: { household: Household }) {
           )}
 
           <ErrorNote error={actionError ?? chores.error} />
-
-          {chores.chores.length > 0 && (
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                data-testid="chores-only-mine"
-                type="checkbox"
-                checked={onlyMine}
-                onChange={(e) => setOnlyMine(e.target.checked)}
-                className="h-4 w-4 cursor-pointer"
-              />
-              Only my turns
-            </label>
-          )}
 
           {chores.loading && chores.chores.length === 0 ? (
             <p className="text-sm text-muted">Loading...</p>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getLastSeen } from "@/lib/unread";
@@ -73,22 +74,21 @@ export default function ChatroomsPage() {
   const hasRooms = rooms.length > 0;
   return (
     <PageContainer data-testid="chatrooms-page">
-      <header className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Chat rooms</h1>
-          <p className="text-sm text-muted">
-            Meet &amp; Greet rooms where you can talk with potential roommates.
-          </p>
-        </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={refresh}
-          disabled={fetching}
-        >
-          {fetching ? "Refreshing…" : "Refresh"}
-        </Button>
-      </header>
+      <PageHeader
+        className="mb-4"
+        title="Chat rooms"
+        description="Meet & Greet rooms where you can talk with potential roommates."
+        action={
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={refresh}
+            disabled={fetching}
+          >
+            {fetching ? "Refreshing…" : "Refresh"}
+          </Button>
+        }
+      />
 
       {error && (
         <div className="mb-4 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -142,7 +142,7 @@ export default function ChatroomsPage() {
                           {
                             month: "short",
                             day: "numeric",
-                            hour: "2-digit",
+                            hour: "numeric",
                             minute: "2-digit",
                           },
                         )}
@@ -252,7 +252,7 @@ export default function ChatroomsPage() {
                       {new Date(room.createdAt).toLocaleString(undefined, {
                         month: "short",
                         day: "numeric",
-                        hour: "2-digit",
+                        hour: "numeric",
                         minute: "2-digit",
                       })}
                     </p>
@@ -269,9 +269,8 @@ export default function ChatroomsPage() {
                       </Button>
                       <Button
                         data-testid={`leave-chat-room-${room.id}`}
-                        variant="ghost"
+                        variant="danger-subtle"
                         size="sm"
-                        className="text-red-600 hover:bg-red-50"
                         disabled={actionLoadingId === room.id}
                         onClick={() => handleLeave(room.id)}
                       >

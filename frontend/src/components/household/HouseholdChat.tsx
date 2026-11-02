@@ -6,10 +6,13 @@ import { useHouseholdChat } from "@/hooks/useHouseholdChat";
 import { ModuleOff } from "@/components/household/ModuleOff";
 import { MessageThread } from "@/components/chat/MessageThread";
 import { getUserDisplayName } from "@/lib/displayName";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { useFillViewport } from "@/hooks/useFillViewport";
 
 export function HouseholdChat({ household }: { household: Household }) {
   const { user } = useAuth();
   const chat = useHouseholdChat(household.id);
+  const [measureChat, chatHeight] = useFillViewport<HTMLDivElement>(24);
 
   if (chat.unavailable) {
     return <ModuleOff household={household} moduleName="chat" />;
@@ -17,16 +20,16 @@ export function HouseholdChat({ household }: { household: Household }) {
 
   return (
     <div
+      ref={measureChat}
+      style={{ height: chatHeight }}
       data-testid="household-chat"
-      className="flex h-[calc(100dvh-220px)] min-h-80 flex-col"
+      className="flex flex-col"
     >
-      <header className="mb-3">
-        <h1 className="text-xl font-bold">{household.name} chat</h1>
-        <p className="text-xs text-subtle">
-          For everyone in the household. New members see messages from when they
-          joined.
-        </p>
-      </header>
+      <PageHeader
+        className="mb-4"
+        title="Chat"
+        description={`For everyone in ${household.name}. New members see messages from when they joined.`}
+      />
       <MessageThread
         messages={chat.messages.map((m) => ({
           id: m.id,
