@@ -37,7 +37,7 @@ The current Railway plan has no Postgres backups (scheduled backups need Pro), s
 3. Run:
    ```
    $url = (Get-Content .env.production | Select-String '^DATABASE_URL=').Line.Substring(13)
-   pg_dump --format=custom --no-owner --file "$HOME\HouseBud-backups\housebud-prod-$(Get-Date -Format yyyy-MM-dd-HHmm).dump" $url
+   pg_dump --format=custom --no-owner --file "$HOME\dev\HouseBud-backups\housebud-prod-$(Get-Date -Format yyyy-MM-dd-HHmm).dump" $url
    ```
 4. Turn the proxy off again and empty the URL in the file. The proxy address changes every time it's turned on.
 

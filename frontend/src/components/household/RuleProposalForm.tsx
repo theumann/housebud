@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import type { HouseRule, ProposalInput } from "@/hooks/useHouseRules";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
+import { Chevron } from "@/components/ui/Chevron";
 
 // What the form proposes: a new rule (optionally prefilled from a starter),
 // or a change to or the removal of an existing one.
@@ -102,11 +103,14 @@ export function RuleProposalForm({
           data-testid="rule-form-starters"
           open={startersOpen}
           onToggle={(e) => setStartersOpen(e.currentTarget.open)}
-          className="rounded-md border border-border-subtle bg-surface text-sm"
+          className="group rounded-md border border-border-subtle bg-surface text-sm"
         >
-          <summary className="cursor-pointer px-3 py-2 font-medium text-primary-700 dark:text-primary-400">
-            Start from a common rule{" "}
-            <span className="font-normal text-subtle">(optional)</span>
+          <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 font-medium text-primary-700 dark:text-primary-400 [&::-webkit-details-marker]:hidden">
+            <Chevron className="-rotate-90 group-open:rotate-0" />
+            <span>
+              Start from a common rule{" "}
+              <span className="font-normal text-subtle">(optional)</span>
+            </span>
           </summary>
           <ul className="flex flex-col divide-y divide-border-subtle border-t border-border-subtle">
             {starters.map((s) => (

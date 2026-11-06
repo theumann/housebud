@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useId, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import type { Household, HouseholdMember } from "@/hooks/useHouseholds";
 import { useHouseholdAdmin } from "@/hooks/useHouseholdAdmin";
@@ -11,6 +12,7 @@ import { RowMenu } from "@/components/ui/RowMenu";
 import { getUserDisplayName } from "@/lib/displayName";
 import { Input, Select } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
+import { Chevron } from "@/components/ui/Chevron";
 
 type Admin = ReturnType<typeof useHouseholdAdmin>;
 
@@ -44,23 +46,38 @@ function ErrorNote({ error }: { error: string | null }) {
   );
 }
 
-function JoinCode({
-  code,
-  isOwner,
-  admin,
-}: {
-  code: string;
-  isOwner: boolean;
-  admin: Admin;
-}) {
+function CopyJoinCode({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
-  const { busy, error, run } = useAction();
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  return (
+    <div className="flex shrink-0 items-center gap-2">
+      <span
+        data-testid="household-join-code"
+        className="font-mono text-lg font-semibold tracking-[0.2em]"
+      >
+        {code}
+      </span>
+      <Button
+        data-testid="copy-join-code"
+        variant="secondary"
+        size="sm"
+        onClick={handleCopy}
+        aria-label={copied ? "Copied" : "Copy join code"}
+      >
+        {copied ? "Copied" : "Copy"}
+      </Button>
+    </div>
+  );
+}
+
+function NewJoinCode({ admin }: { admin: Admin }) {
+  const { busy, error, run } = useAction();
 
   const handleRegenerate = () => {
     if (
@@ -74,47 +91,90 @@ function JoinCode({
   };
 
   return (
-    <div className="rounded-md border border-border-subtle bg-surface px-4 py-3">
-      <p className="text-xs text-muted">
-        Share this code with roommates so they can join.
-      </p>
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <span
-          data-testid="household-join-code"
-          className="font-mono text-xl font-semibold tracking-[0.3em]"
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs text-subtle">
+          A new code stops the current one from working.
+        </p>
+        <Button
+          data-testid="regenerate-join-code"
+          variant="secondary"
+          size="sm"
+          disabled={busy !== null}
+          onClick={handleRegenerate}
         >
-          {code}
-        </span>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" onClick={handleCopy}>
-            {copied ? "Copied" : "Copy"}
-          </Button>
-          {isOwner && (
-            <Button
-              data-testid="regenerate-join-code"
-              variant="secondary"
-              size="sm"
-              disabled={busy !== null}
-              onClick={handleRegenerate}
-            >
-              {busy ? "Creating…" : "New code"}
-            </Button>
-          )}
-        </div>
+          {busy ? "Creating…" : "New code"}
+        </Button>
       </div>
-      <div className="mt-2">
-        <ErrorNote error={error} />
-      </div>
+      <ErrorNote error={error} />
     </div>
   );
 }
 
+// The join code stays in view; the owner's tools (new code, email invites)
+// fold away, open from the start while the owner is still on their own.
+function InviteHousemates({
+  household,
+  isOwner,
+  admin,
+}: {
+  household: Household;
+  isOwner: boolean;
+  admin: Admin;
+}) {
+  const [open, setOpen] = useState(household.members.length === 1);
+  const bodyId = useId();
+  const pending = admin.sentInvites.length;
+  const hint =
+    isOwner && pending > 0
+      ? `${pending} pending invite${pending === 1 ? "" : "s"}`
+      : "Share the code so roommates can join";
+
+  const title = (
+    <span className="min-w-0">
+      <span className="block text-sm font-semibold">Invite housemates</span>
+      <span className="block text-xs text-muted">{hint}</span>
+    </span>
+  );
+
+  return (
+    <section className="flex flex-col gap-4 border-t border-border-subtle pt-4">
+      <div className="flex items-center justify-between gap-3">
+        {isOwner ? (
+          <button
+            type="button"
+            data-testid="household-invite-toggle"
+            aria-expanded={open}
+            aria-controls={bodyId}
+            onClick={() => setOpen((o) => !o)}
+            className="-mx-1 -mt-4 -mb-2 flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded px-1 pt-4 pb-2 text-left"
+          >
+            <Chevron className={open ? "" : "-rotate-90"} />
+            {title}
+          </button>
+        ) : (
+          title
+        )}
+        <CopyJoinCode code={household.joinCode} />
+      </div>
+      {isOwner && open && (
+        <div id={bodyId} className="flex flex-col gap-4">
+          <NewJoinCode admin={admin} />
+          <InviteByEmail admin={admin} />
+        </div>
+      )}
+    </section>
+  );
+}
+
 function MemberRow({
+  household,
   member,
   isMe,
   isOwner,
   admin,
 }: {
+  household: Household;
   member: HouseholdMember;
   isMe: boolean;
   isOwner: boolean;
@@ -123,6 +183,9 @@ function MemberRow({
   const { busy, error, run } = useAction();
   const name = getUserDisplayName(member.user);
   const canManage = isOwner && !isMe;
+  // The backend refuses to let the only owner leave: ownership has to be
+  // handed over first (the settings page says so).
+  const canLeave = isMe && !isOwner;
 
   const handleMakeOwner = () => {
     if (
@@ -139,6 +202,24 @@ function MemberRow({
     if (!window.confirm(`Remove ${name} from the household?`)) return;
     run("remove", () => admin.removeMember(member.userId));
   };
+
+  const handleLeave = () =>
+    run("leave", async () => {
+      // Leaving with money still open is allowed; the others keep seeing the
+      // balance and can record payments with a former member.
+      const balance = household.settings.expensesEnabled
+        ? await admin.myBalanceCents()
+        : 0;
+      const money = formatMoney(Math.abs(balance), household.settings.currency);
+      const warning =
+        balance < 0
+          ? `\n\nYou still owe ${money}. Your housemates will keep seeing it after you leave.`
+          : balance > 0
+            ? `\n\nYou're still owed ${money}. Payments to you can still be recorded after you leave.`
+            : "";
+      if (!window.confirm(`Leave ${household.name}?${warning}`)) return;
+      await admin.leave();
+    });
 
   return (
     <li
@@ -159,25 +240,36 @@ function MemberRow({
         {member.role === "owner" && (
           <span className="text-xs text-subtle">Owner</span>
         )}
-        {canManage && (
+        {(canManage || canLeave) && (
           <div className="ml-auto">
             <RowMenu
               testId={`member-menu-${member.userId}`}
-              label={`More actions for ${name}`}
+              label={isMe ? "More actions for you" : `More actions for ${name}`}
               disabled={busy !== null}
-              items={[
-                {
-                  label: "Make owner",
-                  testId: `make-owner-${member.userId}`,
-                  onSelect: handleMakeOwner,
-                },
-                {
-                  label: "Remove from household",
-                  testId: `remove-member-${member.userId}`,
-                  danger: true,
-                  onSelect: handleRemove,
-                },
-              ]}
+              items={
+                canLeave
+                  ? [
+                      {
+                        label: "Leave household",
+                        testId: "leave-household",
+                        danger: true,
+                        onSelect: handleLeave,
+                      },
+                    ]
+                  : [
+                      {
+                        label: "Make owner",
+                        testId: `make-owner-${member.userId}`,
+                        onSelect: handleMakeOwner,
+                      },
+                      {
+                        label: "Remove from household",
+                        testId: `remove-member-${member.userId}`,
+                        danger: true,
+                        onSelect: handleRemove,
+                      },
+                    ]
+              }
             />
           </div>
         )}
@@ -267,8 +359,7 @@ function ModuleSettings({
   );
 }
 
-// Owner only, and collapsed until opened: it's long and rarely changed.
-function HouseholdSettings({
+function RenameHousehold({
   household,
   admin,
 }: {
@@ -286,69 +377,89 @@ function HouseholdSettings({
   };
 
   return (
-    <Card data-testid="household-owner-tools">
-      <details className="group">
-        <summary
-          data-testid="household-settings-toggle"
-          className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-card p-4 [&::-webkit-details-marker]:hidden"
-        >
-          <span>
-            <span className="block text-lg font-semibold">
-              Household settings
-            </span>
-            <span className="block text-sm text-muted">
-              Name, features and currency
-            </span>
-          </span>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            className="shrink-0 text-muted transition group-open:rotate-180"
+    <form onSubmit={handleRename} className="flex flex-col gap-2">
+      <label className="text-sm">
+        <span className="mb-1 block">Household name</span>
+        <div className="flex gap-2">
+          <Input
+            data-testid="rename-household-input"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={80}
+            className="min-w-0 flex-1"
+          />
+          <Button
+            data-testid="rename-household-submit"
+            type="submit"
+            variant="secondary"
+            disabled={
+              rename.busy !== null ||
+              !name.trim() ||
+              name.trim() === household.name
+            }
           >
-            <path d="M4 6l4 4 4-4" />
-          </svg>
-        </summary>
-        <div className="flex flex-col gap-4 px-4 pb-4">
-          <form onSubmit={handleRename} className="flex flex-col gap-2">
-            <label className="text-sm">
-              <span className="mb-1 block">Household name</span>
-              <div className="flex gap-2">
-                <Input
-                  data-testid="rename-household-input"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  maxLength={80}
-                  className="min-w-0 flex-1"
-                />
-                <Button
-                  data-testid="rename-household-submit"
-                  type="submit"
-                  variant="secondary"
-                  disabled={
-                    rename.busy !== null ||
-                    !name.trim() ||
-                    name.trim() === household.name
-                  }
-                >
-                  {rename.busy ? "Saving…" : "Save"}
-                </Button>
-              </div>
-            </label>
-            <ErrorNote error={rename.error} />
-          </form>
-
-          <ModuleSettings household={household} admin={admin} />
+            {rename.busy ? "Saving…" : "Save"}
+          </Button>
         </div>
-      </details>
-    </Card>
+      </label>
+      <ErrorNote error={rename.error} />
+    </form>
+  );
+}
+
+// /household/[id]/settings, reached from the gear on the Overview. Owner
+// only; a member who opens it is told so.
+export function HouseholdSettingsView({
+  household,
+  onChanged,
+}: {
+  household: Household;
+  onChanged: () => Promise<void>;
+}) {
+  const admin = useHouseholdAdmin(household, onChanged);
+
+  if (household.myRole !== "owner") {
+    return (
+      <Card data-testid="household-settings-owner-only">
+        <CardBody className="pt-4 text-sm text-muted">
+          Only the owner can change the household&apos;s settings.{" "}
+          <Link
+            href={`/household/${household.id}`}
+            className="text-primary-700 underline-offset-2 hover:underline dark:text-primary-400"
+          >
+            Back to Overview
+          </Link>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  return (
+    <div data-testid="household-owner-tools" className="flex flex-col gap-4">
+      <Card>
+        <CardBody className="flex flex-col gap-4 pt-4">
+          <RenameHousehold
+            key={household.id}
+            household={household}
+            admin={admin}
+          />
+          <ModuleSettings household={household} admin={admin} />
+        </CardBody>
+      </Card>
+      <Card>
+        <CardHeader>
+          <h2 className="text-lg font-semibold">Leaving</h2>
+        </CardHeader>
+        <CardBody>
+          <p data-testid="owner-leave-note" className="text-sm text-muted">
+            {household.members.length > 1
+              ? "As the owner, you can't leave yet: make another member the owner first (from their ⋯ menu on the Overview), then leave from your own."
+              : "You're the only member of this household."}
+          </p>
+        </CardBody>
+      </Card>
+    </div>
   );
 }
 
@@ -371,7 +482,7 @@ function InviteByEmail({ admin }: { admin: Admin }) {
     <>
       <form onSubmit={handleInvite} className="flex flex-col gap-2">
         <label className="text-sm">
-          <span className="mb-1 block">Or invite by email</span>
+          <span className="mb-1 block">Invite by email</span>
           <div className="flex gap-2">
             <Input
               data-testid="invite-email-input"
@@ -435,68 +546,8 @@ function InviteByEmail({ admin }: { admin: Admin }) {
   );
 }
 
-function LeaveHousehold({
-  household,
-  admin,
-}: {
-  household: Household;
-  admin: Admin;
-}) {
-  const { busy, error, run } = useAction();
-
-  // The backend refuses to let the only owner leave: ownership has to be
-  // handed over first, so the household is never left without an owner.
-  if (household.myRole === "owner") {
-    return (
-      <p className="text-xs text-subtle">
-        {household.members.length > 1
-          ? "To leave this household, make another member the owner first."
-          : "You're the only member of this household."}
-      </p>
-    );
-  }
-
-  const handleLeave = () =>
-    run("leave", async () => {
-      // Leaving with money still open is allowed; the others keep seeing the
-      // balance and can record payments with a former member.
-      const balance = household.settings.expensesEnabled
-        ? await admin.myBalanceCents()
-        : 0;
-      const money = formatMoney(Math.abs(balance), household.settings.currency);
-      const warning =
-        balance < 0
-          ? `
-
-You still owe ${money}. Your housemates will keep seeing it after you leave.`
-          : balance > 0
-            ? `
-
-You're still owed ${money}. Payments to you can still be recorded after you leave.`
-            : "";
-      if (!window.confirm(`Leave ${household.name}?${warning}`)) return;
-      await admin.leave();
-    });
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Button
-        data-testid="leave-household"
-        variant="danger-subtle"
-        size="sm"
-        className="self-start"
-        disabled={busy !== null}
-        onClick={handleLeave}
-      >
-        {busy ? "Leaving…" : "Leave household"}
-      </Button>
-      <ErrorNote error={error} />
-    </div>
-  );
-}
-
-// The Overview below "Coming up": members and how to invite more, then the
-// owner's settings.
+// The Overview below "Coming up": members and how to invite more. The
+// owner's settings are on their own page (the gear in the page header).
 export function HouseholdView({
   household,
   onChanged,
@@ -509,49 +560,33 @@ export function HouseholdView({
   const isOwner = household.myRole === "owner";
 
   return (
-    <div data-testid="household-view" className="flex flex-col gap-4">
-      <Card>
-        <CardHeader>
-          <h2 className="text-lg font-semibold">
-            Members ({household.members.length})
-          </h2>
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4">
-          <ul data-testid="household-members" className="flex flex-col gap-2">
-            {household.members.map((m) => (
-              <MemberRow
-                key={m.id}
-                member={m}
-                isMe={m.userId === user?.id}
-                isOwner={isOwner}
-                admin={admin}
-              />
-            ))}
-          </ul>
-
-          <section className="flex flex-col gap-3 border-t border-border-subtle pt-4">
-            <h3 className="text-sm font-semibold">Invite housemates</h3>
-            <JoinCode
-              code={household.joinCode}
+    <Card data-testid="household-view">
+      <CardHeader>
+        <h2 className="text-lg font-semibold">
+          Members ({household.members.length})
+        </h2>
+      </CardHeader>
+      <CardBody className="flex flex-col gap-4">
+        <ul data-testid="household-members" className="flex flex-col gap-2">
+          {household.members.map((m) => (
+            <MemberRow
+              key={m.id}
+              household={household}
+              member={m}
+              isMe={m.userId === user?.id}
               isOwner={isOwner}
               admin={admin}
             />
-            {isOwner && <InviteByEmail admin={admin} />}
-          </section>
+          ))}
+        </ul>
 
-          <div className="border-t border-border-subtle pt-4">
-            <LeaveHousehold household={household} admin={admin} />
-          </div>
-        </CardBody>
-      </Card>
-
-      {isOwner && (
-        <HouseholdSettings
+        <InviteHousemates
           key={household.id}
           household={household}
+          isOwner={isOwner}
           admin={admin}
         />
-      )}
-    </div>
+      </CardBody>
+    </Card>
   );
 }

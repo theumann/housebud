@@ -93,9 +93,25 @@ test("add a weekly event, skip one, and say you're away", async ({
   await gotoAuthed(page, `/household/${house.id}`, {
     waitForTestId: "household-view",
   });
+  // Collapsed, it shows only the next thing (which one depends on the time
+  // of day: today's meeting drops out once it's over).
   const comingUp = page.getByTestId("coming-up");
-  await expect(comingUp).toContainText("House meeting");
-  await expect(comingUp).toContainText("away");
+  await expect(
+    comingUp.getByTestId("coming-up-next").locator("li"),
+  ).toHaveCount(1);
+  await comingUp.getByTestId("coming-up-toggle").click();
+  await expect(comingUp.getByTestId("coming-up-section-0")).toContainText(
+    "House meeting",
+  );
+  await expect(comingUp.getByTestId("coming-up-section-1")).toContainText(
+    "away",
+  );
+  // It stays open after a reload.
+  await page.reload();
+  await expect(comingUp.getByTestId("coming-up-toggle")).toHaveAttribute(
+    "aria-expanded",
+    "true",
+  );
   await clickNav(page, "nav-household-calendar");
   await expect(page.getByTestId("calendar-agenda")).toBeVisible();
   await expect(page.getByTestId("calendar-entry-menu")).toHaveCount(0);
