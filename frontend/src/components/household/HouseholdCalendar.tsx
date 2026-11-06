@@ -213,7 +213,8 @@ function OccurrenceRow({
 }
 
 // The Sunday on or before `day`.
-function weekStart(day: string) {
+// Weeks start on Sunday, as in the month grid.
+export function weekStart(day: string) {
   return addDays(day, -toDate(day).getDay());
 }
 

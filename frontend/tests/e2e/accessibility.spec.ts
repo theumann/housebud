@@ -114,6 +114,7 @@ for (const theme of ["light", "dark"] as const) {
         ["/expenses", "expenses-list"],
         ["/rules", "rules-list"],
         ["/calendar", "calendar-agenda"],
+        ["/settings", "household-owner-tools"],
       ]) {
         test(`/household/[id]${sub}`, async ({ page }, testInfo) => {
           await loginAsSeedUser(page, "me4");

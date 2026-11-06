@@ -30,6 +30,9 @@ type NavLink = {
   label: string;
   testId: string;
   exact?: boolean;
+  // Sub-pages reached from this page rather than from the nav, which keep
+  // it highlighted (e.g. the household's settings, from the Overview).
+  alsoActive?: string[];
   badge?: number;
 };
 
@@ -55,6 +58,7 @@ const matchingPaths = [
 ];
 
 function isActive(pathname: string, link: NavLink) {
+  if (link.alsoActive?.some((p) => pathname.startsWith(p))) return true;
   return link.exact ? pathname === link.href : pathname.startsWith(link.href);
 }
 
@@ -244,6 +248,7 @@ export function AppNav() {
           label: "Overview",
           testId: "nav-household-overview",
           exact: true,
+          alsoActive: [`/household/${currentHousehold.id}/settings`],
         },
         ...householdModules
           .filter((m) => currentHousehold.settings[m.setting])
