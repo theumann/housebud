@@ -45,7 +45,17 @@ export const SignupSchema = z.object({
   }),
 });
 
-export type SignupInput = z.infer<typeof SignupSchema>;
+// While matching is off (FEATURE_MATCHING=false, as in production), signup
+// doesn't ask for what only matching uses.
+export const SignupWithoutMatchingSchema = SignupSchema.partial({
+  school: true,
+  collegeYear: true,
+  targetCity: true,
+  targetState: true,
+  targetZip: true,
+});
+
+export type SignupInput = z.infer<typeof SignupWithoutMatchingSchema>;
 
 export const LoginSchema = z.object({
   identifier: z.string().min(1), // email OR username

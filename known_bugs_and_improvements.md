@@ -53,6 +53,8 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ### Matches
 
+- **Before matching opens in production: ask for the matching profile.** While matching is off, signup doesn't ask for school, college year, target city, state and ZIP, so production users have none. Matches gives them an empty list (no ZIP, no area to match in) without saying why. Before `FEATURE_MATCHING` goes on there: send someone without these fields from Matches to a short "complete your matching profile" step (the Profile page fields, required), and say on Matches what's missing. Matches and Shortlist cards would show a missing school or city as a blank (" · "), so keep such people out until they fill it in.
+
 - **Add Filters under the nav bar:**
   - Gender
   - Under 50% compatibility

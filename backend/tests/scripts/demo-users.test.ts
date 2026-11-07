@@ -75,7 +75,7 @@ describe.sequential("demo users", () => {
     });
     expect(demo).toHaveLength(5);
     for (const u of demo) {
-      expect(u.profile?.targetZip.startsWith("941")).toBe(true);
+      expect(u.profile?.targetZip).toMatch(/^941/);
       expect(u.answers.length).toBeGreaterThanOrEqual(3);
       expect(u.answers.every((a) => ["A", "B"].includes(a.value))).toBe(true);
     }

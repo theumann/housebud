@@ -55,11 +55,11 @@ export async function updateMyProfile(
       birthDate: input.birthDate
         ? new Date(input.birthDate)
         : new Date("2000-01-01"),
-      school: input.school ?? "Unknown",
-      collegeYear: input.collegeYear ?? "Unknown",
-      targetCity: input.targetCity ?? "Unknown",
-      targetState: input.targetState ?? "Unknown",
-      targetZip: input.targetZip ?? "00000",
+      school: input.school ?? null,
+      collegeYear: input.collegeYear ?? null,
+      targetCity: input.targetCity ?? null,
+      targetState: input.targetState ?? null,
+      targetZip: input.targetZip ?? null,
       originalCity: input.originalCity ?? null,
       originalState: input.originalState ?? null,
       bio: input.bio ?? null,

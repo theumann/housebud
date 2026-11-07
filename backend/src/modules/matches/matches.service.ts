@@ -8,11 +8,11 @@ type MatchCandidate = {
   displayName: string | null;
   username: string;
   age: number | null;
-  school: string;
-  collegeYear: string;
-  targetCity: string;
-  targetState: string;
-  targetZip: string;
+  school: string | null;
+  collegeYear: string | null;
+  targetCity: string | null;
+  targetState: string | null;
+  targetZip: string | null;
   bio: string | null;
   avatarUrl: string | null;
   createdAt: Date;
@@ -31,11 +31,11 @@ type CandidateProfile = {
   displayName: string | null;
   username: string;
   birthDate: Date;
-  school: string;
-  collegeYear: string;
-  targetCity: string;
-  targetState: string;
-  targetZip: string;
+  school: string | null;
+  collegeYear: string | null;
+  targetCity: string | null;
+  targetState: string | null;
+  targetZip: string | null;
   bio: string | null;
   avatarUrl: string | null;
   createdAt: Date;
@@ -87,6 +87,8 @@ export async function getMatchesForUser(
 
   const myProfile = me.profile;
   const myZip = myProfile.targetZip;
+  // Joined while matching was off: no area to match in until they add one.
+  if (!myZip) return { items: [], page, pageSize: limit, total: 0 };
   const zipPrefix = myZip.slice(0, 3); // simple "nearby" heuristic for MVP
 
   // 2) Get userIds already in 3+ accepted rooms (we'll exclude them)

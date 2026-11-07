@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "UserProfile" ALTER COLUMN "school" DROP NOT NULL,
+ALTER COLUMN "collegeYear" DROP NOT NULL,
+ALTER COLUMN "targetCity" DROP NOT NULL,
+ALTER COLUMN "targetState" DROP NOT NULL,
+ALTER COLUMN "targetZip" DROP NOT NULL;
