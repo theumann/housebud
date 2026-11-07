@@ -102,6 +102,15 @@ export default function LoginPage() {
           Sign up
         </Link>
       </p>
+      <p className="mt-2 text-center text-sm text-muted">
+        <Link
+          href="/about"
+          data-testid="about-link"
+          className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-400"
+        >
+          About HouseBud
+        </Link>
+      </p>
       {demoAvailable && (
         <p className="mt-2 text-center text-sm text-muted">
           Just looking around?{" "}

@@ -1,5 +1,6 @@
 import type { PrismaClient } from "../../generated/prisma/client";
 import { ProfileUpdateInput } from "./profile.types";
+import { NOTICE_VERSION } from "../auth/auth.types";
 
 export async function getMyProfile(prisma: PrismaClient, userId: string) {
   const user = await prisma.user.findUnique({
@@ -23,6 +24,8 @@ export async function getMyProfile(prisma: PrismaClient, userId: string) {
     username: user.username,
     isActive: user.isActive,
     createdAt: user.createdAt,
+    // False until the current tester notice is accepted: the app asks first.
+    noticeAccepted: user.noticeVersion === NOTICE_VERSION,
     profile: user.profile,
     settings: user.settings,
   };

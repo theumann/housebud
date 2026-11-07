@@ -124,7 +124,7 @@ A console error "A listener indicated an asynchronous response by returning true
 ### 8. Before inviting the household
 
 - [ ] Know how to reset a forgotten password (above).
-- [ ] Send the tester notice, with the parent or guardian agreement for anyone under 18. The copy sent is kept outside the repo; before each new tester, check it against `docs/tester-notice.md` (the reference, updated with the app) and bring it up to date.
-- [ ] Check each tester's age; signup has no minimum age yet. Under 18: the parent or guardian agreement in the notice, household features only, and matching closed or limited to people you invited (see "Minimum age" in `CLAUDE.md`).
+- [x] The tester notice is in the app (2026-11-07): accepted at signup, and by existing accounts on their next visit; readable at `/about`. The invite message only needs the short note in `docs/tester-notice.md`.
+- [x] Signup refuses anyone under 18.
 - [ ] Tell them how to join: the join code, or an invite to the exact email they sign up with (invites only appear in the app's inbox; nothing is mailed). Sessions last 7 days, then they log in again.
 - [x] Decide where feedback goes: the bug icon in the app ("Report a problem", read with `npm run feedback`, see above), and the contact address in the notice for anyone who can't log in.

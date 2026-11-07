@@ -59,6 +59,7 @@ export async function signupUser(
     username: params?.username ?? `user${n}`,
     displayName: params?.displayName ?? `user${n}`,
     birthDate: params?.birthDate ?? "2005-09-15",
+    acceptNotice: true,
     school: params?.school ?? "USF",
     collegeYear: params?.collegeYear ?? "Freshman",
     targetCity: params?.targetCity ?? "San Francisco",

@@ -8,6 +8,8 @@ type UserProfile = {
   id: string;
   email: string;
   username: string;
+  // False until the current tester notice is accepted (NoticeGate asks).
+  noticeAccepted?: boolean;
   profile: {
     firstName: string;
     lastName: string;
@@ -52,6 +54,7 @@ type SignupPayload = {
   targetState: string;
   targetZip: string;
   signupCode?: string;
+  acceptNotice: boolean;
 };
 
 // Tries over about 3 seconds before giving up on loading the profile.

@@ -5,6 +5,7 @@ import { Prisma } from "../src/generated/prisma/client";
 import bcrypt from "bcrypt";
 import { portraitPicker, type Sex } from "./portraits";
 import { splitEqually } from "../src/modules/expenses/expenses.service";
+import { NOTICE_VERSION } from "../src/modules/auth/auth.types";
 
 // Fake users, chats and messages must never reach production. Checking the
 // host (not just NODE_ENV) also catches a local shell that has production
@@ -122,13 +123,16 @@ async function ensurePersonalUsers(password: string) {
   for (const u of users) {
     await prisma.user.upsert({
       where: { email: u.email },
+      // Accepted the tester notice, so the app doesn't ask before every test.
       update: {
         passwordHash,
+        noticeVersion: NOTICE_VERSION,
       },
       create: {
         email: u.email,
         username: u.username.toLowerCase(),
         passwordHash,
+        noticeVersion: NOTICE_VERSION,
         profile: {
           create: {
             firstName: u.firstName,

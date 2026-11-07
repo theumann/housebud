@@ -66,6 +66,12 @@ for (const theme of ["light", "dark"] as const) {
         await expectNoViolations(page, testInfo);
       });
 
+      test("about", async ({ page }, testInfo) => {
+        await page.goto("/about");
+        await expect(page.getByTestId("tester-notice")).toBeVisible();
+        await expectNoViolations(page, testInfo);
+      });
+
       test("signup", async ({ page }, testInfo) => {
         await page.goto("/signup");
         await expect(page.getByTestId("signup-page")).toBeVisible();
@@ -81,6 +87,7 @@ for (const theme of ["light", "dark"] as const) {
         ["/compatibility", "compatibility-page"],
         ["/chatrooms", "chatrooms-page"],
         ["/profile", "profile-edit-page"],
+        ["/about", "about-page"],
       ]) {
         test(path, async ({ page }, testInfo) => {
           await gotoAuthed(page, path, { waitForTestId: testId });

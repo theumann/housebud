@@ -26,6 +26,7 @@ const signupBody = (n: number) => ({
   firstName: "Sam",
   lastName: "Lee",
   birthDate: "2005-09-15",
+  acceptNotice: true,
   school: "USF",
   collegeYear: "Freshman",
   targetCity: "San Francisco",
