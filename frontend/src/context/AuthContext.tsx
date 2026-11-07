@@ -15,11 +15,12 @@ type UserProfile = {
     lastName: string;
     displayName: string | null;
     avatarUrl?: string | null;
-    school: string;
-    collegeYear: string;
-    targetCity: string;
-    targetState: string;
-    targetZip: string;
+    // Matching only: empty for people who joined while it was off.
+    school: string | null;
+    collegeYear: string | null;
+    targetCity: string | null;
+    targetState: string | null;
+    targetZip: string | null;
   } | null;
 };
 
@@ -48,11 +49,12 @@ type SignupPayload = {
   displayName: string | null;
   username: string;
   birthDate: string;
-  school: string;
-  collegeYear: string;
-  targetCity: string;
-  targetState: string;
-  targetZip: string;
+  // Matching only: not sent while matching is off.
+  school?: string;
+  collegeYear?: string;
+  targetCity?: string;
+  targetState?: string;
+  targetZip?: string;
   signupCode?: string;
   acceptNotice: boolean;
 };

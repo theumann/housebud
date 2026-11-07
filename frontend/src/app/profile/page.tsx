@@ -150,11 +150,13 @@ export default function ProfilePage() {
           firstName: form.firstName,
           lastName: form.lastName,
           displayName: form.displayName.trim() || null,
-          school: form.school,
-          collegeYear: form.collegeYear,
-          targetCity: form.targetCity,
-          targetState: form.targetState,
-          targetZip: form.targetZip,
+          ...(matchingEnabled && {
+            school: form.school,
+            collegeYear: form.collegeYear,
+            targetCity: form.targetCity,
+            targetState: form.targetState,
+            targetZip: form.targetZip,
+          }),
           bio: form.bio,
           avatarUrl: form.avatarUrl,
         },
@@ -232,49 +234,54 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                {/* School */}
-                <div className="flex flex-col-reverse">
-                  <Input
-                    id="profile-school"
-                    type="text"
-                    value={form.school}
-                    onChange={(e) => handleChange("school", e.target.value)}
-                    className="peer w-full"
-                    placeholder="USF, SFSU, UCSF…"
-                    required
-                  />
-                  <label
-                    htmlFor="profile-school"
-                    className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-                  >
-                    School
-                  </label>
-                </div>
+                {/* Matching only, like at signup. */}
+                {matchingEnabled && (
+                  <>
+                    {/* School */}
+                    <div className="flex flex-col-reverse">
+                      <Input
+                        id="profile-school"
+                        type="text"
+                        value={form.school}
+                        onChange={(e) => handleChange("school", e.target.value)}
+                        className="peer w-full"
+                        placeholder="USF, SFSU, UCSF…"
+                        required
+                      />
+                      <label
+                        htmlFor="profile-school"
+                        className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+                      >
+                        School
+                      </label>
+                    </div>
 
-                {/* College year */}
-                <div className="flex flex-col-reverse">
-                  <Select
-                    id="profile-college-year"
-                    value={form.collegeYear}
-                    onChange={(e) =>
-                      handleChange("collegeYear", e.target.value)
-                    }
-                    className="peer w-full"
-                    required
-                  >
-                    <option value="">Select year</option>
-                    <option value="Freshman">Freshman</option>
-                    <option value="Sophomore">Sophomore</option>
-                    <option value="Junior">Junior</option>
-                    <option value="Senior">Senior</option>
-                  </Select>
-                  <label
-                    htmlFor="profile-college-year"
-                    className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-                  >
-                    College year
-                  </label>
-                </div>
+                    {/* College year */}
+                    <div className="flex flex-col-reverse">
+                      <Select
+                        id="profile-college-year"
+                        value={form.collegeYear}
+                        onChange={(e) =>
+                          handleChange("collegeYear", e.target.value)
+                        }
+                        className="peer w-full"
+                        required
+                      >
+                        <option value="">Select year</option>
+                        <option value="Freshman">Freshman</option>
+                        <option value="Sophomore">Sophomore</option>
+                        <option value="Junior">Junior</option>
+                        <option value="Senior">Senior</option>
+                      </Select>
+                      <label
+                        htmlFor="profile-college-year"
+                        className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+                      >
+                        College year
+                      </label>
+                    </div>
+                  </>
+                )}
 
                 {/* Bio */}
                 <div>
@@ -291,68 +298,75 @@ export default function ProfilePage() {
 
               {/* Right column: Location + avatar */}
               <div className="space-y-4">
-                {/* Target city */}
-                <div className="flex flex-col-reverse">
-                  <Input
-                    id="profile-target-city"
-                    type="text"
-                    value={form.targetCity}
-                    onChange={(e) => handleChange("targetCity", e.target.value)}
-                    className="peer w-full"
-                    placeholder="San Francisco"
-                    required
-                  />
-                  <label
-                    htmlFor="profile-target-city"
-                    className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-                  >
-                    Target city
-                  </label>
-                </div>
+                {/* Matching only, like at signup. */}
+                {matchingEnabled && (
+                  <>
+                    {/* Target city */}
+                    <div className="flex flex-col-reverse">
+                      <Input
+                        id="profile-target-city"
+                        type="text"
+                        value={form.targetCity}
+                        onChange={(e) =>
+                          handleChange("targetCity", e.target.value)
+                        }
+                        className="peer w-full"
+                        placeholder="San Francisco"
+                        required
+                      />
+                      <label
+                        htmlFor="profile-target-city"
+                        className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+                      >
+                        Target city
+                      </label>
+                    </div>
 
-                {/* Target state */}
-                <div className="grid grid-cols-[1fr_auto] gap-2">
-                  <div className="flex flex-col-reverse">
-                    <Input
-                      id="profile-target-state"
-                      type="text"
-                      value={form.targetState}
-                      onChange={(e) =>
-                        handleChange("targetState", e.target.value)
-                      }
-                      className="peer w-full"
-                      placeholder="CA"
-                      required
-                    />
-                    <label
-                      htmlFor="profile-target-state"
-                      className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-                    >
-                      Target state
-                    </label>
-                  </div>
+                    {/* Target state */}
+                    <div className="grid grid-cols-[1fr_auto] gap-2">
+                      <div className="flex flex-col-reverse">
+                        <Input
+                          id="profile-target-state"
+                          type="text"
+                          value={form.targetState}
+                          onChange={(e) =>
+                            handleChange("targetState", e.target.value)
+                          }
+                          className="peer w-full"
+                          placeholder="CA"
+                          required
+                        />
+                        <label
+                          htmlFor="profile-target-state"
+                          className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+                        >
+                          Target state
+                        </label>
+                      </div>
 
-                  {/* Zip */}
-                  <div className="flex flex-col-reverse">
-                    <Input
-                      id="profile-target-zip"
-                      type="text"
-                      value={form.targetZip}
-                      onChange={(e) =>
-                        handleChange("targetZip", e.target.value)
-                      }
-                      className="peer w-full"
-                      placeholder="94117"
-                      required
-                    />
-                    <label
-                      htmlFor="profile-target-zip"
-                      className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
-                    >
-                      Target ZIP
-                    </label>
-                  </div>
-                </div>
+                      {/* Zip */}
+                      <div className="flex flex-col-reverse">
+                        <Input
+                          id="profile-target-zip"
+                          type="text"
+                          value={form.targetZip}
+                          onChange={(e) =>
+                            handleChange("targetZip", e.target.value)
+                          }
+                          className="peer w-full"
+                          placeholder="94117"
+                          required
+                        />
+                        <label
+                          htmlFor="profile-target-zip"
+                          className="block text-sm mb-1 peer-required:after:content-['*'] peer-required:after:text-red-600"
+                        >
+                          Target ZIP
+                        </label>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {/* Avatar URL + preview */}
                 <div>
@@ -391,9 +405,9 @@ export default function ProfilePage() {
 
           <CardFooter className="flex items-center justify-between">
             <p className="text-xs text-subtle">
-              Your display name and school help others recognize you.
-              {matchingEnabled &&
-                " Location is used to filter and sort matches."}
+              {matchingEnabled
+                ? "Your display name and school help others recognize you. Location is used to filter and sort matches."
+                : "Your display name helps your housemates recognize you."}
             </p>
             <Button
               data-testid="save-profile-button"

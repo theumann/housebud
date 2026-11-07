@@ -22,6 +22,8 @@ type SignupField = {
   autoComplete?: string;
   placeholder?: string;
   hint?: string;
+  // Only asked while matching is on; households don't need it.
+  matchingOnly?: boolean;
 };
 
 const FIELDS: SignupField[] = [
@@ -72,12 +74,41 @@ const FIELDS: SignupField[] = [
     autoComplete: "bday",
     hint: "You must be 18 or older.",
   },
-  { name: "collegeYear", label: "College year", required: true },
-  { name: "school", label: "School", wide: true, required: true },
-  { name: "targetCity", label: "Target city", wide: true, required: true },
-  { name: "targetState", label: "Target state", required: true },
-  { name: "targetZip", label: "Target ZIP", required: true },
+  {
+    name: "collegeYear",
+    label: "College year",
+    required: true,
+    matchingOnly: true,
+  },
+  {
+    name: "school",
+    label: "School",
+    wide: true,
+    required: true,
+    matchingOnly: true,
+  },
+  {
+    name: "targetCity",
+    label: "Target city",
+    wide: true,
+    required: true,
+    matchingOnly: true,
+  },
+  {
+    name: "targetState",
+    label: "Target state",
+    required: true,
+    matchingOnly: true,
+  },
+  {
+    name: "targetZip",
+    label: "Target ZIP",
+    required: true,
+    matchingOnly: true,
+  },
 ];
+
+const SHOWN_FIELDS = FIELDS.filter((f) => matchingEnabled || !f.matchingOnly);
 
 const COLLEGE_YEARS = ["Freshman", "Sophomore", "Junior", "Senior"];
 
@@ -131,7 +162,14 @@ function SignupForm() {
     setError(null);
     setSubmitting(true);
     try {
-      await signup({ ...form, acceptNotice });
+      // Fields that aren't shown aren't sent.
+      const shown = Object.fromEntries(
+        Object.entries(form).filter(
+          ([name]) =>
+            name === "signupCode" || SHOWN_FIELDS.some((f) => f.name === name),
+        ),
+      ) as typeof form;
+      await signup({ ...shown, acceptNotice });
       // A new user has no household yet.
       router.replace(matchingEnabled ? "/matches" : "/household");
     } catch (err) {
@@ -177,7 +215,7 @@ function SignupForm() {
             </p>
           </div>
         )}
-        {FIELDS.map((field) => {
+        {SHOWN_FIELDS.map((field) => {
           const id = `signup-${field.name}`;
           const value = form[field.name as keyof typeof form];
           return (

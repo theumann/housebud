@@ -386,13 +386,15 @@ model UserProfile {
   lastName      String
   displayName   String?
   birthDate     DateTime
-  school        String
-  collegeYear   String
+  // Matching only: signup asks for them only while matching is on
+  // (FEATURE_MATCHING), so they're empty for people who joined without it.
+  school        String?
+  collegeYear   String?
   originalCity  String?
   originalState String?
-  targetCity    String
-  targetState   String
-  targetZip     String
+  targetCity    String?
+  targetState   String?
+  targetZip     String?
   bio           String?
   avatarUrl     String?
   createdAt     DateTime @default(now())

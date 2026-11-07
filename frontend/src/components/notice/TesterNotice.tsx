@@ -49,9 +49,11 @@ export function TesterNotice() {
       <Section title="What the app stores about you">
         <ul className={list}>
           <li>
-            Your account: email address, username, name, birth date, school and
-            year, the city and ZIP code you’re looking in, and your password
-            (stored scrambled, so nobody can read it, me included).
+            Your account: email address, username, name, birth date,{" "}
+            {matchingEnabled &&
+              "school and year, the city and ZIP code you’re looking in, "}
+            and your password (stored scrambled, so nobody can read it, me
+            included).
           </li>
           <li>
             What you add to your profile: a display name, a short bio, a photo

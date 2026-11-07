@@ -60,4 +60,56 @@ describe.sequential("FEATURE_MATCHING=false", () => {
     await request(app).get("/households").set(auth(token)).expect(200);
     await request(app).get("/profile/me").set(auth(token)).expect(200);
   });
+
+  describe("signup without the matching fields", () => {
+    const body = {
+      email: "sam@example.com",
+      username: "samlee",
+      password: "Password123!",
+      firstName: "Sam",
+      lastName: "Lee",
+      birthDate: "2005-09-15",
+      acceptNotice: true,
+    };
+
+    it("only asks for what households need while matching is off", async () => {
+      const res = await request(ctx.app)
+        .post("/auth/signup")
+        .send(body)
+        .expect(201);
+
+      const me = await request(ctx.app)
+        .get("/profile/me")
+        .set(auth(res.body.token))
+        .expect(200);
+      expect(me.body.profile).toMatchObject({
+        school: null,
+        collegeYear: null,
+        targetCity: null,
+        targetState: null,
+        targetZip: null,
+      });
+    });
+
+    it("still requires them while matching is on", async () => {
+      env.FEATURE_MATCHING = true;
+      const res = await request(ctx.app).post("/auth/signup").send(body);
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/school/);
+    });
+
+    it("gives someone without them an empty Matches once matching opens", async () => {
+      const { token } = await request(ctx.app)
+        .post("/auth/signup")
+        .send(body)
+        .then((r) => r.body);
+      await signupUser(ctx);
+
+      env.FEATURE_MATCHING = true;
+      const app = createApp(ctx.prisma);
+      const res = await request(app).get("/matches").set(auth(token));
+      expect(res.status).toBe(200);
+      expect(res.body.items).toEqual([]);
+    });
+  });
 });

@@ -1,6 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import type { AuthRequest } from "../../middleware/authMiddleware";
-import { SignupSchema, LoginSchema, ChangePasswordSchema } from "./auth.types";
+import { env } from "../../config/env";
+import {
+  SignupSchema,
+  SignupWithoutMatchingSchema,
+  LoginSchema,
+  ChangePasswordSchema,
+} from "./auth.types";
 import {
   signup,
   login,
@@ -16,7 +22,9 @@ export async function signupHandler(
   next: NextFunction,
 ) {
   try {
-    const input = SignupSchema.parse(req.body);
+    const input = (
+      env.FEATURE_MATCHING ? SignupSchema : SignupWithoutMatchingSchema
+    ).parse(req.body);
     const prisma = req.prisma;
     const result = await signup(prisma, input, clientIp(req));
     res.status(201).json(result);
