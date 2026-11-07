@@ -9,6 +9,7 @@ import {
   UpdateHouseholdSchema,
   UpdateSettingsSchema,
 } from "./household.types";
+import { clientIp } from "../auth/auth.throttle";
 
 export async function createHouseholdHandler(
   req: AuthRequest,
@@ -243,7 +244,7 @@ export async function joinByCodeHandler(
       req.prisma,
       req.userId!,
       joinCode,
-      req.ip ?? "unknown",
+      clientIp(req),
     );
     res.status(200).json(result);
   } catch (err) {

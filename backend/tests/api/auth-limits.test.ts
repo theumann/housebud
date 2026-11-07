@@ -12,12 +12,11 @@ import { getTestContext } from "../helpers/testContext";
 
 let ctx: TestContext;
 
-// The app trusts one proxy hop, so X-Forwarded-For stands in for the
-// visitor's address, as Railway's proxy sets it.
+// X-Real-IP stands in for the visitor's address, as Railway's edge sets it.
 const login = (identifier: string, password: string, ip = "203.0.113.1") =>
   request(ctx.app)
     .post("/auth/login")
-    .set("X-Forwarded-For", ip)
+    .set("X-Real-IP", ip)
     .send({ identifier, password });
 
 const signupBody = (n: number) => ({
@@ -35,13 +34,13 @@ const signupBody = (n: number) => ({
 });
 
 const signup = (body: object, ip = "203.0.113.1") =>
-  request(ctx.app).post("/auth/signup").set("X-Forwarded-For", ip).send(body);
+  request(ctx.app).post("/auth/signup").set("X-Real-IP", ip).send(body);
 
 const join = (token: string, joinCode: string, ip = "203.0.113.1") =>
   request(ctx.app)
     .post("/households/join")
     .set("Authorization", `Bearer ${token}`)
-    .set("X-Forwarded-For", ip)
+    .set("X-Real-IP", ip)
     .send({ joinCode });
 
 async function failLogins(identifier: string, times: number, ip?: string) {
@@ -132,6 +131,28 @@ describe.sequential("Login, signup and join-code limits", () => {
       expect(blocked.body.error).toMatch(/^Too many failed attempts/);
 
       await login(body.username, body.password, "203.0.113.2").expect(200);
+    });
+
+    it("counts by X-Real-IP, not X-Forwarded-For", async () => {
+      const { body } = await signupUser(ctx);
+      const { max } = AUTH_LIMITS.loginPerIp;
+      // On Railway X-Forwarded-For ends with a CDN server's address; a
+      // different value on each request must not spread the count.
+      for (let i = 0; i < max; i++) {
+        await request(ctx.app)
+          .post("/auth/login")
+          .set("X-Forwarded-For", `198.51.100.${i}`)
+          .send({ identifier: `nobody${i}@example.com`, password: "wrong" })
+          .expect(401);
+      }
+
+      await request(ctx.app)
+        .post("/auth/login")
+        .set("X-Forwarded-For", "192.0.2.1")
+        .send({ identifier: body.username, password: body.password })
+        .expect(429);
+      // With X-Real-IP, as Railway sends it, that's someone else.
+      await login(body.username, body.password, "203.0.113.9").expect(200);
     });
 
     it("refuses signups from an address after too many failed ones", async () => {
