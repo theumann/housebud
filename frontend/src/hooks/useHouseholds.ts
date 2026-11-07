@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { startPolling } from "@/lib/polling";
 
 export type HouseholdMember = {
   id: string;
@@ -99,18 +100,12 @@ export function useHouseholds(pollMs?: number) {
 
   useEffect(() => {
     if (!pollMs || !token) return;
-    const id = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh();
-    }, pollMs);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") refresh();
-    };
+    // The first load is the effect above, which shows the loading state.
+    const stop = startPolling(refresh, pollMs, { immediate: false });
     window.addEventListener("focus", refresh);
-    document.addEventListener("visibilitychange", onVisible);
     return () => {
-      window.clearInterval(id);
+      stop();
       window.removeEventListener("focus", refresh);
-      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [pollMs, token, refresh]);
 

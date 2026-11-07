@@ -14,6 +14,7 @@ import type {
   UpdateSettingsInput,
 } from "./household.types";
 import { MODULE_SETTING_KEY } from "./household.types";
+import { checkJoinAllowed, recordAuthFailure } from "../auth/auth.throttle";
 
 const INVITE_TTL_DAYS = 14;
 
@@ -483,9 +484,13 @@ export async function joinByCode(
   prisma: PrismaClient,
   userId: string,
   joinCode: string,
+  ip: string,
 ) {
+  // Codes are short enough to read aloud, so guessing is slowed down.
+  await checkJoinAllowed(prisma, ip, userId);
   const household = await prisma.household.findUnique({ where: { joinCode } });
   if (!household || !household.isActive) {
+    await recordAuthFailure(prisma, "join", ip, userId);
     throw notFound("No household found for that code");
   }
 

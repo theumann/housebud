@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, apiFetch } from "@/lib/api";
 import { useHouseholdInvites } from "@/context/HouseholdInvitesContext";
+import { startPolling } from "@/lib/polling";
 
 export type HouseholdMessage = {
   id: string;
@@ -82,12 +83,7 @@ export function useHouseholdChat(householdId: string, pollMs = 3_000) {
 
   useEffect(() => {
     if (!token) return;
-    const first = window.setTimeout(refresh, 0);
-    const id = window.setInterval(refresh, pollMs);
-    return () => {
-      window.clearTimeout(first);
-      window.clearInterval(id);
-    };
+    return startPolling(refresh, pollMs);
   }, [token, pollMs, refresh]);
 
   // Marks what's on screen as read, then refreshes the nav badges so they

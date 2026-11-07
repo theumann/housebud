@@ -239,7 +239,12 @@ export async function joinByCodeHandler(
 ) {
   try {
     const { joinCode } = JoinByCodeSchema.parse(req.body);
-    const result = await service.joinByCode(req.prisma, req.userId!, joinCode);
+    const result = await service.joinByCode(
+      req.prisma,
+      req.userId!,
+      joinCode,
+      req.ip ?? "unknown",
+    );
     res.status(200).json(result);
   } catch (err) {
     next(err);

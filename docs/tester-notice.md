@@ -18,6 +18,7 @@ Thanks for trying HouseBud. It's an app for running a shared home: chores, a sho
 - What you add to your profile: a display name, a short bio, a photo link.
 - Your answers to the compatibility questions, if you fill them in.
 - What you do in your household: chores, shopping items, expenses and payments, house rules and votes, calendar entries, and chat messages.
+- When a login or signup fails (a wrong password, for example): the internet address it came from, kept for a day, to stop people guessing passwords.
 - Problem reports you send with the bug icon: your description, the page you were on, your browser and screen size, and, unless you untick it, a screenshot of that page. The screenshot shows the page as you saw it, so it can include housemates' names and messages. It never shows anything outside the app.
 
 **Who sees it:**
@@ -26,9 +27,9 @@ Thanks for trying HouseBud. It's an app for running a shared home: chores, a sho
 - [While matching is closed: **Nobody else** sees your profile.] [Once matching is open: other users looking in the same area see your profile card (name, age, school, photo) and your compatibility with them.]
 - **Me**, as the person running the app: I can access the database to fix problems and to take backups. I won't look at your household's content unless you ask me to, or to fix something you reported. Problem reports, screenshots included, are seen by me only.
 
-**Where it's kept:** on [Railway](https://railway.com)'s servers, where the app runs. I keep private backup copies, which I delete when they're no longer needed, and I save the screenshots from problem reports privately on my computer to look at them.
+**Where it's kept:** on [Railway](https://railway.com)'s servers, where the app runs. When something in the app breaks, an error report goes to [Sentry](https://sentry.io), an error-tracking service: what failed, on which page, your browser, and the internal number of your account, but not your name, email address or anything you wrote. I keep private backup copies, which I delete when they're no longer needed, and I save the screenshots from problem reports privately on my computer to look at them.
 
-**What the app doesn't do:** it sends no email, shows no ads, has no tracking or analytics, and your data isn't sold or shared with anyone.
+**What the app doesn't do:** it sends no email, shows no ads, has no tracking or analytics (only the error reports above), and your data isn't sold or shared with anyone.
 
 **Your choices:**
 

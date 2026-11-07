@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { apiFetch, ApiError } from "@/lib/api";
 
 type UserProfile = {
@@ -60,6 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Errors reported to Sentry carry the user id, and nothing else about them.
+  const userId = user?.id;
+  useEffect(() => {
+    Sentry.setUser(userId ? { id: userId } : null);
+  }, [userId]);
 
   // Load token from localStorage on first mount
   useEffect(() => {

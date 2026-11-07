@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import * as Sentry from "@sentry/node";
 import { env } from "../config/env";
 
 export interface AuthRequest extends Request {
@@ -21,6 +22,8 @@ export function authMiddleware(
   try {
     const payload = jwt.verify(token, env.JWT_SECRET) as { userId: string };
     req.userId = payload.userId;
+    // Scoped to this request: errors reported to Sentry carry who hit them.
+    Sentry.setUser({ id: payload.userId });
     next();
   } catch {
     return res.status(401).json({ error: "Invalid token" });

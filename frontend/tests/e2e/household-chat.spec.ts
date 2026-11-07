@@ -2,7 +2,7 @@ import type { APIRequestContext } from "@playwright/test";
 import { test, expect } from "./utils/test";
 import { gotoAuthed } from "./utils/auth";
 import { clickNav } from "./utils/nav";
-import { apiPost, loginAs, signupFreshUser } from "./utils/users";
+import { API, apiPost, loginAs, signupFreshUser } from "./utils/users";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -47,6 +47,49 @@ test("send a message and see a roommate's reply arrive", async ({
   );
   await expect(thread).toContainText("Yes please");
   await expect(thread.getByText("Pizza tonight?")).toHaveCount(1);
+});
+
+test("a hidden page stops polling, and polls once when shown again", async ({
+  page,
+  request,
+}) => {
+  const { owner, householdId } = await householdWithRoommate(request);
+  await loginAs(page, owner.token);
+  await gotoAuthed(page, `/household/${householdId}/chat`, {
+    waitForTestId: "message-thread-empty",
+  });
+
+  // A browser can't be put in the background from a test, so the page is told
+  // it's hidden the way a switched-away tab or a backgrounded app is.
+  const setHidden = (hidden: boolean) =>
+    page.evaluate((hidden) => {
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        get: () => (hidden ? "hidden" : "visible"),
+      });
+      Object.defineProperty(document, "hidden", {
+        configurable: true,
+        get: () => hidden,
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+    }, hidden);
+
+  const apiCalls: string[] = [];
+  page.on("request", (req) => {
+    if (req.url().startsWith(API)) apiCalls.push(req.url());
+  });
+
+  await setHidden(true);
+  apiCalls.length = 0;
+  // The chat polls every 3 seconds while visible.
+  await page.waitForTimeout(7_000);
+  expect(apiCalls).toEqual([]);
+
+  const poll = page.waitForRequest((req) =>
+    req.url().startsWith(`${API}/households/${householdId}/chat/messages`),
+  );
+  await setHidden(false);
+  await poll;
 });
 
 test("new messages show a badge (one per chat) until you open the chat", async ({

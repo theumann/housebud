@@ -73,7 +73,7 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 
 ### Accounts
 
-- **Signup has no rate limit, CAPTCHA or email confirmation.** With `SIGNUP_CODE` set (staging), only people with the code get that far; without it, nothing slows down automated signups and nothing checks that an email is real. Add a rate limit on `/auth/signup` and `/auth/login`, and email confirmation once the app sends email.
+- **Signup has no rate limit, CAPTCHA or email confirmation.** With `SIGNUP_CODE` set (staging), only people with the code get that far; without it, nothing slows down automated signups and nothing checks that an email is real. Add a rate limit on `/auth/signup` and `/auth/login` (per IP and per account, so password guessing is throttled; the only limits today are on feedback and the demo), and on password reset when it exists, plus email confirmation once the app sends email.
 
 - **No password reset in the app.** A forgotten password is reset by hand with `npm run reset-password` (see CLAUDE.md → Deployment), and the user then changes it on the Profile page. Add a reset by email once the app sends email.
 - **Changing or resetting a password doesn't log out other sessions.** Tokens can't be revoked: one stays valid for its 7 days whatever happens to the password. Fix: a `tokenVersion` (or `passwordChangedAt`) on `User`, put in the token and checked by `authMiddleware`.
@@ -92,6 +92,19 @@ Leaving requires another owner, and there's no way to delete a household. Someon
 - **Replace the browser's alert/confirm/prompt boxes and review their wording.** About 20 of them, in the chat room and room list, Matches, Shortlist, `ChoreBoard`, `ExpenseBoard`, `HouseholdView` and `MessageThread`: leaving a chat room, leaving a household, making someone else owner, removing a member, deleting an expense or payment, renaming, forming a household, error messages… They're unstyled and look different in every browser, and the wording needs a review: each confirm should say what will happen (e.g. what someone loses by leaving). Use an in-app confirm dialog, and inline errors where they fit.
 - **App name in the nav on phones.** Below `sm` the nav shows the logo icon only, because the row is full. The account menu (`AccountMenu.tsx`) freed about 80px, enough for "Find Roommates" on one line but not for the wordmark (about 115px). To show "HouseBud" there too, shorten "Find Roommates" on small screens (e.g. "Roommates"). (Stacking the name under the icon was considered and rejected: too small, and taller sticky nav.)
 - **Per-page browser tab titles** ("Chores · HouseBud"). Every page shows "HouseBud" today. The pages are client components and can't export `metadata`, so this needs a small server `layout.tsx` per section.
+
+### Scaling, security and operations (before opening to many users)
+
+From a review of what 1,000 users would need (2026-11-06). Load isn't the problem at that size (one backend and one Postgres are enough); what's around the app is. Rough cost then: $50–100 a month (Railway Pro and usage, email, storage; monitoring on free tiers) — check current prices.
+
+- **Backups are manual.** `pg_dump` before releases with a migration (`docs/production-setup.md`) isn't enough with real users' data. Railway's scheduled Postgres backups need the Pro plan; then restore one into a scratch database (`.env.restore-test`) to prove it works, and repeat now and then.
+- **Sending email.** A transactional provider (Resend, Postmark, Amazon SES…; free or low tiers cover a few thousand emails a month) and SPF, DKIM and DMARC records on `housebud.app` so mail doesn't land in spam. Needed for email confirmation, password reset (single-use, expiring tokens; the same answer whether or not the address exists) and real invite emails. Do CLAUDE.md's "Before the app sends any real email" first.
+- **Profile photo uploads** (roadmap in CLAUDE.md). S3-compatible object storage, not Postgres or the server's disk; check what Railway offers. Resize on upload, cap the size, accept only real image types, and **strip EXIF data**: phone photos often carry the GPS location they were taken at. Needs a way to report a photo and take it down (minors may be in the audience). Feedback screenshots (data URLs in `Feedback`) should move to the same storage.
+- **CORS accepts any origin** (`app.use(cors())` in `backend/src/app.ts`). The token travels in a header, not a cookie, so other sites can't act as a user, but limit it to the app's own origins anyway.
+- **No Content-Security-Policy for scripts.** `next.config.ts` sends HSTS, frame protection and the other basic headers, but the CSP only sets `frame-ancestors`. A script policy limits what a cross-site scripting bug could do, and matters because the token is in `localStorage`. Next's inline scripts (and the theme script in `layout.tsx`) need nonces, set per request in middleware (`proxy.ts`), which makes every page dynamically rendered; allow Sentry's ingest host in `connect-src` and avatar hosts in `img-src` (any `https:` until photos are hosted by us).
+- **No automatic dependency updates.** Turn on Dependabot (or Renovate) and add `npm audit` to CI.
+- **No uptime alerts.** An outage is only noticed when someone reports it. Add an uptime check on the API (`/health`) and the frontend (Sentry's free tier has one, or UptimeRobot).
+- **No load test.** Before opening, simulate a few hundred open tabs (k6 or Artillery against staging) to confirm the polling estimate (polling pauses in hidden tabs since 2026-11-06, so the old estimate of ~100 requests/s at 1,000 users is an upper bound) and find slow queries.
 
 ### Deployment
 

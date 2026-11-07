@@ -526,3 +526,20 @@ model Feedback {
   @@index([createdAt])
   @@index([userId, createdAt])
 }
+
+// Failed logins, signups and household joins, counted to slow down guessing
+// passwords, invite codes and join codes (auth.throttle.ts). Rows older than a day are deleted as new ones
+// come in.
+model AuthFailure {
+  id        String   @id @default(uuid())
+  kind      String // 'login' | 'signup' | 'join'
+  ip        String
+  // Login: the user id, or the identifier typed when no account matches.
+  // Join: the user id. Signup: none.
+  account   String?
+  createdAt DateTime @default(now())
+
+  @@index([kind, ip, createdAt])
+  @@index([kind, account, createdAt])
+  @@index([createdAt])
+}

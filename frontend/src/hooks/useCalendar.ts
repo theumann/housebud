@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, apiFetch } from "@/lib/api";
 import { localToday, type Repeat } from "@/hooks/useChores";
+import { startPolling } from "@/lib/polling";
 
 export type CalendarUser = {
   id: string;
@@ -113,11 +114,9 @@ export function useCalendar(
   useEffect(() => {
     if (!token) return;
     const seqRef = requestSeq;
-    const first = window.setTimeout(refresh, 0);
-    const id = window.setInterval(refresh, pollMs);
+    const stop = startPolling(refresh, pollMs);
     return () => {
-      window.clearTimeout(first);
-      window.clearInterval(id);
+      stop();
       seqRef.current++;
     };
   }, [token, pollMs, refresh]);

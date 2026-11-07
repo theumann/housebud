@@ -172,6 +172,7 @@ export async function fooHandler(
 - JWT payload shape: `{ userId: string }`, 7-day expiry
 - Passwords hashed with bcrypt, 10 rounds
 - `POST /auth/password` (logged in; `currentPassword` + `newPassword`, at least 8 characters) changes the password from the Profile page. A wrong current password is a 403, not a 401, so the frontend doesn't read it as an expired session
+- Failed logins and signups are limited (`auth.throttle.ts`, counted in the `AuthFailure` table so the limits hold across backend instances): 10 failed logins per account (by user id, so email and username count together) or 30 per IP address in 15 minutes,, 10 failed signups (wrong invite code, taken email or username) per IP in an hour, and 10 wrong household join codes per user or 30 per IP in an hour (`joinByCode`). Past a limit every attempt gets a 429 with `Retry-After`, the right password included. Successes don't count. `req.ip` is the visitor's address because the app trusts one proxy hop (Railway's); tests set `X-Forwarded-For` to stand in for different addresses
 
 ### Types
 
@@ -215,13 +216,14 @@ const data = await apiFetch<SomeType>("/endpoint", {
 - UI primitives live in `src/components/ui/` (Button, Card, Input, Avatar, etc.). Show people with `Avatar` (photo, or their initial on a color fixed by user id)
 - Buttons: `Button` variants are `primary` (the main action), `secondary` (other actions, Cancel included), `ghost` (borderless: icons, Undo), `outline` (teal, stands out without being the main action), `danger` (confirming something destructive) and `danger-subtle` (Leave, Remove in a list); size `sm` in list rows, `md` elsewhere. The "Add …" action at the top of a card is an `AddButton`, which shrinks to a "+" below `sm`. A list row shows only its main action; Edit, Delete and the like go in a `RowMenu` ("⋯"), whose items keep their `data-testid`s (open the menu first in tests)
 - Every page starts with a `PageHeader` (`components/layout/PageHeader.tsx`) above its cards: the `h1`, an optional description, and the page's main action on the right (usually an `AddButton`). Cards keep `h2` titles of their own when they need one. On the household Overview, the owner's settings are a page of their own behind the gear in the header. The Members card's "Invite housemates" row always shows the join code with Copy; the owner's tools under it (new code, email invites, pending list) are folded away (`household-invite-toggle`) unless the owner is the only member
+- `next.config.ts` sends security headers on every page (HSTS for every `housebud.app` subdomain, no framing, `nosniff`, no camera/microphone/location); `security-headers.spec.ts` checks them. HSTS covers subdomains: any new one must serve HTTPS
 - Reusable UI components wrap HTML elements with `forwardRef` and extend the relevant HTML attribute interface
 
 ### State & data fetching
 
 - Global state via React Context: `AuthContext`, `ShortlistContext`, `ChatroomsFeedContext`, `HouseholdInvitesContext` (also the household chat unread counts); `CurrentHouseholdContext` is scoped to `/household/[householdId]`
 - Data fetching lives in custom hooks in `src/hooks/` — hooks manage loading/error state and return them to the component
-- Chat uses HTTP polling (no WebSockets yet) — hooks accept a `pollMs` param and clean up intervals on unmount
+- Chat uses HTTP polling (no WebSockets yet) — hooks accept a `pollMs` param. Poll with `startPolling` (`src/lib/polling.ts`), not `setInterval`: it skips polls while the page is hidden (a background tab, an installed app in the background) and polls once when it's shown again; its stop function goes in the effect's cleanup
 
 ### Types
 
@@ -249,7 +251,7 @@ Coverage counts `src/` (not `server.ts`, types, the generated Prisma client or t
 
 Two Vitest projects (`vitest.config.mts`):
 
-- **unit** (`tests/unit/`): pure functions with rules worth pinning down — chore repeat steps and next due dates, rotation turn order, calendar repeats (`eventDays`), equal splits, balances and suggested transfers. No database and no setup, so they run in seconds and Claude can run them. Export a function from its service to test it; when a rule lives inside a database call, pull the pure part out first
+- **unit** (`tests/unit/`): pure functions with rules worth pinning down — chore repeat steps and next due dates, rotation turn order, calendar repeats (`eventDays`), equal splits, balances and suggested transfers, what Sentry events may carry (`scrubEvent`). No database and no setup, so they run in seconds and Claude can run them. Export a function from its service to test it; when a rule lives inside a database call, pull the pure part out first
 - **api** (`tests/api/`, `tests/scripts/`): the endpoints against Postgres
 
 API tests:
@@ -296,6 +298,8 @@ Required backend vars: `DATABASE_URL`, `JWT_SECRET`, `PORT`
 Optional: `SIGNUP_CODE` — when set, `POST /auth/signup` requires it (403 otherwise, checked before anything else) and the signup page shows an "Invite code" field (`GET /auth/signup-options`). `/signup?code=…` fills it in, so an invite can be a link. Trimmed and case-insensitive. Unset in local dev and tests; set on staging.
 
 Optional: `FEATURE_MATCHING=false` (with `NEXT_PUBLIC_FEATURE_MATCHING=false` on the frontend) turns matching off — see Done so far. Set in production only.
+
+Optional: Sentry error tracking, on only where its DSN is set (staging and production on Railway; never in local dev, tests or CI). Backend: `SENTRY_DSN`, initialised in `src/instrument.ts` (imported first in `server.ts`); `errorHandler` reports 5xx only. Frontend: `NEXT_PUBLIC_SENTRY_DSN` (baked in at build time), initialised in `src/instrumentation-client.ts`, plus `app/global-error.tsx`; with `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` set at build time, `next.config.ts` uploads source maps to Sentry and deletes them from the build. The environment name comes from Railway's `RAILWAY_ENVIRONMENT_NAME`. Events carry the user id and nothing else about a person: no request bodies, headers, cookies, query strings or local variables, and email addresses are blanked out of messages. Keep it that way when adding Sentry calls.
 
 Optional, **staging only — never production**: `DEMO_SANDBOX=true` turns on "Try the demo". `POST /demo/sandbox` (404 when off) creates a throwaway visitor (`@sandbox.example.com`) who owns "Maple Street House" with two of the `seed:demo` users as housemates (503 if they don't exist), chores in every state, a shopping list, a short household chat, expenses (the visitor owes a housemate), house rules (a proposal waiting for the visitor) and calendar entries (a weekly house meeting, events, a housemate away, the visitor's guest), and returns a 24-hour login. Sandboxes older than 24 hours are deleted whenever a new one is created (no scheduled job), at most 60 are created per hour (429), and Matches never shows sandbox users. The frontend's `/demo` page starts one and lands on the household; login and signup link to it when it's on (`demoAvailable` in `GET /auth/signup-options`). Link to `https://<frontend>/demo` from outside the app. `frontend/public/robots.txt` disallows `/demo`: crawlers that run JavaScript (Google's does) would otherwise create a sandbox on every visit.
 

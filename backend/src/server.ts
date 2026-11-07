@@ -1,4 +1,5 @@
 import "dotenv/config";
+import "./instrument";
 import { createApp } from "./app";
 import { createPrisma } from "./config/prisma";
 import { env } from "./config/env";
