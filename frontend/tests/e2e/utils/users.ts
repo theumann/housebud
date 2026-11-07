@@ -29,6 +29,7 @@ export async function signupFreshUser(
       lastName: "Tester",
       displayName: suffix.slice(0, 32),
       birthDate: "2005-09-15",
+      acceptNotice: true,
       school: "USF",
       collegeYear: "Freshman",
       targetCity: "San Francisco",

@@ -4,6 +4,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { env } from "../../config/env";
 import { HttpError, notFound } from "../../errors/http.error";
 import { issueAuthResponse } from "../auth/auth.utils";
+import { NOTICE_VERSION } from "../auth/auth.types";
 import { generateUniqueJoinCode } from "../household/household.service";
 import { splitEqually } from "../expenses/expenses.service";
 import {
@@ -131,6 +132,8 @@ export async function createSandbox(prisma: PrismaClient) {
       username: `visitor-${handle}`,
       // Nobody logs in with a password: the visitor gets a token below.
       passwordHash: await bcrypt.hash(randomUUID(), 10),
+      // A throwaway demo account isn't asked to accept the tester notice.
+      noticeVersion: NOTICE_VERSION,
       profile: {
         create: {
           firstName: "Demo",

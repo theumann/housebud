@@ -17,13 +17,17 @@ generator client {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  username     String   @unique
-  passwordHash String
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String    @id @default(uuid())
+  email            String    @unique
+  username         String    @unique
+  passwordHash     String
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  // The version of the tester notice this user accepted, and when
+  // (NOTICE_VERSION in auth.types.ts). Null: never accepted.
+  noticeVersion    Int?
+  noticeAcceptedAt DateTime?
 
   profile       UserProfile?
   settings      UserSettings?

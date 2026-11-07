@@ -1,7 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import type { AuthRequest } from "../../middleware/authMiddleware";
 import { SignupSchema, LoginSchema, ChangePasswordSchema } from "./auth.types";
-import { signup, login, signupOptions, changePassword } from "./auth.service";
+import {
+  signup,
+  login,
+  signupOptions,
+  changePassword,
+  acceptNotice,
+} from "./auth.service";
 import { clientIp } from "./auth.throttle";
 
 export async function signupHandler(
@@ -46,6 +52,19 @@ export async function changePasswordHandler(
   try {
     const input = ChangePasswordSchema.parse(req.body);
     await changePassword(req.prisma, req.userId!, input);
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function acceptNoticeHandler(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    await acceptNotice(req.prisma, req.userId!);
     res.status(204).end();
   } catch (err) {
     next(err);

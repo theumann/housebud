@@ -1,11 +1,18 @@
 import { Prisma, type PrismaClient } from "../../generated/prisma/client";
-import { SignupInput, LoginInput, ChangePasswordInput } from "./auth.types";
+import {
+  SignupInput,
+  LoginInput,
+  ChangePasswordInput,
+  MIN_SIGNUP_AGE,
+  NOTICE_VERSION,
+  ageOn,
+} from "./auth.types";
 import bcrypt from "bcrypt";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { env } from "../../config/env";
 import { issueAuthResponse } from "./auth.utils";
 import { AuthError } from "../../errors/auth.error";
-import { conflict, forbidden } from "../../errors/http.error";
+import { badRequest, conflict, forbidden } from "../../errors/http.error";
 import {
   checkLoginAllowed,
   checkSignupAllowed,
@@ -41,6 +48,12 @@ export async function signup(
     throw forbidden("A valid invite code is required to sign up");
   }
 
+  if (ageOn(input.birthDate, new Date()) < MIN_SIGNUP_AGE) {
+    throw badRequest(
+      `You must be ${MIN_SIGNUP_AGE} or older to sign up for HouseBud.`,
+    );
+  }
+
   const email = input.email.toLowerCase();
   const username = input.username.toLowerCase();
   const passwordHash = await bcrypt.hash(input.password, 10);
@@ -51,6 +64,8 @@ export async function signup(
         email,
         username,
         passwordHash,
+        noticeVersion: NOTICE_VERSION,
+        noticeAcceptedAt: new Date(),
         profile: {
           create: {
             firstName: input.firstName,
@@ -122,6 +137,13 @@ export async function login(
     throw new AuthError("Invalid credentials");
   }
   return issueAuthResponse(user);
+}
+
+export async function acceptNotice(prisma: PrismaClient, userId: string) {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { noticeVersion: NOTICE_VERSION, noticeAcceptedAt: new Date() },
+  });
 }
 
 // 403, not 401, for a wrong current password: the user is logged in, and a
