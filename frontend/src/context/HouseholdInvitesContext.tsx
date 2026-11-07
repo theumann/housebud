@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { startPolling } from "@/lib/polling";
 
 export type HouseholdInvite = {
   id: string;
@@ -99,9 +100,7 @@ export function HouseholdInvitesProvider({
   useEffect(() => {
     if (!token) return;
 
-    refresh();
-    const id = window.setInterval(refresh, pollMs);
-    return () => window.clearInterval(id);
+    return startPolling(refresh, pollMs);
   }, [token, pollMs, refresh]);
 
   const respond = async (inviteId: string, action: "accept" | "decline") => {

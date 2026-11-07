@@ -6,6 +6,11 @@ import { env } from "../../config/env";
 import { issueAuthResponse } from "./auth.utils";
 import { AuthError } from "../../errors/auth.error";
 import { conflict, forbidden } from "../../errors/http.error";
+import {
+  checkLoginAllowed,
+  checkSignupAllowed,
+  recordAuthFailure,
+} from "./auth.throttle";
 
 // Trimmed and case-insensitive, since people type codes from a message.
 function signupCodeMatches(given: string | undefined) {
@@ -22,10 +27,17 @@ export function signupOptions() {
   };
 }
 
-export async function signup(prisma: PrismaClient, input: SignupInput) {
+export async function signup(
+  prisma: PrismaClient,
+  input: SignupInput,
+  ip: string,
+) {
+  await checkSignupAllowed(prisma, ip);
+
   // Before anything else, so without a code signup reveals nothing, not even
   // whether an email already has an account.
   if (!signupCodeMatches(input.signupCode)) {
+    await recordAuthFailure(prisma, "signup", ip);
     throw forbidden("A valid invite code is required to sign up");
   }
 
@@ -69,6 +81,7 @@ export async function signup(prisma: PrismaClient, input: SignupInput) {
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === "P2002"
     ) {
+      await recordAuthFailure(prisma, "signup", ip);
       // Which one: asked of the database, since err.meta's shape changes
       // between Prisma versions (Prisma 7 dropped meta.target)
       const usernameTaken = await prisma.user.findUnique({
@@ -85,7 +98,11 @@ export async function signup(prisma: PrismaClient, input: SignupInput) {
   }
 }
 
-export async function login(prisma: PrismaClient, input: LoginInput) {
+export async function login(
+  prisma: PrismaClient,
+  input: LoginInput,
+  ip: string,
+) {
   const identifier = input.identifier.toLowerCase();
   const user = await prisma.user.findFirst({
     where: {
@@ -94,12 +111,14 @@ export async function login(prisma: PrismaClient, input: LoginInput) {
     include: { profile: true },
   });
 
-  if (!user) {
-    throw new AuthError("Invalid credentials");
-  }
+  // The user id, so guesses by email and by username count together.
+  const account = user?.id ?? identifier;
+  // Checked before the password, so a correct guess past the limit is refused too.
+  await checkLoginAllowed(prisma, ip, account);
 
-  const ok = await bcrypt.compare(input.password, user.passwordHash);
+  const ok = user && (await bcrypt.compare(input.password, user.passwordHash));
   if (!ok) {
+    await recordAuthFailure(prisma, "login", ip, account);
     throw new AuthError("Invalid credentials");
   }
   return issueAuthResponse(user);

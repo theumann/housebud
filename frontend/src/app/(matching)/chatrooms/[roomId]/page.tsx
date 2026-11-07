@@ -15,6 +15,7 @@ import {
 } from "@/lib/displayName";
 import { MessageThread } from "@/components/chat/MessageThread";
 import { useFillViewport } from "@/hooks/useFillViewport";
+import { startPolling } from "@/lib/polling";
 
 type ChatMessage = {
   id: string;
@@ -129,15 +130,10 @@ export default function ChatRoomPage() {
       }
     };
 
-    // Initial load
-    loadMessages();
-
-    // Poll every 3s
-    const intervalId = setInterval(loadMessages, 3000);
-
+    const stop = startPolling(loadMessages, 3000);
     return () => {
       cancelled = true;
-      clearInterval(intervalId);
+      stop();
     };
   }, [token, roomId]);
 

@@ -79,6 +79,7 @@ Variables:
 | `SIGNUP_CODE`      | New code, different from staging's (the staging one has been handed out with the demo)                                                                                              |
 | `NODE_ENV`         | `production` (the seed scripts refuse to run with it)                                                                                                                               |
 | `DEMO_SANDBOX`     | **Not set.** Never `true` in production                                                                                                                                             |
+| `SENTRY_DSN`       | Optional: the DSN of the Sentry project for the backend. Error tracking is off without it                                                                                           |
 | `FEATURE_MATCHING` | `false` while matching is closed in production (planned to open toward the end of the school year). Pair it with the frontend's `NEXT_PUBLIC_FEATURE_MATCHING`; set both or neither |
 
 `PORT` is provided by Railway.
@@ -92,6 +93,7 @@ Variables:
 - [x] `api.housebud.app` on prod-backend (CNAME `api`), then `NEXT_PUBLIC_API_BASE_URL=https://api.housebud.app` on prod-frontend and a redeploy.
 - [x] `NEXT_PUBLIC_FEATURE_MATCHING=false` while matching is closed, with the backend's `FEATURE_MATCHING=false`. Baked in at build time: changing it needs a redeploy. With it off, the matching pages redirect to `/household`.
 - [x] Health check path `/login` (2026-10-30), so a new deploy only takes traffic once a page loads.
+- [ ] Sentry (optional): `NEXT_PUBLIC_SENTRY_DSN` = the DSN of the Sentry project for the frontend (baked in at build time: changing it needs a redeploy), and for readable stack traces `SENTRY_AUTH_TOKEN` (an organization token from Sentry, kept secret), `SENTRY_ORG` and `SENTRY_PROJECT` (the slugs). The build log then shows the source map upload.
 
 ### 4. Deploy trigger
 

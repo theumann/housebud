@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useHouseholdInvites } from "@/context/HouseholdInvitesContext";
 import { ApiError, apiFetch } from "@/lib/api";
+import { startPolling } from "@/lib/polling";
 
 export type RuleUser = {
   id: string;
@@ -110,11 +111,9 @@ export function useHouseRules(householdId: string, pollMs = 15_000) {
   useEffect(() => {
     if (!token) return;
     const seqRef = requestSeq;
-    const first = window.setTimeout(refresh, 0);
-    const id = window.setInterval(refresh, pollMs);
+    const stop = startPolling(refresh, pollMs);
     return () => {
-      window.clearTimeout(first);
-      window.clearInterval(id);
+      stop();
       seqRef.current++;
     };
   }, [token, pollMs, refresh]);

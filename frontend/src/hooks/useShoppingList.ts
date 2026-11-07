@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, apiFetch } from "@/lib/api";
 import type { ExpenseInput } from "@/hooks/useExpenses";
+import { startPolling } from "@/lib/polling";
 
 type ItemUser = {
   id: string;
@@ -65,11 +66,9 @@ export function useShoppingList(householdId: string, pollMs = 10_000) {
   useEffect(() => {
     if (!token) return;
     const seqRef = requestSeq;
-    const first = window.setTimeout(refresh, 0);
-    const id = window.setInterval(refresh, pollMs);
+    const stop = startPolling(refresh, pollMs);
     return () => {
-      window.clearTimeout(first);
-      window.clearInterval(id);
+      stop();
       seqRef.current++;
     };
   }, [token, pollMs, refresh]);

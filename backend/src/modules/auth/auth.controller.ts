@@ -3,6 +3,11 @@ import type { AuthRequest } from "../../middleware/authMiddleware";
 import { SignupSchema, LoginSchema, ChangePasswordSchema } from "./auth.types";
 import { signup, login, signupOptions, changePassword } from "./auth.service";
 
+// req.ip is the visitor's address behind Railway's proxy ("trust proxy" in app.ts).
+function clientIp(req: Request) {
+  return req.ip ?? "unknown";
+}
+
 export async function signupHandler(
   req: Request,
   res: Response,
@@ -11,7 +16,7 @@ export async function signupHandler(
   try {
     const input = SignupSchema.parse(req.body);
     const prisma = req.prisma;
-    const result = await signup(prisma, input);
+    const result = await signup(prisma, input, clientIp(req));
     res.status(201).json(result);
   } catch (err) {
     next(err);
@@ -30,7 +35,7 @@ export async function loginHandler(
   try {
     const input = LoginSchema.parse(req.body);
     const prisma = req.prisma;
-    const result = await login(prisma, input);
+    const result = await login(prisma, input, clientIp(req));
     res.json(result);
   } catch (err) {
     next(err);
