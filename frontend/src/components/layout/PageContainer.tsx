@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import React from "react";
 import { AppNav } from "@/components/layout/AppNav";
+import { NoticeGate } from "@/components/notice/NoticeGate";
 import { useAuth } from "@/context/AuthContext";
 
 // Demo visitors' throwaway accounts (backend: SANDBOX_EMAIL_DOMAIN).
@@ -16,6 +17,7 @@ export function PageContainer({
   ...props
 }: PageContainerProps) {
   const { user } = useAuth();
+  const isDemo = user?.email.endsWith(SANDBOX_EMAIL_SUFFIX);
 
   // A real wrapper element (not a fragment) keeps the nav and <main> under a
   // parent only React touches, so the nav is always inserted above <main>.
@@ -24,7 +26,9 @@ export function PageContainer({
   return (
     <div className="flex min-h-dvh flex-col">
       {user && <AppNav />}
-      {user?.email.endsWith(SANDBOX_EMAIL_SUFFIX) && (
+      {/* Demo visitors aren't asked to accept the tester notice. */}
+      {user && !isDemo && <NoticeGate />}
+      {isDemo && (
         <p
           data-testid="demo-banner"
           className="border-b border-border-subtle bg-primary-50 px-4 py-2 text-center text-xs text-primary-700 dark:bg-primary-600/20 dark:text-primary-100"

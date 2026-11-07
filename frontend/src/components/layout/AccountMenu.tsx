@@ -108,6 +108,15 @@ export function AccountMenu() {
           >
             Profile
           </Link>
+          <Link
+            href="/about"
+            role="menuitem"
+            data-testid="nav-about"
+            className={itemClass}
+            onClick={() => setOpen(false)}
+          >
+            About
+          </Link>
           <button
             type="button"
             role="menuitem"

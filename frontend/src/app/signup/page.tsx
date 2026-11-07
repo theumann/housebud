@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
@@ -11,6 +11,7 @@ import { Input, Select } from "@/components/ui/Input";
 import { ApiError } from "@/lib/api";
 import { matchingEnabled } from "@/lib/features";
 import { useSignupOptions } from "@/hooks/useSignupOptions";
+import { TesterNotice } from "@/components/notice/TesterNotice";
 
 type SignupField = {
   name: string;
@@ -20,6 +21,7 @@ type SignupField = {
   wide?: boolean;
   autoComplete?: string;
   placeholder?: string;
+  hint?: string;
 };
 
 const FIELDS: SignupField[] = [
@@ -68,6 +70,7 @@ const FIELDS: SignupField[] = [
     type: "date",
     required: true,
     autoComplete: "bday",
+    hint: "You must be 18 or older.",
   },
   { name: "collegeYear", label: "College year", required: true },
   { name: "school", label: "School", wide: true, required: true },
@@ -110,6 +113,8 @@ function SignupForm() {
     targetState: "",
     targetZip: "",
   });
+  const [acceptNotice, setAcceptNotice] = useState(false);
+  const notice = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -126,7 +131,7 @@ function SignupForm() {
     setError(null);
     setSubmitting(true);
     try {
-      await signup(form);
+      await signup({ ...form, acceptNotice });
       // A new user has no household yet.
       router.replace(matchingEnabled ? "/matches" : "/household");
     } catch (err) {
@@ -218,12 +223,41 @@ function SignupForm() {
                   )}
                 />
               )}
+              {field.hint && (
+                <p className="mt-1 text-xs text-subtle">{field.hint}</p>
+              )}
             </div>
           );
         })}
+        <div className="space-y-1 sm:col-span-2">
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              data-testid="signup-accept-notice"
+              checked={acceptNotice}
+              onChange={(e) => setAcceptNotice(e.target.checked)}
+              required
+              className="mt-0.5"
+            />
+            <span>
+              I&apos;ve read and accept the tester notice: what HouseBud stores
+              and who sees it.
+              <span className="text-red-600 dark:text-red-400">*</span>
+            </span>
+          </label>
+          <button
+            type="button"
+            data-testid="signup-notice-link"
+            onClick={() => notice.current?.showModal()}
+            className="ml-6 text-sm font-medium text-primary-700 underline underline-offset-2 dark:text-primary-400"
+          >
+            Read the tester notice
+          </button>
+        </div>
         {error && (
           <p
             role="alert"
+            data-testid="signup-error"
             className="text-sm text-red-600 sm:col-span-2 dark:text-red-400"
           >
             {error}
@@ -247,6 +281,41 @@ function SignupForm() {
           className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-400"
         >
           Log in
+        </Link>
+      </p>
+      <dialog
+        ref={notice}
+        data-testid="signup-notice-dialog"
+        aria-labelledby="signup-notice-title"
+        className="m-auto max-h-[90dvh] open:flex w-[min(40rem,calc(100%-2rem))] flex-col rounded-lg border border-border-subtle bg-surface p-0 text-foreground shadow-xl backdrop:bg-black/50"
+      >
+        <div className="space-y-4 overflow-y-auto p-5">
+          <h2 id="signup-notice-title" className="text-lg font-semibold">
+            Tester notice
+          </h2>
+          <TesterNotice />
+        </div>
+        <div className="flex justify-end gap-2 border-t border-border-subtle p-4">
+          <Button variant="secondary" onClick={() => notice.current?.close()}>
+            Close
+          </Button>
+          <Button
+            data-testid="signup-notice-accept"
+            onClick={() => {
+              setAcceptNotice(true);
+              notice.current?.close();
+            }}
+          >
+            I accept
+          </Button>
+        </div>
+      </dialog>
+      <p className="mt-2 text-center text-sm text-muted">
+        <Link
+          href="/about"
+          className="font-medium text-primary-700 underline underline-offset-2 dark:text-primary-400"
+        >
+          About HouseBud
         </Link>
       </p>
       {demoAvailable && (

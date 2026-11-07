@@ -64,6 +64,9 @@ describe.sequential("Demo sandbox", () => {
     expect(res.status).toBe(201);
     const token = res.body.token;
     expect(res.body.user.email).toMatch(`@${SANDBOX_EMAIL_DOMAIN}`);
+    // Not asked to accept the tester notice.
+    const me = await request(ctx.app).get("/profile/me").set(auth(token));
+    expect(me.body.noticeAccepted).toBe(true);
 
     const households = await request(ctx.app)
       .get("/households")
