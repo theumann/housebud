@@ -35,17 +35,18 @@ test("signup needs the tester notice accepted, and can open it", async ({
   await gotoSignup(page);
   await fillSignup(page, "2005-09-15");
 
-  // The browser holds the form back while the box is unticked.
-  let signupSent = false;
-  page.on("request", (req) => {
-    if (req.url() === `${API}/auth/signup`) signupSent = true;
-  });
-  await page.getByRole("button", { name: "Sign up" }).click();
-  await expect(page.getByTestId("signup-accept-notice")).not.toBeChecked();
-  expect(signupSent).toBe(false);
+  // The browser holds the form back while the box is unticked. Asked of the
+  // box rather than by clicking Sign up: Firefox's "please check this box"
+  // bubble (in CI) swallowed the next click, so the dialog never opened.
+  const box = page.getByTestId("signup-accept-notice");
+  await expect(box).not.toBeChecked();
+  expect(
+    await box.evaluate((el: HTMLInputElement) => el.validity.valueMissing),
+  ).toBe(true);
 
   await page.getByTestId("signup-notice-link").click();
   const dialog = page.getByTestId("signup-notice-dialog");
+  await expect(dialog).toBeVisible();
   await expect(dialog.getByTestId("tester-notice")).toContainText(
     "What the app stores about you",
   );

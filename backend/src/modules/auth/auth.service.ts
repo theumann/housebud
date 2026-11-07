@@ -5,6 +5,7 @@ import {
   ChangePasswordInput,
   MIN_SIGNUP_AGE,
   NOTICE_VERSION,
+  ageOn,
 } from "./auth.types";
 import bcrypt from "bcrypt";
 import { createHash, timingSafeEqual } from "node:crypto";
@@ -24,17 +25,6 @@ function signupCodeMatches(given: string | undefined) {
   const digest = (s: string) =>
     createHash("sha256").update(s.trim().toLowerCase()).digest();
   return timingSafeEqual(digest(given ?? ""), digest(env.SIGNUP_CODE));
-}
-
-// Whole years between a "YYYY-MM-DD" birth date and `today` (UTC calendar
-// days): a birthday on the 29th of February comes on the 1st of March in
-// other years.
-export function ageOn(birthDate: string, today: Date) {
-  const [y, m, d] = birthDate.split("-").map(Number);
-  let age = today.getUTCFullYear() - y;
-  const month = today.getUTCMonth() + 1;
-  if (month < m || (month === m && today.getUTCDate() < d)) age--;
-  return age;
 }
 
 export function signupOptions() {

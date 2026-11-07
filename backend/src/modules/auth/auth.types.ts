@@ -7,6 +7,17 @@ export const NOTICE_VERSION = 1;
 // Signup refuses anyone younger. 16- and 17-year-olds may be let in later.
 export const MIN_SIGNUP_AGE = 18;
 
+// Whole years between a "YYYY-MM-DD" birth date and `today` (UTC calendar
+// days): a birthday on the 29th of February comes on the 1st of March in
+// other years.
+export function ageOn(birthDate: string, today: Date) {
+  const [y, m, d] = birthDate.split("-").map(Number);
+  let age = today.getUTCFullYear() - y;
+  const month = today.getUTCMonth() + 1;
+  if (month < m || (month === m && today.getUTCDate() < d)) age--;
+  return age;
+}
+
 export const SignupSchema = z.object({
   email: z.string().email(),
   username: z.string().min(3).max(32),

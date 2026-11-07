@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ageOn } from "../../src/modules/auth/auth.service";
+import { ageOn } from "../../src/modules/auth/auth.types";
 
 const day = (s: string) => new Date(`${s}T00:00:00Z`);
 
