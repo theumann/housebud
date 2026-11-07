@@ -23,9 +23,6 @@ import type { PrismaClient } from "./generated/prisma/client";
 
 export function createApp(prisma: PrismaClient) {
   const app = express();
-  // Railway's proxy adds the visitor's address to X-Forwarded-For; trusting
-  // that one hop makes req.ip the visitor's, which the login limits count by.
-  app.set("trust proxy", 1);
 
   // Feedback carries a screenshot; everything else keeps the 100 kB default.
   // The parser that runs first wins, so this one comes before the global one.

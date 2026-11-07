@@ -1,3 +1,4 @@
+import type { Request } from "express";
 import type { PrismaClient } from "../../generated/prisma/client";
 import { HttpError } from "../../errors/http.error";
 
@@ -15,6 +16,15 @@ export const AUTH_LIMITS = {
   joinPerIp: { max: 30, windowMs: 60 * MINUTE },
 };
 const KEEP_MS = 24 * 60 * MINUTE;
+
+// The visitor's address, which the per-IP limits count by. Behind Railway,
+// X-Forwarded-For ends with a CDN server's address rather than the visitor's,
+// so it comes from X-Real-IP, which Railway's edge sets on every request
+// (replacing any the caller sent). Without it (local dev, tests' defaults),
+// the connection's own address.
+export function clientIp(req: Request) {
+  return req.get("x-real-ip") || req.socket.remoteAddress || "unknown";
+}
 
 type Limit = { max: number; windowMs: number };
 type Kind = "login" | "signup" | "join";

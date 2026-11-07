@@ -2,11 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import type { AuthRequest } from "../../middleware/authMiddleware";
 import { SignupSchema, LoginSchema, ChangePasswordSchema } from "./auth.types";
 import { signup, login, signupOptions, changePassword } from "./auth.service";
-
-// req.ip is the visitor's address behind Railway's proxy ("trust proxy" in app.ts).
-function clientIp(req: Request) {
-  return req.ip ?? "unknown";
-}
+import { clientIp } from "./auth.throttle";
 
 export async function signupHandler(
   req: Request,
