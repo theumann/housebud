@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
 import type { ErrorEvent } from "@sentry/node";
+import { ZodError } from "zod";
 
 // Error tracking, only where SENTRY_DSN is set (staging and production on
 // Railway): off in local dev and tests. server.ts imports this before
@@ -29,6 +30,18 @@ export function scrubEvent(event: ErrorEvent): ErrorEvent {
   return event;
 }
 
+// Answered on purpose with a 4xx, so not worth an alert. Sentry's Express
+// integration also reports errors passed to next() by itself, and counts any
+// without a status (a ZodError: a malformed request, answered with a 400 by
+// errorHandler) as a 500.
+export function isClientError(error: unknown) {
+  if (error instanceof ZodError) return true;
+  const status =
+    (error as { statusCode?: unknown; status?: unknown } | null)?.statusCode ??
+    (error as { status?: unknown } | null)?.status;
+  return typeof status === "number" && status < 500;
+}
+
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -45,6 +58,7 @@ if (process.env.SENTRY_DSN) {
       databaseQueryData: false,
       stackFrameVariables: false,
     },
-    beforeSend: scrubEvent,
+    beforeSend: (event, hint) =>
+      isClientError(hint.originalException) ? null : scrubEvent(event),
   });
 }
