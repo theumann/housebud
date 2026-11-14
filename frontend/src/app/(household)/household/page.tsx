@@ -130,6 +130,7 @@ export default function HouseholdPage() {
       <PageHeader
         className="mb-4"
         title="Household"
+        icon="household"
         description="The people you live with, in one place."
       />
 
