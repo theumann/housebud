@@ -44,3 +44,20 @@ test("the nav logo takes a household member to their household", async ({
   await page.getByTestId("nav-logo").click();
   await expect(page).toHaveURL(/\/household\/[\w-]+$/);
 });
+
+test("logged-out visitors see what the app is and can go to log in", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByTestId("landing-page")).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+
+  await page.getByTestId("landing-login").click();
+  await expect(page).toHaveURL(/\/login$/);
+
+  await page.getByTestId("auth-logo-link").click();
+  await expect(page.getByTestId("landing-page")).toBeVisible();
+
+  await page.getByTestId("landing-signup").click();
+  await expect(page).toHaveURL(/\/signup$/);
+});
