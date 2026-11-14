@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { matchingEnabled } from "@/lib/features";
+import { Landing } from "@/components/landing/Landing";
 
 // "/" is the app's landing logic; login and the nav logo send people here.
+// Logged-out visitors see what the app is, with links to log in or sign up.
 // Members of a household land on it; everyone else lands on Matches, or on
 // /household (create or join one) while matching is off.
 const noHouseholdPath = matchingEnabled ? "/matches" : "/household";
@@ -30,11 +32,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (loading) return;
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
+    if (loading || !token) return;
 
     let cancelled = false;
     landingPath(token).then((path) => {
@@ -44,6 +42,8 @@ export default function Home() {
       cancelled = true;
     };
   }, [loading, token, router]);
+
+  if (!loading && !token) return <Landing />;
 
   return (
     <main

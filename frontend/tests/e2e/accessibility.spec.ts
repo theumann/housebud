@@ -61,6 +61,12 @@ for (const theme of ["light", "dark"] as const) {
     test.describe("logged out", () => {
       test.use({ storageState: { cookies: [], origins: [] } });
 
+      test("landing", async ({ page }, testInfo) => {
+        await page.goto("/");
+        await expect(page.getByTestId("landing-page")).toBeVisible();
+        await expectNoViolations(page, testInfo);
+      });
+
       test("login", async ({ page }, testInfo) => {
         await gotoLoginForm(page);
         await expectNoViolations(page, testInfo);
