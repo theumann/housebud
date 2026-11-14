@@ -182,6 +182,7 @@ export default function ShortlistPage() {
       <PageHeader
         className="mb-4"
         title="Shortlist"
+        icon="shortlist"
         description="Keep track of promising roommates and start or extend chats from here."
         action={
           hasShortlist && (

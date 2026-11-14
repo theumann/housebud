@@ -168,6 +168,7 @@ export function HouseRules({ household }: { household: Household }) {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="House rules"
+        icon="rules"
         description={`Rules everyone in ${household.name} has agreed to. Adding or changing one needs everyone's agreement.`}
         action={
           draft === null && (

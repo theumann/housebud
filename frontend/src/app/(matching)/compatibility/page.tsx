@@ -179,6 +179,7 @@ export default function CompatibilityPage() {
       <PageHeader
         className="mb-4"
         title="Compatibility profile"
+        icon="compatibility"
         description="Answer a few questions so we can propose roommates whose lifestyle is closer to yours. For the MVP, these answers are used only for match scoring."
       />
 

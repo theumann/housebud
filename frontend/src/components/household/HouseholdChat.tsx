@@ -28,6 +28,7 @@ export function HouseholdChat({ household }: { household: Household }) {
       <PageHeader
         className="mb-4"
         title="Chat"
+        icon="chat"
         description={`For everyone in ${household.name}. New members see messages from when they joined.`}
       />
       <MessageThread

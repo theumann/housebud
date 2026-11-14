@@ -111,6 +111,13 @@
 
 /* In the base layer so utility classes on <body> (the page gradient) win */
 @layer base {
+  /* Keeps room for the scrollbar even when the page fits the window, so the
+     page doesn't shift sideways when a load makes it just tall enough to
+     scroll (the household Overview did, as "Coming up" arrived). */
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     background: var(--background);
     color: var(--foreground);

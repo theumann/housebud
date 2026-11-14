@@ -77,6 +77,7 @@ export default function ChatroomsPage() {
       <PageHeader
         className="mb-4"
         title="Chat rooms"
+        icon="chat"
         description="Meet & Greet rooms where you can talk with potential roommates."
         action={
           <Button

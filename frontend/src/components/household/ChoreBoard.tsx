@@ -465,6 +465,7 @@ export function ChoreBoard({ household }: { household: Household }) {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Chores"
+        icon="chores"
         description={`Who does what in ${household.name}, and whose turn is next.`}
         action={
           editing !== "new" && (
