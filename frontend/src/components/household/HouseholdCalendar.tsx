@@ -318,6 +318,7 @@ export function HouseholdCalendar({ household }: { household: Household }) {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Calendar"
+        icon="calendar"
         description={`What's on in ${household.name}, who's away, and when chores are due.`}
         action={
           form === null && (

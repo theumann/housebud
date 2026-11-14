@@ -4,39 +4,47 @@ import Link from "next/link";
 import clsx from "clsx";
 import { Logo } from "@/components/Logo";
 import { buttonClass } from "@/components/ui/Button";
+import { ModuleTile, type ModuleIconName } from "@/components/icons/ModuleIcon";
 import { useSignupOptions } from "@/hooks/useSignupOptions";
 import { matchingEnabled } from "@/lib/features";
 
-const FEATURES = [
+const FEATURES: { icon: ModuleIconName; title: string; text: string }[] = [
   ...(matchingEnabled
     ? [
         {
+          icon: "roommates" as const,
           title: "Find roommates",
           text: "Answer a few questions about how you live, see who fits, and chat before you decide.",
         },
       ]
     : []),
   {
+    icon: "chores",
     title: "Chores",
     text: "Repeating chores with turns that rotate, so everyone knows whose week it is.",
   },
   {
+    icon: "shopping",
     title: "Shopping list",
     text: "One list for the house. Check things off at the store and turn the trip into a shared expense.",
   },
   {
+    icon: "expenses",
     title: "Expenses",
     text: "Split bills and groceries, see who owes whom, and settle up with suggested payments.",
   },
   {
+    icon: "rules",
     title: "House rules",
     text: "Agree on rules together: every change is a proposal that everyone signs off on.",
   },
   {
+    icon: "calendar",
     title: "Calendar",
     text: "House events, who's away, who has a guest over, and the chores coming up.",
   },
   {
+    icon: "chat",
     title: "House chat",
     text: "A chat for the people who live there, nobody else.",
   },
@@ -102,10 +110,13 @@ export function Landing() {
           {FEATURES.map((f) => (
             <li
               key={f.title}
-              className="rounded-card border border-border-subtle bg-surface p-5 shadow-soft"
+              className="flex gap-4 rounded-card border border-border-subtle bg-surface p-5 shadow-soft"
             >
-              <h3 className="font-semibold">{f.title}</h3>
-              <p className="mt-1 text-sm text-muted">{f.text}</p>
+              <ModuleTile name={f.icon} className="size-12" />
+              <div>
+                <h3 className="font-semibold">{f.title}</h3>
+                <p className="mt-1 text-sm text-muted">{f.text}</p>
+              </div>
             </li>
           ))}
         </ul>

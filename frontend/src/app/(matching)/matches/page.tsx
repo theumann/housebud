@@ -221,6 +221,7 @@ export default function MatchesPage() {
       <PageHeader
         className="mb-4"
         title="Your Matches"
+        icon="roommates"
         description="Potential roommates near your target location, sorted by compatibility."
         action={
           <a

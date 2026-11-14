@@ -168,6 +168,7 @@ export function ShoppingList({ household }: { household: Household }) {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Shopping list"
+        icon="shopping"
         description={`Shared with everyone in ${household.name}.`}
       />
       <Card data-testid="shopping-list">

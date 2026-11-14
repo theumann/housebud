@@ -13,6 +13,7 @@ export default function HouseholdOverviewPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title={household.name}
+        icon="household"
         titleTestId="household-name"
         action={
           <div className="flex shrink-0 items-center gap-1">

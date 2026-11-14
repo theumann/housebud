@@ -204,6 +204,7 @@ export function ExpenseBoard({ household }: { household: Household }) {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Expenses"
+        icon="expenses"
         description={`Who paid for what in ${household.name}, and who owes whom.`}
         action={
           editing !== "new" && (

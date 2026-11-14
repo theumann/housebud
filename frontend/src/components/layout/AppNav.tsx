@@ -12,6 +12,7 @@ import { AccountMenu } from "@/components/layout/AccountMenu";
 import { FeedbackButton } from "@/components/layout/FeedbackButton";
 import { useMenuDismiss } from "@/hooks/useMenuDismiss";
 import { matchingEnabled } from "@/lib/features";
+import { ModuleIcon, type ModuleIconName } from "@/components/icons/ModuleIcon";
 
 function NavBadge({ count, testId }: { count: number; testId?: string }) {
   if (count <= 0) return null;
@@ -29,6 +30,7 @@ type NavLink = {
   href: string;
   label: string;
   testId: string;
+  icon?: ModuleIconName;
   exact?: boolean;
   // Sub-pages reached from this page rather than from the nav, which keep
   // it highlighted (e.g. the household's settings, from the Overview).
@@ -78,7 +80,10 @@ function NavPill({
       className={clsx(pillClass(active), className)}
       aria-current={active ? "page" : undefined}
     >
-      <span className="relative inline-flex items-center gap-2">
+      <span className="relative inline-flex items-center gap-1.5">
+        {/* Phones have no room for them: "Find Roommates" wraps and the
+            matching row overflows. The "More" menu keeps them. */}
+        {link.icon && <ModuleIcon name={link.icon} className="max-sm:hidden" />}
         <span>{link.label}</span>
         <NavBadge count={link.badge ?? 0} testId={`${link.testId}-badge`} />
       </span>
@@ -163,7 +168,10 @@ function MoreMenu({ links, pathname }: { links: NavLink[]; pathname: string }) {
                     : "text-foreground-soft",
                 )}
               >
-                {link.label}
+                <span className="inline-flex items-center gap-2">
+                  {link.icon && <ModuleIcon name={link.icon} />}
+                  {link.label}
+                </span>
                 <NavBadge
                   count={link.badge ?? 0}
                   testId={`${link.testId}-more-badge`}
@@ -205,6 +213,7 @@ export function AppNav() {
             href: "/matches",
             label: "Find Roommates",
             testId: "nav-find-roommates",
+            icon: "roommates" as const,
             // Inside the section the Chat link carries the same count.
             badge: inMatching ? 0 : totalBadgeCount,
             active: inMatching,
@@ -215,6 +224,7 @@ export function AppNav() {
       href: "/household",
       label: "Household",
       testId: "nav-household",
+      icon: "household",
       // Inside the section the Chat and House rules links carry these.
       badge:
         householdInvites.length +
@@ -224,17 +234,29 @@ export function AppNav() {
   ];
 
   const matchingLinks: NavLink[] = [
-    { href: "/matches", label: "Matches", testId: "nav-matches" },
-    { href: "/shortlist", label: "Shortlist", testId: "nav-shortlist" },
+    {
+      href: "/matches",
+      label: "Matches",
+      testId: "nav-matches",
+      icon: "roommates",
+    },
+    {
+      href: "/shortlist",
+      label: "Shortlist",
+      testId: "nav-shortlist",
+      icon: "shortlist",
+    },
     {
       href: "/compatibility",
       label: "Compatibility",
       testId: "nav-compatibility",
+      icon: "compatibility",
     },
     {
       href: "/chatrooms",
       label: "Chat",
       testId: "nav-chat",
+      icon: "chat",
       badge: totalBadgeCount,
     },
   ];
@@ -247,6 +269,7 @@ export function AppNav() {
           href: `/household/${currentHousehold.id}`,
           label: "Overview",
           testId: "nav-household-overview",
+          icon: "household",
           exact: true,
           alsoActive: [`/household/${currentHousehold.id}/settings`],
         },
@@ -256,6 +279,7 @@ export function AppNav() {
             href: `/household/${currentHousehold.id}/${m.path}`,
             label: m.label,
             testId: `nav-household-${m.path}`,
+            icon: m.path,
             badge:
               m.path === "chat"
                 ? unreadMessages[currentHousehold.id]
